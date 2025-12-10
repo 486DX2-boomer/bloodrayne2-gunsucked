@@ -6,7 +6,9 @@
 #include "Config.h"
 #include "KeyInput.h"
 #include "PhotoModeCamera.h"
-#include "SuperSlowMode.h"
+
+// design of super slow mode feature needs a lot of work, disabled for now
+//#include "SuperSlowMode.h"
 
 void SetupConsole() {
     if (!AllocConsole()) {
@@ -26,7 +28,7 @@ void SetupConsole() {
 DWORD WINAPI MainThread(LPVOID param) {
 
     PhotoModeCamera photoMode;
-    SuperSlowMode superSlowMode;
+    //SuperSlowMode superSlowMode;
 
     // Build input list with callbacks
     std::vector<KeyInput> inputs;
@@ -72,10 +74,10 @@ DWORD WINAPI MainThread(LPVOID param) {
         photoMode.CycleMode();
         }));
 
-    // Superslow toggle
-    inputs.push_back(KeyInput(TOGGLE_SUPER_SLOW_MODE_KEY, true, [&superSlowMode]() {
-        superSlowMode.toggle();
-        }));
+    // Super slow toggle
+    //inputs.push_back(KeyInput(TOGGLE_SUPER_SLOW_MODE_KEY, true, [&superSlowMode]() {
+    //    superSlowMode.toggle();
+    //    }));
 
     while (true) {
 
