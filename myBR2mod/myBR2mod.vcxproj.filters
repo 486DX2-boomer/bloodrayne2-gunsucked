@@ -24,6 +24,12 @@
     <ClInclude Include="KeyInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PhotoModeCamera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

@@ -1,14 +1,6 @@
 #pragma once
 #include <Windows.h>
-#include <iostream>
-
-#define DEBUG_CONSOLE_ENABLED true
-
-#if DEBUG_CONSOLE_ENABLED
-#define DEBUG_LOG(msg) std::cout << msg << std::endl
-#else
-#define DEBUG_LOG(msg) ((void)0)
-#endif
+#include "Config.h"
 
 class PhotoModeCamera {
 private:
@@ -42,28 +34,16 @@ public:
         originalPitch(0), originalYaw(0), originalFov(0),
         originalCameraMode(0), originalTimeFactor(1.0f)
     {
-        // Base address: 0x05E34EE0 (CGameView)
-        // Offsets from our reverse engineering (XZY order):
-        // +0x004 = cameraX
-        // +0x008 = cameraZ
-        // +0x00C = cameraY
-        // +0x010 = cameraPitch (target X)
-        // +0x014 = cameraYaw (target Y)
-        // +0x01C = FOV
-        // +0x214 = cameraMode
+        cameraX = (float*)GameAddresses::CameraX;
+        cameraZ = (float*)GameAddresses::CameraZ;
+        cameraY = (float*)GameAddresses::CameraY;
+        cameraPitch = (float*)GameAddresses::CameraPitch;
+        cameraYaw = (float*)GameAddresses::CameraYaw;
+        fov = (float*)GameAddresses::CameraFOV;
+        cameraMode = (int*)GameAddresses::CameraMode;
 
-        constexpr uintptr_t cameraBase = 0x05E34EE0;
-
-        cameraX = (float*)(cameraBase + 0x004);
-        cameraZ = (float*)(cameraBase + 0x008);
-        cameraY = (float*)(cameraBase + 0x00C);
-        cameraPitch = (float*)(cameraBase + 0x010);
-        cameraYaw = (float*)(cameraBase + 0x014);
-        fov = (float*)(cameraBase + 0x01C);
-        cameraMode = (int*)(cameraBase + 0x214);
-
-        pushCamera = (bool*)(0x05E3473D);
-        timeFactor = (float*)(0x0619FB68);
+        pushCamera = (bool*)GameAddresses::PushCamera;
+        timeFactor = (float*)GameAddresses::TimeFactor;
     }
 
     bool IsEnabled() const {
@@ -142,16 +122,17 @@ public:
     void CycleMode() {
         if (!enabled) return;
 
-        // Modes are constrained 0-22 by the game
+        // these are constrained 0-22 by the game. 
+        // We could check to see if we go over 22, but the game overwrites it for us. appears safe
         *cameraMode += 1;
         DEBUG_LOG("Camera mode: " << *cameraMode);
     }
 
     // Debug output
     void PrintState() const {
-        DEBUG_LOG("PhotoMode: " << (enabled ? "ON" : "OFF")
+        DEBUG_LOG("Photo mode: " << (enabled ? "on" : "off")
             << " Pos(" << *cameraX << ", " << *cameraZ << ", " << *cameraY << ")"
             << " FOV: " << *fov
-            << " Mode: " << *cameraMode);
+            << " mode: " << *cameraMode);
     }
 };
