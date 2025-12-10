@@ -2,6 +2,7 @@
 #include "pch.h"
 #include <Windows.h>
 #include <stdio.h>
+#include <vector>
 #include "Config.h"
 #include "KeyInput.h"
 #include "PhotoModeCamera.h"
@@ -23,66 +24,62 @@ void SetupConsole() {
 
 DWORD WINAPI MainThread(LPVOID param) {
 
-    PhotoModeCamera camera;
+    PhotoModeCamera photoMode;
 
-    // Toggle keys (fire once per press)
-    KeyInput photoModeToggleKey(TOGGLE_PHOTO_MODE_KEY, true);
+    // Build input list with callbacks
+    std::vector<KeyInput> inputs;
+
+    // Debug key - no callback, handled manually
     KeyInput debugCheckKey(DEBUG_CHECK_KEY, true);
-    KeyInput changeCameraMode(CAMERA_CHANGE_MODE_KEY, true);
 
-    // Continuous keys (fire while held)
-    KeyInput decrementX(DECREMENT_X_KEY, false);
-    KeyInput incrementX(INCREMENT_X_KEY, false);
-    KeyInput decrementY(DECREMENT_Y_KEY, false);
-    KeyInput incrementY(INCREMENT_Y_KEY, false);
-    KeyInput decrementZ(DECREMENT_Z_KEY, false);
-    KeyInput incrementZ(INCREMENT_Z_KEY, false);
-    KeyInput decrementFov(DECREMENT_FOV_KEY, false);
-    KeyInput incrementFov(INCREMENT_FOV_KEY, false);
+    // Photo mode toggle
+    inputs.push_back(KeyInput(TOGGLE_PHOTO_MODE_KEY, true, [&photoMode]() {
+        photoMode.Toggle();
+        }));
+
+    // Position adjustments (XZY order)
+    inputs.push_back(KeyInput(DECREMENT_X_KEY, false, [&photoMode]() {
+        photoMode.AdjustPosition(-CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0, 0);
+        }));
+    inputs.push_back(KeyInput(INCREMENT_X_KEY, false, [&photoMode]() {
+        photoMode.AdjustPosition(CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0, 0);
+        }));
+    inputs.push_back(KeyInput(DECREMENT_Z_KEY, false, [&photoMode]() {
+        photoMode.AdjustPosition(0, -CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0);
+        }));
+    inputs.push_back(KeyInput(INCREMENT_Z_KEY, false, [&photoMode]() {
+        photoMode.AdjustPosition(0, CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0);
+        }));
+    inputs.push_back(KeyInput(DECREMENT_Y_KEY, false, [&photoMode]() {
+        photoMode.AdjustPosition(0, 0, -CAMERA_POS_INCREMENT_DECREMENT_VALUE);
+        }));
+    inputs.push_back(KeyInput(INCREMENT_Y_KEY, false, [&photoMode]() {
+        photoMode.AdjustPosition(0, 0, CAMERA_POS_INCREMENT_DECREMENT_VALUE);
+        }));
+
+    // FOV adjustments
+    inputs.push_back(KeyInput(DECREMENT_FOV_KEY, false, [&photoMode]() {
+        photoMode.AdjustFOV(-FOV_INCREMENT_DECREMENT_VALUE);
+        }));
+    inputs.push_back(KeyInput(INCREMENT_FOV_KEY, false, [&photoMode]() {
+        photoMode.AdjustFOV(FOV_INCREMENT_DECREMENT_VALUE);
+        }));
+
+    // Mode cycling
+    inputs.push_back(KeyInput(CAMERA_CHANGE_MODE_KEY, true, [&photoMode]() {
+        photoMode.CycleMode();
+        }));
 
     while (true) {
 
+        // Handle debug key manually (no callback)
         if (debugCheckKey.IsActivated()) {
-            camera.PrintState();
+            photoMode.PrintState();
         }
 
-        if (photoModeToggleKey.IsActivated()) {
-            camera.Toggle();
-        }
-
-        if (camera.IsEnabled()) {
-            // Position adjustments (XZY order)
-            if (decrementX.IsActivated()) {
-                camera.AdjustPosition(-CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0, 0);
-            }
-            if (incrementX.IsActivated()) {
-                camera.AdjustPosition(CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0, 0);
-            }
-            if (decrementZ.IsActivated()) {
-                camera.AdjustPosition(0, -CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0);
-            }
-            if (incrementZ.IsActivated()) {
-                camera.AdjustPosition(0, CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0);
-            }
-            if (decrementY.IsActivated()) {
-                camera.AdjustPosition(0, 0, -CAMERA_POS_INCREMENT_DECREMENT_VALUE);
-            }
-            if (incrementY.IsActivated()) {
-                camera.AdjustPosition(0, 0, CAMERA_POS_INCREMENT_DECREMENT_VALUE);
-            }
-
-            // FOV adjustments
-            if (decrementFov.IsActivated()) {
-                camera.AdjustFOV(-FOV_INCREMENT_DECREMENT_VALUE);
-            }
-            if (incrementFov.IsActivated()) {
-                camera.AdjustFOV(FOV_INCREMENT_DECREMENT_VALUE);
-            }
-
-            // Mode cycling
-            if (changeCameraMode.IsActivated()) {
-                camera.CycleMode();
-            }
+        // Process all inputs with callbacks
+        for (auto& input : inputs) {
+            input.CheckAndExecute();
         }
 
         Sleep(16);

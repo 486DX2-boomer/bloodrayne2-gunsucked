@@ -34,105 +34,104 @@ public:
         originalPitch(0), originalYaw(0), originalFov(0),
         originalCameraMode(0), originalTimeFactor(1.0f)
     {
-        cameraX = (float*)GameAddresses::CameraX;
-        cameraZ = (float*)GameAddresses::CameraZ;
-        cameraY = (float*)GameAddresses::CameraY;
-        cameraPitch = (float*)GameAddresses::CameraPitch;
-        cameraYaw = (float*)GameAddresses::CameraYaw;
-        fov = (float*)GameAddresses::CameraFOV;
-        cameraMode = (int*)GameAddresses::CameraMode;
+        this->cameraX = (float*)GameAddresses::CameraX;
+        this->cameraZ = (float*)GameAddresses::CameraZ;
+        this->cameraY = (float*)GameAddresses::CameraY;
+        this->cameraPitch = (float*)GameAddresses::CameraPitch;
+        this->cameraYaw = (float*)GameAddresses::CameraYaw;
+        this->fov = (float*)GameAddresses::CameraFOV;
+        this->cameraMode = (int*)GameAddresses::CameraMode;
 
-        pushCamera = (bool*)GameAddresses::PushCamera;
-        timeFactor = (float*)GameAddresses::TimeFactor;
+        this->pushCamera = (bool*)GameAddresses::PushCamera;
+        this->timeFactor = (float*)GameAddresses::TimeFactor;
     }
 
     bool IsEnabled() const {
-        return enabled;
+        return this->enabled;
     }
 
     void Enable() {
-        if (enabled) return;
+        if (this->enabled) return;
 
         // Capture current values
-        originalX = *cameraX;
-        originalZ = *cameraZ;
-        originalY = *cameraY;
-        originalPitch = *cameraPitch;
-        originalYaw = *cameraYaw;
-        originalFov = *fov;
-        originalCameraMode = *cameraMode;
-        originalTimeFactor = *timeFactor;
+        this->originalX = *this->cameraX;
+        this->originalZ = *this->cameraZ;
+        this->originalY = *this->cameraY;
+        this->originalPitch = *this->cameraPitch;
+        this->originalYaw = *this->cameraYaw;
+        this->originalFov = *this->fov;
+        this->originalCameraMode = *this->cameraMode;
+        this->originalTimeFactor = *this->timeFactor;
 
         // Freeze time (small value to avoid overflow issues)
-        *timeFactor = 0.0001f;
+        *this->timeFactor = 0.0001f;
 
         // Set camera mode (mode 1 for now - may need adjustment)
-        *cameraMode = 1;
+        *this->cameraMode = 1;
 
         // Disable camera push/bounds checking
-        *pushCamera = true;
+        *this->pushCamera = true;
 
-        enabled = true;
+        this->enabled = true;
         DEBUG_LOG("Photo mode enabled");
     }
 
     void Disable() {
-        if (!enabled) return;
+        if (!this->enabled) return;
 
         // Restore all original values
-        *cameraX = originalX;
-        *cameraZ = originalZ;
-        *cameraY = originalY;
-        *cameraPitch = originalPitch;
-        *cameraYaw = originalYaw;
-        *fov = originalFov;
-        *cameraMode = originalCameraMode;
-        *timeFactor = originalTimeFactor;
+        *this->cameraX = this->originalX;
+        *this->cameraZ = this->originalZ;
+        *this->cameraY = this->originalY;
+        *this->cameraPitch = this->originalPitch;
+        *this->cameraYaw = this->originalYaw;
+        *this->fov = this->originalFov;
+        *this->cameraMode = this->originalCameraMode;
+        *this->timeFactor = this->originalTimeFactor;
 
         // Re-enable camera push
-        *pushCamera = false;
+        *this->pushCamera = false;
 
-        enabled = false;
+        this->enabled = false;
         DEBUG_LOG("Photo mode disabled");
     }
 
     void Toggle() {
-        if (enabled) {
-            Disable();
+        if (this->enabled) {
+            this->Disable();
         }
         else {
-            Enable();
+            this->Enable();
         }
     }
 
     void AdjustPosition(float dx, float dz, float dy) {
-        if (!enabled) return;
+        if (!this->enabled) return;
 
-        *cameraX += dx;
-        *cameraZ += dz;
-        *cameraY += dy;
+        *this->cameraX += dx;
+        *this->cameraZ += dz;
+        *this->cameraY += dy;
     }
 
     void AdjustFOV(float delta) {
-        if (!enabled) return;
+        if (!this->enabled) return;
 
-        *fov += delta;
+        *this->fov += delta;
     }
 
     void CycleMode() {
-        if (!enabled) return;
+        if (!this->enabled) return;
 
-        // these are constrained 0-22 by the game. 
-        // We could check to see if we go over 22, but the game overwrites it for us. appears safe
-        *cameraMode += 1;
-        DEBUG_LOG("Camera mode: " << *cameraMode);
+        // Modes are constrained 0-22 by the game
+        *this->cameraMode += 1;
+        DEBUG_LOG("Camera mode: " << *this->cameraMode);
     }
 
     // Debug output
     void PrintState() const {
-        DEBUG_LOG("Photo mode: " << (enabled ? "on" : "off")
-            << " Pos(" << *cameraX << ", " << *cameraZ << ", " << *cameraY << ")"
-            << " FOV: " << *fov
-            << " mode: " << *cameraMode);
+        DEBUG_LOG("PhotoMode: " << (this->enabled ? "ON" : "OFF")
+            << " Pos(" << *this->cameraX << ", " << *this->cameraZ << ", " << *this->cameraY << ")"
+            << " FOV: " << *this->fov
+            << " Mode: " << *this->cameraMode);
     }
 };

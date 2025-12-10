@@ -1,5 +1,9 @@
 #pragma once
 
+// ============================================
+// Debug Configuration
+// ============================================
+
 #define DEBUG_CONSOLE_ENABLED true
 
 #if DEBUG_CONSOLE_ENABLED
@@ -8,6 +12,10 @@
 #else
 #define DEBUG_LOG(msg) ((void)0)
 #endif
+
+// ============================================
+// Game Addresses
+// ============================================
 
 namespace GameAddresses {
     // CGameView base address
@@ -27,7 +35,10 @@ namespace GameAddresses {
     float* const TimeFactor = (float*)(0x0619FB68);
 }
 
-// KEY BINDINGS -----------
+// ============================================
+// Key Bindings
+// ============================================
+
 // Camera position controls
 #define DECREMENT_X_KEY VK_OEM_4      // [
 #define INCREMENT_X_KEY VK_OEM_6      // ]
@@ -48,8 +59,10 @@ namespace GameAddresses {
 
 // Debug
 #define DEBUG_CHECK_KEY VK_F6
-// --------------------------
 
-// tuning values -------------
+// ============================================
+// Tuning Values
+// ============================================
+
 #define CAMERA_POS_INCREMENT_DECREMENT_VALUE 1.0f
 #define FOV_INCREMENT_DECREMENT_VALUE 5.0f
