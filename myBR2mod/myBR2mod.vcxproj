@@ -144,6 +144,7 @@
     <ClInclude Include="KeyInput.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PhotoModeCamera.h" />
+    <ClInclude Include="SuperSlowMode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />

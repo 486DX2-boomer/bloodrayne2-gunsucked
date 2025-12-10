@@ -6,6 +6,7 @@
 #include "Config.h"
 #include "KeyInput.h"
 #include "PhotoModeCamera.h"
+#include "SuperSlowMode.h"
 
 void SetupConsole() {
     if (!AllocConsole()) {
@@ -25,6 +26,7 @@ void SetupConsole() {
 DWORD WINAPI MainThread(LPVOID param) {
 
     PhotoModeCamera photoMode;
+    SuperSlowMode superSlowMode;
 
     // Build input list with callbacks
     std::vector<KeyInput> inputs;
@@ -68,6 +70,11 @@ DWORD WINAPI MainThread(LPVOID param) {
     // Mode cycling
     inputs.push_back(KeyInput(CAMERA_CHANGE_MODE_KEY, true, [&photoMode]() {
         photoMode.CycleMode();
+        }));
+
+    // Superslow toggle
+    inputs.push_back(KeyInput(TOGGLE_SUPER_SLOW_MODE_KEY, true, [&superSlowMode]() {
+        superSlowMode.toggle();
         }));
 
     while (true) {

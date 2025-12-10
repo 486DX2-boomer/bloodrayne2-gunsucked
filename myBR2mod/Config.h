@@ -57,6 +57,9 @@ namespace GameAddresses {
 // Photo mode toggle
 #define TOGGLE_PHOTO_MODE_KEY VK_F7
 
+// super slow mode
+#define TOGGLE_SUPER_SLOW_MODE_KEY VK_F8
+
 // Debug
 #define DEBUG_CHECK_KEY VK_F6
 
@@ -66,3 +69,5 @@ namespace GameAddresses {
 
 #define CAMERA_POS_INCREMENT_DECREMENT_VALUE 1.0f
 #define FOV_INCREMENT_DECREMENT_VALUE 5.0f
+
+#define SUPER_SLOW_MODE_TIME_FACTOR 0.05f
