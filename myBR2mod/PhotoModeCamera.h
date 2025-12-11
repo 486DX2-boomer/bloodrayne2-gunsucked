@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <Windows.h>
 #include "Config.h"
 #include "MinHook.h"
@@ -18,31 +18,30 @@ private:
     // must be static - accessed by static hook function
     static inline bool overrideActive = false;
     static inline float overridePosition[3] = { 0.0f, 0.0f, 0.0f };
-    static inline float overrideTarget[3] = { 0.0f, 0.0f, 0.0f };
+    static inline float overrideAngles[3] = { 0.0f, 0.0f, 0.0f };
     static inline float overrideFov = 28.0f;
 
     bool hookInstalled = false;
     bool hookEnabled = false;
 
     // must be static - called directly by the game
-    static void __cdecl hookedSetCameraValues(float* position, float* target, float fov, float* listener) {
+    static void __stdcall hookedSetCameraValues(float* position, float* angles, float fov, float* listener) {
         if (overrideActive) {
             float hookedPosition[3] = {
                 overridePosition[0],
                 overridePosition[1],
                 overridePosition[2]
             };
-            float hookedTarget[3] = {
-                overrideTarget[0],
-                overrideTarget[1],
-                overrideTarget[2]
+            float hookedAngles[3] = {
+                overrideAngles[0],
+                overrideAngles[1],
+                overrideAngles[2]
             };
 
-            originalFunction(hookedPosition, hookedTarget, overrideFov, listener);
+            originalFunction(hookedPosition, hookedAngles, overrideFov, listener);
         }
         else {
-            // Pass through original values
-            originalFunction(position, target, fov, listener);
+            originalFunction(position, angles, fov, listener);
         }
     }
 
@@ -96,14 +95,14 @@ public:
     }
 
     void activateOverride(float posX, float posY, float posZ,
-        float targetX, float targetY, float targetZ,
+        float anglesPitch, float anglesYaw, float anglesRoll,
         float fov) {
         overridePosition[0] = posX;
         overridePosition[1] = posY;
         overridePosition[2] = posZ;
-        overrideTarget[0] = targetX;
-        overrideTarget[1] = targetY;
-        overrideTarget[2] = targetZ;
+        overrideAngles[0] = anglesPitch;
+        overrideAngles[1] = anglesYaw;
+        overrideAngles[2] = anglesRoll;
         overrideFov = fov;
         overrideActive = true;
         DEBUG_LOG("[CameraHook] Override activated - Pos(" << posX << ", " << posY << ", " << posZ << ")");
@@ -120,10 +119,10 @@ public:
         overridePosition[2] = z;
     }
 
-    void setOverrideTarget(float x, float y, float z) {
-        overrideTarget[0] = x;
-        overrideTarget[1] = y;
-        overrideTarget[2] = z;
+    void setOverrideAngles(float x, float y, float z) {
+        overrideAngles[0] = x;
+        overrideAngles[1] = y;
+        overrideAngles[2] = z;
     }
 
     void setOverrideFov(float fov) {
@@ -136,9 +135,9 @@ public:
     float getOverrideX() const { return overridePosition[0]; }
     float getOverrideY() const { return overridePosition[1]; }
     float getOverrideZ() const { return overridePosition[2]; }
-    float getOverrideTargetX() const { return overrideTarget[0]; }
-    float getOverrideTargetY() const { return overrideTarget[1]; }
-    float getOverrideTargetZ() const { return overrideTarget[2]; }
+    float getOverrideAnglesPitch() const { return overrideAngles[0]; }
+    float getOverrideAnglesYaw() const { return overrideAngles[1]; }
+    float getOverrideAnglesRoll() const { return overrideAngles[2]; }
     float getOverrideFov() const { return overrideFov; }
 };
 
@@ -164,10 +163,13 @@ private:
     float photoZ;
     float photoFov;
 
-    // Target point for camera orientation
-    float targetX;
-    float targetY;
-    float targetZ;
+    // we now know that this vector is angles, not camera target:
+    //float targetX;
+    //float targetY;
+    //float targetZ;
+    float anglesPitch;
+    float anglesYaw;
+    float anglesRoll;
 
     // Original values for restoration
     float originalTimeFactor;
@@ -178,26 +180,21 @@ private:
     bool safeToHook = false;
 
     void captureCurrentState() {
-        this->photoX = *this->cameraX;  // 0x004 -> X
-        this->photoY = *this->cameraZ;  // 0x008 -> this is actually vertical?
-        this->photoZ = *this->cameraY;  // 0x00C -> this is actually depth?
+        this->photoX = *this->cameraX;  // 0x004 → param_1[0] → 0x06121F34
+        this->photoY = *this->cameraZ;  // 0x008 → param_1[1] → 0x06121F38 (vertical)
+        this->photoZ = *this->cameraY;  // 0x00C → param_1[2] → 0x06121F3C
         this->photoFov = *this->fov;
 
-        float pitch = *this->cameraPitch;
-        float yaw = *this->cameraYaw;
-
-        // Calculate target position based on current orientation
-        float distance = 10.0f;
-        this->targetX = this->photoX + (distance * cos(pitch) * cos(yaw));
-        this->targetY = this->photoY + (distance * sin(pitch));
-        this->targetZ = this->photoZ + (distance * cos(pitch) * sin(yaw));
+        this->anglesPitch = *this->cameraPitch;
+        this->anglesYaw = *this->cameraYaw;
+        this->anglesRoll = 0.0f;
 
         this->originalTimeFactor = *this->timeFactor;
     }
 
     void pushStateToHook() {
         this->hook.setOverridePosition(this->photoX, this->photoY, this->photoZ);
-        this->hook.setOverrideTarget(this->targetX, this->targetY, this->targetZ);
+        this->hook.setOverrideAngles(this->anglesPitch, this->anglesYaw, this->anglesRoll);
         this->hook.setOverrideFov(this->photoFov);
     }
 
@@ -205,7 +202,7 @@ public:
     PhotoModeCamera()
         : enabled(false),
         photoX(0), photoY(0), photoZ(0), photoFov(28.0f),
-        targetX(0), targetY(0), targetZ(0),
+        anglesPitch(0), anglesYaw(0), anglesRoll(0),
         originalTimeFactor(1.0f)
     {
         this->cameraX = (float*)GameAddresses::CameraX;
@@ -261,7 +258,7 @@ public:
         // Activate hook with captured values
         this->hook.activateOverride(
             this->photoX, this->photoY, this->photoZ,
-            this->targetX, this->targetY, this->targetZ,
+            this->anglesPitch, this->anglesYaw, this->anglesRoll,
             this->photoFov
         );
 
@@ -311,14 +308,14 @@ public:
 
     // Adjust target position independently (changes where camera looks)
     // Parameters use XZY order to match key bindings
-    void AdjustTarget(float dx, float dz, float dy) {
+    void adjustAngle(float dx, float dz, float dy) {
         if (!this->enabled) return;
 
-        this->targetX += dx;
-        this->targetY += dy;
-        this->targetZ += dz;
+        this->anglesPitch += dx;
+        this->anglesYaw += dy;
+        this->anglesRoll += dz;
 
-        this->hook.setOverrideTarget(this->targetX, this->targetY, this->targetZ);
+        this->hook.setOverrideAngles(this->anglesPitch, this->anglesYaw, this->anglesRoll);
     }
 
     void AdjustFOV(float delta) {
@@ -355,7 +352,7 @@ public:
     void PrintState() const {
         DEBUG_LOG("[PhotoMode] " << (this->enabled ? "ON" : "OFF")
             << " Pos(" << this->photoX << ", " << this->photoY << ", " << this->photoZ << ")"
-            << " Target(" << this->targetX << ", " << this->targetY << ", " << this->targetZ << ")"
+            << " Angles(" << this->anglesPitch << ", " << this->anglesYaw << ", " << this->anglesRoll << ")"
             << " FOV: " << this->photoFov);
         DEBUG_LOG("[PhotoMode] Hook installed: " << (this->hook.isInstalled() ? "Yes" : "No")
             << " Override active: " << (this->hook.isOverrideActive() ? "Yes" : "No"));

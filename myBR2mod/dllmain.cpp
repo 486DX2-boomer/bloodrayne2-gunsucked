@@ -93,23 +93,23 @@ DWORD WINAPI MainThread(LPVOID param) {
         }));
 
     // Target position adjustments (XZY order)
-    inputs.push_back(KeyInput(DECREMENT_TARGET_X_KEY, false, [&photoMode]() {
-        photoMode.AdjustTarget(-TARGET_POS_INCREMENT_DECREMENT_VALUE, 0, 0);
+    inputs.push_back(KeyInput(DECREMENT_ANGLE_PITCH_KEY, false, [&photoMode]() {
+        photoMode.adjustAngle(-ANGLE_INCREMENT_DECREMENT_VALUE, 0, 0);
         }));
-    inputs.push_back(KeyInput(INCREMENT_TARGET_X_KEY, false, [&photoMode]() {
-        photoMode.AdjustTarget(TARGET_POS_INCREMENT_DECREMENT_VALUE, 0, 0);
+    inputs.push_back(KeyInput(INCREMENT_ANGLE_PITCH_KEY, false, [&photoMode]() {
+        photoMode.adjustAngle(ANGLE_INCREMENT_DECREMENT_VALUE, 0, 0);
         }));
-    inputs.push_back(KeyInput(DECREMENT_TARGET_Z_KEY, false, [&photoMode]() {
-        photoMode.AdjustTarget(0, -TARGET_POS_INCREMENT_DECREMENT_VALUE, 0);
+    inputs.push_back(KeyInput(DECREMENT_ANGLE_ROLL_KEY, false, [&photoMode]() {
+        photoMode.adjustAngle(0, -ANGLE_INCREMENT_DECREMENT_VALUE, 0);
         }));
-    inputs.push_back(KeyInput(INCREMENT_TARGET_Z_KEY, false, [&photoMode]() {
-        photoMode.AdjustTarget(0, TARGET_POS_INCREMENT_DECREMENT_VALUE, 0);
+    inputs.push_back(KeyInput(INCREMENT_ANGLE_ROLL_KEY, false, [&photoMode]() {
+        photoMode.adjustAngle(0, ANGLE_INCREMENT_DECREMENT_VALUE, 0);
         }));
-    inputs.push_back(KeyInput(DECREMENT_TARGET_Y_KEY, false, [&photoMode]() {
-        photoMode.AdjustTarget(0, 0, -TARGET_POS_INCREMENT_DECREMENT_VALUE);
+    inputs.push_back(KeyInput(DECREMENT_ANGLE_YAW_KEY, false, [&photoMode]() {
+        photoMode.adjustAngle(0, 0, -ANGLE_INCREMENT_DECREMENT_VALUE);
         }));
-    inputs.push_back(KeyInput(INCREMENT_TARGET_Y_KEY, false, [&photoMode]() {
-        photoMode.AdjustTarget(0, 0, TARGET_POS_INCREMENT_DECREMENT_VALUE);
+    inputs.push_back(KeyInput(INCREMENT_ANGLE_YAW_KEY, false, [&photoMode]() {
+        photoMode.adjustAngle(0, 0, ANGLE_INCREMENT_DECREMENT_VALUE);
         }));
 
     // FOV adjustments
