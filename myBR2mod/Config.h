@@ -39,7 +39,7 @@ namespace GameAddresses {
 // Key Bindings
 // ============================================
 
-// Camera position controls
+// Camera position controls (XZY order)
 #define DECREMENT_X_KEY VK_OEM_4      // [
 #define INCREMENT_X_KEY VK_OEM_6      // ]
 #define DECREMENT_Z_KEY VK_OEM_1      // ;
@@ -47,12 +47,17 @@ namespace GameAddresses {
 #define DECREMENT_Y_KEY VK_OEM_COMMA  // ,
 #define INCREMENT_Y_KEY VK_OEM_PERIOD // .
 
+// Target position controls (XZY order)
+#define DECREMENT_TARGET_X_KEY VK_LEFT
+#define INCREMENT_TARGET_X_KEY VK_RIGHT
+#define DECREMENT_TARGET_Z_KEY VK_DOWN  
+#define INCREMENT_TARGET_Z_KEY VK_UP
+#define DECREMENT_TARGET_Y_KEY VK_DELETE
+#define INCREMENT_TARGET_Y_KEY VK_INSERT
+
 // FOV controls
 #define DECREMENT_FOV_KEY VK_NEXT     // page down
 #define INCREMENT_FOV_KEY VK_PRIOR    // page up
-
-// Mode controls
-#define CAMERA_CHANGE_MODE_KEY VK_OEM_PLUS // =+
 
 // Photo mode toggle
 #define TOGGLE_PHOTO_MODE_KEY VK_F7
@@ -67,7 +72,8 @@ namespace GameAddresses {
 // Tuning Values
 // ============================================
 
-#define CAMERA_POS_INCREMENT_DECREMENT_VALUE 1.0f
-#define FOV_INCREMENT_DECREMENT_VALUE 5.0f
+#define CAMERA_POS_INCREMENT_DECREMENT_VALUE 0.1f
+#define TARGET_POS_INCREMENT_DECREMENT_VALUE 0.1f
+#define FOV_INCREMENT_DECREMENT_VALUE 1.0f
 
 #define SUPER_SLOW_MODE_TIME_FACTOR 0.05f

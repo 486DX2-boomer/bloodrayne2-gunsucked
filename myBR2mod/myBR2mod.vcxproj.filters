@@ -33,6 +33,9 @@
     <ClInclude Include="SuperSlowMode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MinHook.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -41,5 +44,10 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="libMinHook.x86.lib">
+      <Filter>Header Files</Filter>
+    </Library>
   </ItemGroup>
 </Project>
