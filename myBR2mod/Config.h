@@ -1,9 +1,6 @@
 #pragma once
 
-// ============================================
-// Debug Configuration
-// ============================================
-
+// logging and console
 #define DEBUG_CONSOLE_ENABLED true
 
 #if DEBUG_CONSOLE_ENABLED
@@ -13,15 +10,12 @@
 #define DEBUG_LOG(msg) ((void)0)
 #endif
 
-// ============================================
-// Game Addresses
-// ============================================
-
-namespace GameAddresses {
-    // CGameView base address
+// game addresses
+namespace Rayne2 {
+    // CGameView
     constexpr uintptr_t CameraBase = 0x05E34EE0;
 
-    // CGameView pointers (XZY order)
+    // camera pos (XZY order)
     float* const CameraX = (float*)(CameraBase + 0x004);
     float* const CameraZ = (float*)(CameraBase + 0x008);
     float* const CameraY = (float*)(CameraBase + 0x00C);
@@ -30,16 +24,13 @@ namespace GameAddresses {
     float* const CameraFOV = (float*)(CameraBase + 0x01C);
     int* const CameraMode = (int*)(CameraBase + 0x214);
 
-    // Other game pointers
     bool* const PushCamera = (bool*)(0x05E3473D);
     float* const TimeFactor = (float*)(0x0619FB68);
 }
 
-// ============================================
-// Key Bindings
-// ============================================
+// key bindings
 
-// Camera position controls (XZY order)
+// Camera position controls
 #define DECREMENT_X_KEY VK_OEM_4      // [
 #define INCREMENT_X_KEY VK_OEM_6      // ]
 #define DECREMENT_Z_KEY VK_OEM_1      // ;
@@ -47,7 +38,7 @@ namespace GameAddresses {
 #define DECREMENT_Y_KEY VK_OEM_COMMA  // ,
 #define INCREMENT_Y_KEY VK_OEM_PERIOD // .
 
-// Target position controls (XZY order)
+// Target position controls
 #define DECREMENT_ANGLE_PITCH_KEY VK_UP
 #define INCREMENT_ANGLE_PITCH_KEY VK_DOWN
 #define DECREMENT_ANGLE_YAW_KEY VK_LEFT  
@@ -55,23 +46,18 @@ namespace GameAddresses {
 #define DECREMENT_ANGLE_ROLL_KEY VK_DELETE
 #define INCREMENT_ANGLE_ROLL_KEY VK_INSERT
 
-// FOV controls
 #define DECREMENT_FOV_KEY VK_NEXT     // page down
 #define INCREMENT_FOV_KEY VK_PRIOR    // page up
 
-// Photo mode toggle
+// toggles
 #define TOGGLE_PHOTO_MODE_KEY VK_F7
 
-// super slow mode
 #define TOGGLE_SUPER_SLOW_MODE_KEY VK_F8
 
 // Debug
 #define DEBUG_CHECK_KEY VK_F6
 
-// ============================================
-// Tuning Values
-// ============================================
-
+// tuning values
 #define CAMERA_POS_INCREMENT_DECREMENT_VALUE 0.075f
 #define ANGLE_INCREMENT_DECREMENT_VALUE 0.033f
 #define FOV_INCREMENT_DECREMENT_VALUE 1.0f

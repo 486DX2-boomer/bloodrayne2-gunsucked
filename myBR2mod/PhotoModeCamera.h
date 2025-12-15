@@ -12,10 +12,10 @@ class PhotoModeCameraHook {
 private:
     uintptr_t targetFunctionAddress = 0x005E1A10;
 
-    // must be static - MinHook requires a raw function pointer
+    // must be static, required by Minhook
     static inline FN_SetCameraValues originalFunction = nullptr;
 
-    // must be static - accessed by static hook function
+    // must be static
     static inline bool overrideActive = false;
     static inline float overridePosition[3] = { 0.0f, 0.0f, 0.0f };
     static inline float overrideAngles[3] = { 0.0f, 0.0f, 0.0f };
@@ -24,7 +24,7 @@ private:
     bool hookInstalled = false;
     bool hookEnabled = false;
 
-    // must be static - called directly by the game
+    // must be static
     static void __stdcall hookedSetCameraValues(float* position, float* angles, float fov, float* listener) {
         if (overrideActive) {
             float hookedPosition[3] = {
@@ -77,7 +77,7 @@ public:
 
         this->hookInstalled = true;
         this->hookEnabled = true;
-        DEBUG_LOG("[CameraHook] Hook installed successfully at 0x" << std::hex << this->targetFunctionAddress);
+        DEBUG_LOG("[CameraHook] Hook installed at 0x" << std::hex << this->targetFunctionAddress);
         return true;
     }
 
@@ -163,10 +163,6 @@ private:
     float photoZ;
     float photoFov;
 
-    // we now know that this vector is angles, not camera target:
-    //float targetX;
-    //float targetY;
-    //float targetZ;
     float anglesPitch;
     float anglesYaw;
     float anglesRoll;
@@ -205,43 +201,43 @@ public:
         anglesPitch(0), anglesYaw(0), anglesRoll(0),
         originalTimeFactor(1.0f)
     {
-        this->cameraX = (float*)GameAddresses::CameraX;
-        this->cameraZ = (float*)GameAddresses::CameraZ;
-        this->cameraY = (float*)GameAddresses::CameraY;
-        this->cameraPitch = (float*)GameAddresses::CameraPitch;
-        this->cameraYaw = (float*)GameAddresses::CameraYaw;
-        this->fov = (float*)GameAddresses::CameraFOV;
-        this->cameraMode = (int*)GameAddresses::CameraMode;
+        this->cameraX = (float*)Rayne2::CameraX;
+        this->cameraZ = (float*)Rayne2::CameraZ;
+        this->cameraY = (float*)Rayne2::CameraY;
+        this->cameraPitch = (float*)Rayne2::CameraPitch;
+        this->cameraYaw = (float*)Rayne2::CameraYaw;
+        this->fov = (float*)Rayne2::CameraFOV;
+        this->cameraMode = (int*)Rayne2::CameraMode;
 
-        this->pushCamera = (bool*)GameAddresses::PushCamera;
-        this->timeFactor = (float*)GameAddresses::TimeFactor;
+        this->pushCamera = (bool*)Rayne2::PushCamera;
+        this->timeFactor = (float*)Rayne2::TimeFactor;
     }
 
     ~PhotoModeCamera() {
         if (this->enabled) {
-            this->Disable();
+            this->disable();
         }
         this->hook.uninstall();
     }
 
     // Call this after game is loaded but before enabling photo mode
-    bool InstallHook() {
+    bool installHook() {
         if (!this->safeToHook) {
-            DEBUG_LOG("[PhotoMode] Not safe to hook - call CheckSafeToHook() first");
+            DEBUG_LOG("[PhotoMode] Not safe to hook");
             return false;
         }
         return this->hook.install();
     }
 
-    bool IsEnabled() const {
+    bool isEnabled() const {
         return this->enabled;
     }
 
-    bool IsHookInstalled() const {
+    bool isHookInstalled() const {
         return this->hook.isInstalled();
     }
 
-    void Enable() {
+    void enable() {
         if (this->enabled) return;
 
         if (!this->hook.isInstalled()) {
@@ -266,7 +262,7 @@ public:
         DEBUG_LOG("[PhotoMode] pitch:" << (*this->cameraPitch) << " yaw: " << (*this->cameraYaw));
     }
 
-    void Disable() {
+    void disable() {
         if (!this->enabled) return;
 
         // Deactivate hook override - game regains camera control
@@ -276,38 +272,30 @@ public:
         *this->timeFactor = this->originalTimeFactor;
 
         this->enabled = false;
-        DEBUG_LOG("[PhotoMode] Disabled");
+        DEBUG_LOG("[PhotoMode] disabled");
     }
 
-    void Toggle() {
+    void toggle() {
         if (this->enabled) {
-            this->Disable();
+            this->disable();
         }
         else {
-            this->Enable();
+            this->enable();
         }
     }
 
     // Adjust camera position in world space
     // Parameters use XZY order to match key bindings
-    void AdjustPosition(float dx, float dz, float dy) {
+    void adjustPosition(float dx, float dz, float dy) {
         if (!this->enabled) return;
 
         this->photoX += dx;
         this->photoY += dy;
         this->photoZ += dz;
 
-        // Move target by same amount to maintain orientation
-        // Wtf is this? Doesn't this mean target and position will always be locked?
-        //this->targetX += dx;
-        //this->targetY += dy;
-        //this->targetZ += dz;
-
         this->pushStateToHook();
     }
 
-    // Adjust target position independently (changes where camera looks)
-    // Parameters use XZY order to match key bindings
     void adjustAngle(float dx, float dz, float dy) {
         if (!this->enabled) return;
 
@@ -318,7 +306,7 @@ public:
         this->hook.setOverrideAngles(this->anglesPitch, this->anglesYaw, this->anglesRoll);
     }
 
-    void AdjustFOV(float delta) {
+    void adjustFov(float delta) {
         if (!this->enabled) return;
 
         this->photoFov += delta;
@@ -326,11 +314,11 @@ public:
     }
 
     // these methods could be private.
-    bool IsSafeToHook() {
+    bool isSafeToHook() {
         return this->safeToHook;
     }
 
-    void CheckSafeToHook() {
+    void checkSafeToHook() {
         // read the vftable pointer at 0x5E34EE0- it should contain 0x006F9AEC.
 
         uintptr_t* cameraVfTable = (uintptr_t*)0x5E34EE0;
@@ -350,11 +338,11 @@ public:
 
     // Debug output
     void PrintState() const {
-        DEBUG_LOG("[PhotoMode] " << (this->enabled ? "ON" : "OFF")
+        DEBUG_LOG("[PhotoMode] " << (this->enabled ? "on" : "off")
             << " Pos(" << this->photoX << ", " << this->photoY << ", " << this->photoZ << ")"
             << " Angles(" << this->anglesPitch << ", " << this->anglesYaw << ", " << this->anglesRoll << ")"
-            << " FOV: " << this->photoFov);
-        DEBUG_LOG("[PhotoMode] Hook installed: " << (this->hook.isInstalled() ? "Yes" : "No")
-            << " Override active: " << (this->hook.isOverrideActive() ? "Yes" : "No"));
+            << " Fov: " << this->photoFov);
+        DEBUG_LOG("[PhotoMode] Hook installed: " << (this->hook.isInstalled() ? "yes" : "no")
+            << " Override active: " << (this->hook.isOverrideActive() ? "yes" : "no"));
     }
 };

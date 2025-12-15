@@ -1,4 +1,3 @@
-// dllmain.cpp : Defines the entry point for the DLL application.
 #include "pch.h"
 #include <Windows.h>
 #include <stdio.h>
@@ -10,7 +9,7 @@
 // design of super slow mode feature needs a lot of work, disabled for now
 //#include "SuperSlowMode.h"
 
-void SetupConsole() {
+void setupConsole() {
     if (!AllocConsole()) {
         MessageBoxA(nullptr, "Failed to allocate console.", "Error", MB_OK | MB_ICONERROR);
         return;
@@ -27,12 +26,12 @@ void SetupConsole() {
 
 // Wait for game to be ready before hooking
 bool WaitForGameReady(PhotoModeCamera& photoMode, DWORD timeoutMs = 30000, DWORD pollIntervalMs = 500) {
-    DEBUG_LOG("[DLL] Waiting for game to initialize...");
+    DEBUG_LOG("[DLL] Waiting for game init...");
 
     DWORD elapsed = 0;
     while (elapsed < timeoutMs) {
-        photoMode.CheckSafeToHook();
-        if (photoMode.IsSafeToHook()) {
+        photoMode.checkSafeToHook();
+        if (photoMode.isSafeToHook()) {
             DEBUG_LOG("[DLL] Game ready after " << elapsed << "ms");
             return true;
         }
@@ -56,40 +55,40 @@ DWORD WINAPI MainThread(LPVOID param) {
     }
 
     // Install the camera hook
-    if (!photoMode.InstallHook()) {
+    if (!photoMode.installHook()) {
         DEBUG_LOG("[DLL] Failed to install camera hook - aborting");
         return 1;
     }
 
-    // Build input list with callbacks
+    // Input list and callbacks
     std::vector<KeyInput> inputs;
 
-    // Debug key - no callback, handled manually
+    // Debug key - no callback required, handle manually
     KeyInput debugCheckKey(DEBUG_CHECK_KEY, true);
 
     // Photo mode toggle
     inputs.push_back(KeyInput(TOGGLE_PHOTO_MODE_KEY, true, [&photoMode]() {
-        photoMode.Toggle();
+        photoMode.toggle();
         }));
 
     // Camera position adjustments (XZY order)
     inputs.push_back(KeyInput(DECREMENT_X_KEY, false, [&photoMode]() {
-        photoMode.AdjustPosition(-CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0, 0);
+        photoMode.adjustPosition(-CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0, 0);
         }));
     inputs.push_back(KeyInput(INCREMENT_X_KEY, false, [&photoMode]() {
-        photoMode.AdjustPosition(CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0, 0);
+        photoMode.adjustPosition(CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0, 0);
         }));
     inputs.push_back(KeyInput(DECREMENT_Z_KEY, false, [&photoMode]() {
-        photoMode.AdjustPosition(0, -CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0);
+        photoMode.adjustPosition(0, -CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0);
         }));
     inputs.push_back(KeyInput(INCREMENT_Z_KEY, false, [&photoMode]() {
-        photoMode.AdjustPosition(0, CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0);
+        photoMode.adjustPosition(0, CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0);
         }));
     inputs.push_back(KeyInput(DECREMENT_Y_KEY, false, [&photoMode]() {
-        photoMode.AdjustPosition(0, 0, -CAMERA_POS_INCREMENT_DECREMENT_VALUE);
+        photoMode.adjustPosition(0, 0, -CAMERA_POS_INCREMENT_DECREMENT_VALUE);
         }));
     inputs.push_back(KeyInput(INCREMENT_Y_KEY, false, [&photoMode]() {
-        photoMode.AdjustPosition(0, 0, CAMERA_POS_INCREMENT_DECREMENT_VALUE);
+        photoMode.adjustPosition(0, 0, CAMERA_POS_INCREMENT_DECREMENT_VALUE);
         }));
 
     // Target position adjustments (XZY order)
@@ -114,10 +113,10 @@ DWORD WINAPI MainThread(LPVOID param) {
 
     // FOV adjustments
     inputs.push_back(KeyInput(DECREMENT_FOV_KEY, false, [&photoMode]() {
-        photoMode.AdjustFOV(-FOV_INCREMENT_DECREMENT_VALUE);
+        photoMode.adjustFov(-FOV_INCREMENT_DECREMENT_VALUE);
         }));
     inputs.push_back(KeyInput(INCREMENT_FOV_KEY, false, [&photoMode]() {
-        photoMode.AdjustFOV(FOV_INCREMENT_DECREMENT_VALUE);
+        photoMode.adjustFov(FOV_INCREMENT_DECREMENT_VALUE);
         }));
 
     // Super slow toggle
@@ -125,18 +124,18 @@ DWORD WINAPI MainThread(LPVOID param) {
     //    superSlowMode.toggle();
     //    }));
 
-    DEBUG_LOG("[DLL] Main loop starting - Press F7 to toggle photo mode");
+    DEBUG_LOG("[DLL] Starting hook. Press F7 to toggle photo mode");
 
     while (true) {
 
         // Handle debug key manually (no callback)
-        if (debugCheckKey.IsActivated()) {
+        if (debugCheckKey.isActivated()) {
             photoMode.PrintState();
         }
 
-        // Process all inputs with callbacks
+        // Process inputs with callbacks
         for (auto& input : inputs) {
-            input.CheckAndExecute();
+            input.checkAndExecute();
         }
 
         Sleep(16);
@@ -154,7 +153,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     case DLL_PROCESS_ATTACH:
 
 #if DEBUG_CONSOLE_ENABLED
-        SetupConsole();
+        setupConsole();
 #endif
         DEBUG_LOG("[DLL] Mod injected successfully");
 

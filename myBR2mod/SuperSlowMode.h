@@ -18,7 +18,7 @@ public:
 	SuperSlowMode()
 		: enabled(false), originalTimeFactor(false)
 	{
-		this->timeFactor = (float*)GameAddresses::TimeFactor;
+		this->timeFactor = (float*)Rayne2::TimeFactor;
 	}
 
 	bool isEnabled() const {
