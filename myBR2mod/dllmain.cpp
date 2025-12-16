@@ -5,6 +5,7 @@
 #include "Config.h"
 #include "KeyInput.h"
 #include "PhotoModeCamera.h"
+#include "NoHud.h"
 
 // design of super slow mode feature needs a lot of work, disabled for now
 //#include "SuperSlowMode.h"
@@ -25,16 +26,32 @@ void setupConsole() {
 }
 
 // Wait for game to be ready before hooking
-bool WaitForGameReady(PhotoModeCamera& photoMode, DWORD timeoutMs = 30000, DWORD pollIntervalMs = 500) {
+bool WaitForGameReady(PhotoModeCamera& photoMode, NoHud& noHud, DWORD timeoutMs = 30000, DWORD pollIntervalMs = 500) {
     DEBUG_LOG("[DLL] Waiting for game init...");
 
     DWORD elapsed = 0;
+
+    bool cameraHookSafe = false;
+    bool hudHookSafe = false;
+
     while (elapsed < timeoutMs) {
         photoMode.checkSafeToHook();
         if (photoMode.isSafeToHook()) {
-            DEBUG_LOG("[DLL] Game ready after " << elapsed << "ms");
+            DEBUG_LOG("Photo mode ready after " << elapsed << "ms");
+            cameraHookSafe = true;
+        }
+
+        noHud.checkSafeToHook();
+        if (noHud.isSafeToHook()) {
+            DEBUG_LOG("NoHud ready after " << elapsed << "ms");
+            hudHookSafe = true;
+        }
+
+        if (cameraHookSafe && hudHookSafe) {
+            DEBUG_LOG("Hooks ready after " << elapsed << "ms");
             return true;
         }
+
         Sleep(pollIntervalMs);
         elapsed += pollIntervalMs;
     }
@@ -47,9 +64,10 @@ DWORD WINAPI MainThread(LPVOID param) {
 
     PhotoModeCamera photoMode;
     //SuperSlowMode superSlowMode;
+    NoHud noHud;
 
     // Wait for game to initialize before installing hook
-    if (!WaitForGameReady(photoMode)) {
+    if (!WaitForGameReady(photoMode, noHud)) {
         DEBUG_LOG("[DLL] Game validation failed - aborting");
         return 1;
     }
@@ -57,6 +75,12 @@ DWORD WINAPI MainThread(LPVOID param) {
     // Install the camera hook
     if (!photoMode.installHook()) {
         DEBUG_LOG("[DLL] Failed to install camera hook - aborting");
+        return 1;
+    }
+
+    // Install NoHud hook
+    if (!noHud.installHook()) {
+        DEBUG_LOG("Failed to install no hud hook - aborting");
         return 1;
     }
 
@@ -124,7 +148,12 @@ DWORD WINAPI MainThread(LPVOID param) {
     //    superSlowMode.toggle();
     //    }));
 
-    DEBUG_LOG("[DLL] Starting hook. Press F7 to toggle photo mode");
+    // No hud
+    inputs.push_back(KeyInput(TOGGLE_HUD_KEY, true, [&noHud]() {
+        noHud.toggle();
+        }));
+
+    DEBUG_LOG("[DLL] Starting hook. Press F7 to toggle photo mode\nPress F8 to toggle no hud");
 
     while (true) {
 

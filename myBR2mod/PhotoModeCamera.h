@@ -39,6 +39,9 @@ private:
             };
 
             originalFunction(hookedPosition, hookedAngles, overrideFov, listener);
+
+            // We can force the hud off here if we want.
+            //*Rayne2::DrawHud = false;
         }
         else {
             originalFunction(position, angles, fov, listener);

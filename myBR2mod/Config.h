@@ -15,6 +15,10 @@ namespace Rayne2 {
     // CGameView
     constexpr uintptr_t CameraBase = 0x05E34EE0;
 
+    // CMainCharacter
+    constexpr uintptr_t RayneBasePtr = 0x061276EC;
+    uintptr_t RayneBase = *reinterpret_cast<uintptr_t*>(RayneBasePtr);
+
     // camera pos (XZY order)
     float* const CameraX = (float*)(CameraBase + 0x004);
     float* const CameraZ = (float*)(CameraBase + 0x008);
@@ -26,6 +30,8 @@ namespace Rayne2 {
 
     bool* const PushCamera = (bool*)(0x05E3473D);
     float* const TimeFactor = (float*)(0x0619FB68);
+
+    bool* const DrawHud = (bool*)(0x05F2FA58); // 0 for off, 1 for on
 }
 
 // key bindings
@@ -53,6 +59,7 @@ namespace Rayne2 {
 #define TOGGLE_PHOTO_MODE_KEY VK_F7
 
 #define TOGGLE_SUPER_SLOW_MODE_KEY VK_F8
+#define TOGGLE_HUD_KEY VK_F9
 
 // Debug
 #define DEBUG_CHECK_KEY VK_F6

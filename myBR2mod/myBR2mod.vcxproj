@@ -144,6 +144,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="KeyInput.h" />
     <ClInclude Include="MinHook.h" />
+    <ClInclude Include="NoHud.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PhotoModeCamera.h" />
     <ClInclude Include="SuperSlowMode.h" />
