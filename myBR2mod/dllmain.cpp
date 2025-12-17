@@ -26,15 +26,15 @@ void setupConsole() {
 }
 
 // Wait for game to be ready before hooking
-bool WaitForGameReady(PhotoModeCamera& photoMode, NoHud& noHud, DWORD timeoutMs = 30000, DWORD pollIntervalMs = 500) {
+bool WaitForGameReady(PhotoModeCamera& photoMode, NoHud& noHud, int pollIntervalMs = 500) {
     DEBUG_LOG("[DLL] Waiting for game init...");
 
-    DWORD elapsed = 0;
+    int elapsed = 0;
 
     bool cameraHookSafe = false;
     bool hudHookSafe = false;
 
-    while (elapsed < timeoutMs) {
+    while (true) {
         photoMode.checkSafeToHook();
         if (photoMode.isSafeToHook()) {
             DEBUG_LOG("Photo mode ready after " << elapsed << "ms");
@@ -56,7 +56,8 @@ bool WaitForGameReady(PhotoModeCamera& photoMode, NoHud& noHud, DWORD timeoutMs 
         elapsed += pollIntervalMs;
     }
 
-    DEBUG_LOG("[DLL] Timeout waiting for game after " << timeoutMs << "ms");
+    // we removed the timeout check
+    //DEBUG_LOG("[DLL] Timeout waiting for game after " << timeoutMs << "ms");
     return false;
 }
 
