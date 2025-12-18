@@ -10,13 +10,14 @@ class SuperSlowMode {
 private:
 	float* timeFactor;
 
-	float originalTimeFactor;
+	// we don't really want to restore original time factor - it interacts in unpredictable ways with photo mode
+	//float originalTimeFactor;
 
 	bool enabled;
 
 public:
 	SuperSlowMode()
-		: enabled(false), originalTimeFactor(false)
+		: enabled(false)
 	{
 		this->timeFactor = (float*)Rayne2::TimeFactor;
 	}
@@ -28,7 +29,7 @@ public:
 	void enable() {
 		if (this->enabled) return;
 
-		this->originalTimeFactor = *this->timeFactor;
+		//this->originalTimeFactor = *this->timeFactor;
 
 		*this->timeFactor = SUPER_SLOW_MODE_TIME_FACTOR;
 
@@ -40,7 +41,8 @@ public:
 	void disable() {
 		if (!this->enabled) return;
 
-		*this->timeFactor = this->originalTimeFactor;
+		//*this->timeFactor = this->originalTimeFactor;
+		*this->timeFactor = 1.0f;
 
 		this->enabled = false;
 

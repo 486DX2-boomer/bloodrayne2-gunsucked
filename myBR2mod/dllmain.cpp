@@ -6,9 +6,7 @@
 #include "KeyInput.h"
 #include "PhotoModeCamera.h"
 #include "NoHud.h"
-
-// design of super slow mode feature needs a lot of work, disabled for now
-//#include "SuperSlowMode.h"
+#include "SuperSlowMode.h"
 
 void setupConsole() {
     if (!AllocConsole()) {
@@ -64,7 +62,7 @@ bool WaitForGameReady(PhotoModeCamera& photoMode, NoHud& noHud, int pollInterval
 DWORD WINAPI MainThread(LPVOID param) {
 
     PhotoModeCamera photoMode;
-    //SuperSlowMode superSlowMode;
+    SuperSlowMode superSlowMode;
     NoHud noHud;
 
     // Wait for game to initialize before installing hook
@@ -86,7 +84,9 @@ DWORD WINAPI MainThread(LPVOID param) {
     }
 
     // capture NoHud for photomode
-    photoMode.setNoHudReference(&noHud);
+    photoMode.captureNoHudRef(&noHud);
+    // capture superslow for photomode
+    photoMode.captureSuperSlowRef(&superSlowMode);
 
     // Input list and callbacks
     std::vector<KeyInput> inputs;
@@ -148,16 +148,16 @@ DWORD WINAPI MainThread(LPVOID param) {
         }));
 
     // Super slow toggle
-    //inputs.push_back(KeyInput(TOGGLE_SUPER_SLOW_MODE_KEY, true, [&superSlowMode]() {
-    //    superSlowMode.toggle();
-    //    }));
+    inputs.push_back(KeyInput(TOGGLE_SUPER_SLOW_MODE_KEY, true, [&superSlowMode]() {
+        superSlowMode.toggle();
+        }));
 
     // No hud
     inputs.push_back(KeyInput(TOGGLE_HUD_KEY, true, [&noHud]() {
         noHud.toggle();
         }));
 
-    DEBUG_LOG("[DLL] Starting hook. Press F7 to toggle photo mode\nPress F8 to toggle no hud");
+    DEBUG_LOG("[DLL] Starting hook. Press F7 to toggle photo mode\nPress F8 to toggle super slow mode\nPress F9 to toggle no HUD");
 
     while (true) {
 

@@ -4,6 +4,7 @@
 #include "MinHook.h"
 #pragma comment(lib, "libMinHook.x86.lib")
 #include "NoHud.h"
+#include "SuperSlowMode.h"
 
 // Function signature for FUN_005e1a10 in Ghidra
 // We hook the rendering code and overwrite the values at the end of the update loop.
@@ -181,6 +182,8 @@ private:
 
     // so we can toggle HUD on or off when entering photo mode
     NoHud* noHud;
+    // so we can restore time factor when exiting photo mode
+    SuperSlowMode* superSlow;
 
     void captureCurrentState() {
         this->photoX = *this->cameraX;  // 0x004 → param_1[0] → 0x06121F34
@@ -206,7 +209,7 @@ public:
         : enabled(false),
         photoX(0), photoY(0), photoZ(0), photoFov(28.0f),
         anglesPitch(0), anglesYaw(0), anglesRoll(0),
-        originalTimeFactor(1.0f), noHud(NULL)
+        originalTimeFactor(1.0f), noHud(NULL), superSlow(NULL)
     {
         this->cameraX = (float*)Rayne2::CameraX;
         this->cameraZ = (float*)Rayne2::CameraZ;
@@ -296,6 +299,12 @@ public:
             }
         }
 
+        // restore time factor
+        if (PHOTO_MODE_RESTORE_TIME_FACTOR_ON_EXIT) {
+            if (this->superSlow) {
+                superSlow->disable();
+            }
+        }
     }
 
     void toggle() {
@@ -370,9 +379,14 @@ public:
     }
 
     // capture the nohud object so we can toggle it from this object
-    void setNoHudReference(NoHud* noHud) {
+    void captureNoHudRef(NoHud* noHud) {
         if (noHud) {
             this->noHud = noHud;
         }
+    }
+
+    // capture superslow so we can restore time factor from this object
+    void captureSuperSlowRef(SuperSlowMode* superSlow) {
+        this->superSlow = superSlow;
     }
 };
