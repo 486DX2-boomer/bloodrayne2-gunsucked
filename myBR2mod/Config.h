@@ -55,9 +55,8 @@ namespace Rayne2 {
 #define DECREMENT_FOV_KEY VK_NEXT     // page down
 #define INCREMENT_FOV_KEY VK_PRIOR    // page up
 
-// toggles
+// toggle keys
 #define TOGGLE_PHOTO_MODE_KEY VK_F7
-
 #define TOGGLE_SUPER_SLOW_MODE_KEY VK_F8
 #define TOGGLE_HUD_KEY VK_F9
 
@@ -70,3 +69,7 @@ namespace Rayne2 {
 #define FOV_INCREMENT_DECREMENT_VALUE 1.0f
 
 #define SUPER_SLOW_MODE_TIME_FACTOR 0.05f
+
+// behaviors
+
+#define PHOTO_MODE_DISABLE_HUD_ON_ENTER true

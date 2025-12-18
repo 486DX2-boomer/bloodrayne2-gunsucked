@@ -4,7 +4,7 @@
 
 int main()
 {
-    std::cout << "this should start rayne2.exe\n";
+    std::cout << "starting rayne2.exe\n";
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
 

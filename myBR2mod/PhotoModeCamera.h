@@ -3,6 +3,7 @@
 #include "Config.h"
 #include "MinHook.h"
 #pragma comment(lib, "libMinHook.x86.lib")
+#include "NoHud.h"
 
 // Function signature for FUN_005e1a10 in Ghidra
 // We hook the rendering code and overwrite the values at the end of the update loop.
@@ -178,6 +179,9 @@ private:
     // we must check to see if the camera's vftable is loaded before we attempt to hook the update loop.
     bool safeToHook = false;
 
+    // so we can toggle HUD on or off when entering photo mode
+    NoHud* noHud;
+
     void captureCurrentState() {
         this->photoX = *this->cameraX;  // 0x004 → param_1[0] → 0x06121F34
         this->photoY = *this->cameraZ;  // 0x008 → param_1[1] → 0x06121F38 (vertical)
@@ -202,7 +206,7 @@ public:
         : enabled(false),
         photoX(0), photoY(0), photoZ(0), photoFov(28.0f),
         anglesPitch(0), anglesYaw(0), anglesRoll(0),
-        originalTimeFactor(1.0f)
+        originalTimeFactor(1.0f), noHud(NULL)
     {
         this->cameraX = (float*)Rayne2::CameraX;
         this->cameraZ = (float*)Rayne2::CameraZ;
@@ -263,6 +267,14 @@ public:
 
         this->enabled = true;
         DEBUG_LOG("[PhotoMode] pitch:" << (*this->cameraPitch) << " yaw: " << (*this->cameraYaw));
+
+        // disable HUD on enter
+        if (PHOTO_MODE_DISABLE_HUD_ON_ENTER) {
+            if (this->noHud) {
+                noHud->hudOff();
+            }
+        }
+
     }
 
     void disable() {
@@ -276,6 +288,14 @@ public:
 
         this->enabled = false;
         DEBUG_LOG("[PhotoMode] disabled");
+
+        // re-enable HUD
+        if (PHOTO_MODE_DISABLE_HUD_ON_ENTER) {
+            if (this->noHud) {
+                noHud->hudOn();
+            }
+        }
+
     }
 
     void toggle() {
@@ -347,5 +367,12 @@ public:
             << " Fov: " << this->photoFov);
         DEBUG_LOG("[PhotoMode] Hook installed: " << (this->hook.isInstalled() ? "yes" : "no")
             << " Override active: " << (this->hook.isOverrideActive() ? "yes" : "no"));
+    }
+
+    // capture the nohud object so we can toggle it from this object
+    void setNoHudReference(NoHud* noHud) {
+        if (noHud) {
+            this->noHud = noHud;
+        }
     }
 };

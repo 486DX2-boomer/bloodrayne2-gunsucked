@@ -85,6 +85,9 @@ DWORD WINAPI MainThread(LPVOID param) {
         return 1;
     }
 
+    // capture NoHud for photomode
+    photoMode.setNoHudReference(&noHud);
+
     // Input list and callbacks
     std::vector<KeyInput> inputs;
 
