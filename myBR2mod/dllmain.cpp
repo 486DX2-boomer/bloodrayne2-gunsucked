@@ -7,6 +7,7 @@
 #include "PhotoModeCamera.h"
 #include "NoHud.h"
 #include "SuperSlowMode.h"
+#include "GunBalance.h"
 
 void setupConsole() {
     if (!AllocConsole()) {
@@ -64,8 +65,15 @@ DWORD WINAPI MainThread(LPVOID param) {
     PhotoModeCamera photoMode;
     SuperSlowMode superSlowMode;
     NoHud noHud;
+    GunBalance gunBalance;
 
-    // Wait for game to initialize before installing hook
+    // Gunbalance must be hooked immediately or else it will override values too late to work.
+    if (!gunBalance.installHook()) {
+        DEBUG_LOG("Failed to install gun balance hook - aborting");
+        return 1;
+    }
+
+    // Wait for game to initialize before installing these
     if (!WaitForGameReady(photoMode, noHud)) {
         DEBUG_LOG("[DLL] Game validation failed - aborting");
         return 1;

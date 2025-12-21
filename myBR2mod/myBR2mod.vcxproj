@@ -142,6 +142,7 @@
   <ItemGroup>
     <ClInclude Include="Config.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="GunBalance.h" />
     <ClInclude Include="KeyInput.h" />
     <ClInclude Include="MinHook.h" />
     <ClInclude Include="NoHud.h" />
