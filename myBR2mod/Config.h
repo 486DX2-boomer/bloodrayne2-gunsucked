@@ -16,8 +16,10 @@ namespace Rayne2 {
     constexpr uintptr_t CameraBase = 0x05E34EE0;
 
     // CMainCharacter
-    constexpr uintptr_t RayneBasePtr = 0x061276EC;
-    uintptr_t RayneBase = *reinterpret_cast<uintptr_t*>(RayneBasePtr);
+    // these aren't safe to use without checking them at runtime
+    // in the future we'll create a utility class or something that will find Rayne's object on init
+    // constexpr uintptr_t RayneBasePtr = 0x061276EC;
+    // uintptr_t RayneBase = *reinterpret_cast<uintptr_t*>(RayneBasePtr);
 
     // camera pos (XZY order)
     float* const CameraX = (float*)(CameraBase + 0x004);
@@ -71,6 +73,15 @@ namespace Rayne2 {
 #define SUPER_SLOW_MODE_TIME_FACTOR 0.05f
 
 // behaviors
-
 #define PHOTO_MODE_DISABLE_HUD_ON_ENTER true
 #define PHOTO_MODE_RESTORE_TIME_FACTOR_ON_EXIT true
+
+// gun hotkeys
+#define GUN_SELECT_BLOODSHOT_KEY 0x35 // numrow 5
+#define GUN_SELECT_BLOODSTREAM_KEY 0x36 // 6
+#define GUN_SELECT_BLOODSPRAY_KEY 0x37 // 7
+#define GUN_SELECT_BLOODBOMB_KEY 0x38 // 8
+#define GUN_SELECT_BLOODFLAME_KEY 0x39 // 9
+#define GUN_SELECT_BLOODHAMMER_KEY 0x30 // 0
+// can't find the keycode for mwheeldown
+//#define GUN_SELECT_PREVIOUS_KEY mousewheel down???

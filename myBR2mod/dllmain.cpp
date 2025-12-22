@@ -8,6 +8,7 @@
 #include "NoHud.h"
 #include "SuperSlowMode.h"
 #include "GunBalance.h"
+#include "GunKeys.h"
 
 void setupConsole() {
     if (!AllocConsole()) {
@@ -25,13 +26,14 @@ void setupConsole() {
 }
 
 // Wait for game to be ready before hooking
-bool WaitForGameReady(PhotoModeCamera& photoMode, NoHud& noHud, int pollIntervalMs = 500) {
+bool WaitForGameReady(PhotoModeCamera& photoMode, NoHud& noHud, GunKeys& gunKeys, int pollIntervalMs = 500) {
     DEBUG_LOG("[DLL] Waiting for game init...");
 
     int elapsed = 0;
 
     bool cameraHookSafe = false;
     bool hudHookSafe = false;
+    bool gunKeysSafe = false;
 
     while (true) {
         photoMode.checkSafeToHook();
@@ -46,7 +48,13 @@ bool WaitForGameReady(PhotoModeCamera& photoMode, NoHud& noHud, int pollInterval
             hudHookSafe = true;
         }
 
-        if (cameraHookSafe && hudHookSafe) {
+        gunKeys.checkSafe();
+        if (gunKeys.isSafe()) {
+            DEBUG_LOG("GunKeys ready");
+            gunKeysSafe = true;
+        }
+
+        if (cameraHookSafe && hudHookSafe && gunKeysSafe) {
             DEBUG_LOG("Hooks ready after " << elapsed << "ms");
             return true;
         }
@@ -66,6 +74,7 @@ DWORD WINAPI MainThread(LPVOID param) {
     SuperSlowMode superSlowMode;
     NoHud noHud;
     GunBalance gunBalance;
+    GunKeys gunKeys;
 
     // Gunbalance must be hooked immediately or else it will override values too late to work.
     if (!gunBalance.installHook()) {
@@ -74,7 +83,7 @@ DWORD WINAPI MainThread(LPVOID param) {
     }
 
     // Wait for game to initialize before installing these
-    if (!WaitForGameReady(photoMode, noHud)) {
+    if (!WaitForGameReady(photoMode, noHud, gunKeys)) {
         DEBUG_LOG("[DLL] Game validation failed - aborting");
         return 1;
     }
@@ -163,6 +172,26 @@ DWORD WINAPI MainThread(LPVOID param) {
     // No hud
     inputs.push_back(KeyInput(TOGGLE_HUD_KEY, true, [&noHud]() {
         noHud.toggle();
+        }));
+
+    // gun keys
+    inputs.push_back(KeyInput(GUN_SELECT_BLOODSHOT_KEY, true, [&gunKeys]() {
+        gunKeys.switchWeapon(0);
+        }));
+    inputs.push_back(KeyInput(GUN_SELECT_BLOODSTREAM_KEY, true, [&gunKeys]() {
+        gunKeys.switchWeapon(1);
+        }));
+    inputs.push_back(KeyInput(GUN_SELECT_BLOODSPRAY_KEY, true, [&gunKeys]() {
+        gunKeys.switchWeapon(2);
+        }));
+    inputs.push_back(KeyInput(GUN_SELECT_BLOODBOMB_KEY, true, [&gunKeys]() {
+        gunKeys.switchWeapon(3);
+        }));
+    inputs.push_back(KeyInput(GUN_SELECT_BLOODFLAME_KEY, true, [&gunKeys]() {
+        gunKeys.switchWeapon(4);
+        }));
+    inputs.push_back(KeyInput(GUN_SELECT_BLOODHAMMER_KEY, true, [&gunKeys]() {
+        gunKeys.switchWeapon(5);
         }));
 
     DEBUG_LOG("[DLL] Starting hook. Press F7 to toggle photo mode\nPress F8 to toggle super slow mode\nPress F9 to toggle no HUD");
