@@ -24,6 +24,7 @@
     <ProjectGuid>{6aea0415-38ca-4f16-bd66-ece9add5aab7}</ProjectGuid>
     <RootNamespace>myBR2mod</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>GunSucked</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
