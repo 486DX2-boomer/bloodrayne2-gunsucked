@@ -33,7 +33,7 @@ int main()
     std::cout << "process id: " << pi.hProcess << std::endl;
     auto rayne2Handle = pi.hProcess;
 
-    LPCSTR dllPath = "G:\\BR2 Modding\\myBR2mod\\Debug\\myBR2mod.dll";
+    LPCSTR dllPath = "G:\\BR2 Modding\\myBR2mod\\Debug\\GunSucked.dll";
 
     if (rayne2Handle && rayne2Handle != INVALID_HANDLE_VALUE) {
 
