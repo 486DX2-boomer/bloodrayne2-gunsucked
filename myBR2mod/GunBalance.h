@@ -9,10 +9,12 @@
 // we hook it and overwrite it with our rebalanced values.
 typedef void(__fastcall* FN_SetGunProperties)(void* thisPointer);
 
-// This is really not an elegant solution for this. We'll change this to a class
 // so if ZPunks (the mansion) have about 300 HP and Fpunks (meatpacking) have about 450...
 // we'd want a basic pistol to blast an FPunk in like 6 shots. 
 // default level 1 pistol would take 9! will have to buff dmg more than I thought
+
+// I'm storing gun balance properties in namespaces to make it more readable and convenient for me to tune the values.
+// The override and assignment of values is from GunProperties structs (and these can have custom values loaded from .cfg/.ini later)
 namespace Guns {
     namespace BloodShot {
         // Bloodshot
@@ -51,9 +53,9 @@ namespace Guns {
     }
 
     namespace Offsets {
-        uintptr_t AmmoLvl1 = 0x20;
-        uintptr_t AmmoLvl2 = 0x24;
-        uintptr_t AmmoLvl3 = 0x28;
+        uintptr_t AmmoCostLvl1 = 0x20;
+        uintptr_t AmmoCostLvl2 = 0x24;
+        uintptr_t AmmoCostLvl3 = 0x28;
         uintptr_t DamageLvl1 = 0x2C;
         uintptr_t DamageLvl2 = 0x30;
         uintptr_t DamageLvl3 = 0x34;
@@ -62,6 +64,80 @@ namespace Guns {
         uintptr_t FireRateLvl3 = 0x40;
         uintptr_t Range = 0x50;
     }
+}
+
+typedef struct GunProperties {
+    uintptr_t baseOffset;
+    float ammoCostLvl1;
+    float ammoCostLvl2;
+    float ammoCostLvl3;
+    float damageLvl1;
+    float damageLvl2;
+    float damageLvl3;
+    float fireRateLvl1;
+    float fireRateLvl2;
+    float fireRateLvl3;
+    float range;
+};
+
+//GunProperties bloodShot{ 0x2bc, 5.5f, 5.0f, 4.5f, 75.0f, 90.0f, 112.5f, 5.0f, 6.0f, 7.0f, 120.0f };
+GunProperties bloodShot{
+    Guns::BloodShot::BaseOffset,
+    Guns::BloodShot::AmmoCostLvl1,
+    Guns::BloodShot::AmmoCostLvl2,
+    Guns::BloodShot::AmmoCostLvl3,
+    Guns::BloodShot::DamageLvl1,
+    Guns::BloodShot::DamageLvl2,
+    Guns::BloodShot::DamageLvl3,
+    Guns::BloodShot::FireRateLvl1,
+    Guns::BloodShot::FireRateLvl2,
+    Guns::BloodShot::FireRateLvl3,
+    Guns::BloodShot::Range };
+//GunProperties bloodStream{ 0x330, 11.0f, 8.33f, 6.67f, 75.0f, 80.0f, 85.0f, 12.0f, 16.0f, 20.0f, 100.0f };
+GunProperties bloodStream{
+    Guns::BloodStream::BaseOffset,
+    Guns::BloodStream::AmmoCostLvl1,
+    Guns::BloodStream::AmmoCostLvl2,
+    Guns::BloodStream::AmmoCostLvl3,
+    Guns::BloodStream::DamageLvl1,
+    Guns::BloodStream::DamageLvl2,
+    Guns::BloodStream::DamageLvl3,
+    Guns::BloodStream::FireRateLvl1,
+    Guns::BloodStream::FireRateLvl2,
+    Guns::BloodStream::FireRateLvl3,
+    Guns::BloodStream::Range };
+
+std::vector<GunProperties> guns = { bloodShot, bloodStream };
+
+void writeGunProperties(void* thisPointer, GunProperties& g) {
+
+    uintptr_t weaponBaseAddress = (uintptr_t)thisPointer + g.baseOffset;
+
+    float* target;
+
+    target = (float*)(weaponBaseAddress + Guns::Offsets::AmmoCostLvl1);
+    *target = g.ammoCostLvl1;
+    target = (float*)(weaponBaseAddress + Guns::Offsets::AmmoCostLvl2);
+    *target = g.ammoCostLvl2;
+    target = (float*)(weaponBaseAddress + Guns::Offsets::AmmoCostLvl3);
+    *target = g.ammoCostLvl3;
+
+    target = (float*)(weaponBaseAddress + Guns::Offsets::DamageLvl1);
+    *target = g.damageLvl1;
+    target = (float*)(weaponBaseAddress + Guns::Offsets::DamageLvl2);
+    *target = g.damageLvl2;
+    target = (float*)(weaponBaseAddress + Guns::Offsets::DamageLvl3);
+    *target = g.damageLvl3;
+
+    target = (float*)(weaponBaseAddress + Guns::Offsets::FireRateLvl1);
+    *target = g.fireRateLvl1;
+    target = (float*)(weaponBaseAddress + Guns::Offsets::FireRateLvl2);
+    *target = g.fireRateLvl2;
+    target = (float*)(weaponBaseAddress + Guns::Offsets::FireRateLvl3);
+    *target = g.fireRateLvl3;
+
+    target = (float*)(weaponBaseAddress + Guns::Offsets::Range);
+    *target = g.range;
 }
 
 class GunBalanceHook {
@@ -73,41 +149,14 @@ private:
     bool hookInstalled = false;
     bool hookEnabled = false;
 
-    static void overrideFloat(void* base, uintptr_t offset, float value) {
-        float* target = (float*)((uintptr_t)base + offset);
-        *target = value;
-    }
-
     // must be static
     static void __fastcall hookedSetGunProperties(void* thisPointer) {
 
         originalFunction(thisPointer);
 
-        uintptr_t bloodShotBase = (uintptr_t)thisPointer + Guns::BloodShot::BaseOffset;
-        overrideFloat((void*)bloodShotBase, Guns::Offsets::AmmoLvl1, Guns::BloodShot::AmmoCostLvl1);
-        overrideFloat((void*)bloodShotBase, Guns::Offsets::AmmoLvl2, Guns::BloodShot::AmmoCostLvl2);
-        overrideFloat((void*)bloodShotBase, Guns::Offsets::AmmoLvl3, Guns::BloodShot::AmmoCostLvl3);
-
-        overrideFloat((void*)bloodShotBase, Guns::Offsets::DamageLvl1, Guns::BloodShot::DamageLvl1);
-        overrideFloat((void*)bloodShotBase, Guns::Offsets::DamageLvl2, Guns::BloodShot::DamageLvl2);
-        overrideFloat((void*)bloodShotBase, Guns::Offsets::DamageLvl3, Guns::BloodShot::DamageLvl3);
-
-        overrideFloat((void*)bloodShotBase, Guns::Offsets::FireRateLvl1, Guns::BloodShot::FireRateLvl1);
-        overrideFloat((void*)bloodShotBase, Guns::Offsets::FireRateLvl2, Guns::BloodShot::FireRateLvl2);
-        overrideFloat((void*)bloodShotBase, Guns::Offsets::FireRateLvl3, Guns::BloodShot::FireRateLvl3);
-
-        uintptr_t bloodStreamBase = (uintptr_t)thisPointer + Guns::BloodStream::BaseOffset;
-        overrideFloat((void*)bloodStreamBase, Guns::Offsets::AmmoLvl1, Guns::BloodStream::AmmoCostLvl1);
-        overrideFloat((void*)bloodStreamBase, Guns::Offsets::AmmoLvl2, Guns::BloodStream::AmmoCostLvl2);
-        overrideFloat((void*)bloodStreamBase, Guns::Offsets::AmmoLvl3, Guns::BloodStream::AmmoCostLvl3);
-
-        overrideFloat((void*)bloodStreamBase, Guns::Offsets::DamageLvl1, Guns::BloodStream::DamageLvl1);
-        overrideFloat((void*)bloodStreamBase, Guns::Offsets::DamageLvl2, Guns::BloodStream::DamageLvl2);
-        overrideFloat((void*)bloodStreamBase, Guns::Offsets::DamageLvl3, Guns::BloodStream::DamageLvl3);
-
-        overrideFloat((void*)bloodStreamBase, Guns::Offsets::FireRateLvl1, Guns::BloodStream::FireRateLvl1);
-        overrideFloat((void*)bloodStreamBase, Guns::Offsets::FireRateLvl2, Guns::BloodStream::FireRateLvl2);
-        overrideFloat((void*)bloodStreamBase, Guns::Offsets::FireRateLvl3, Guns::BloodStream::FireRateLvl3);
+        for (auto& gun : guns) {
+            writeGunProperties(thisPointer, gun);
+        }
     }
 
 public:
