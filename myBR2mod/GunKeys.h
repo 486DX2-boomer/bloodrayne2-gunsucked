@@ -80,6 +80,20 @@ public:
 		}
 	}
 
+	bool isWeaponUnlocked(unsigned int weaponIndex) {
+		if (weaponIndex >= 6) return false;
+
+		uintptr_t* unlockedWeaponObjPtr = reinterpret_cast<uintptr_t*>(Rayne2::UnlockedWeaponObjPtr);
+		if (unlockedWeaponObjPtr == nullptr || *unlockedWeaponObjPtr == 0) return false;
+
+		uintptr_t unlockedWeaponObj = *unlockedWeaponObjPtr;
+		uint32_t bitmask = *reinterpret_cast<uint32_t*>(unlockedWeaponObj + Rayne2::UnlockedWeaponBitmaskOffset);
+
+		// the game stores weapon unlock state as an 8 bit bitmask.
+		// eg 00000000 = no weapons unlocked, 00000011 = bloodshot and bloodstream unlocked
+		return (bitmask & (1 << weaponIndex)) != 0;
+	}
+
 	void switchWeapon(unsigned int weaponMode) {
 
 		// ensure that the pointer is always valid
@@ -93,12 +107,18 @@ public:
 		uintptr_t rayneBase = *reinterpret_cast<uintptr_t*>(Rayne2::RayneBasePtr);
 		if (rayneBase == 0) return;
 
-		// we need a check here to make sure that the weapon is unlocked before equipping it
+		// make sure that the weapon is unlocked before equipping it.
+		// otherwise, the function will allow us to switch to weapons we shouldn't have yet.
+		if (!this->isWeaponUnlocked(weaponMode)) {
+			// we don't have this weapon, so cancel
+			DEBUG_LOG("Gunkeys: weapon mode " << weaponMode << " is not unlocked");
+			return;
+		}
 
 		void* multiGun = reinterpret_cast<void*>(rayneBase + multiGunOffset);
 		auto weaponSwitchCall = reinterpret_cast<switchWeaponFn>(switchWeaponFunctionAddress);
 		int result = weaponSwitchCall(multiGun, weaponMode, 1);
-		// DEBUG_LOG(result);
+		DEBUG_LOG("switch weapon to " << weaponMode);
 		}
 	}
 };
