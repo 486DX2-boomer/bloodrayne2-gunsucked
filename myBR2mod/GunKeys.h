@@ -28,8 +28,14 @@ public:
 		BloodHammer
 	};
 
-	bool setRayneBase() {
-		return false;
+	//bool setRayneBase() {
+	//	return false;
+	//}
+
+	// the address gets lost every time a level or savegame loads;
+	// easiest workaround is to run checkSafe again every time we switch weapons
+	void resetCurrentWeaponAddress() {
+		this->checkSafe();
 	}
 
 	// don't allow use if Rayne pointer isn't valid
@@ -39,7 +45,7 @@ public:
 
 	void checkSafe() {
 		__try {
-			// fine Rayne obj
+			// find Rayne obj
 			uintptr_t* rayneBasePtr = reinterpret_cast<uintptr_t*>(0x061276EC);
 			uintptr_t rayneBase = *rayneBasePtr;
 
@@ -70,8 +76,13 @@ public:
 	}
 
 	void switchWeapon(unsigned int weaponMode) {
+
+		// ensure that the pointer is always valid
+		this->resetCurrentWeaponAddress();
+
 		if (this->isSafe()) {
-		DEBUG_LOG("Switching weapon to " << weaponMode << " ");
+		DEBUG_LOG("Switching weapon to " << weaponMode << "at address " << this->currentWeapon);
+
 		DEBUG_LOG(currentWeapon);
 		*this->currentWeapon = weaponMode;
 		}
