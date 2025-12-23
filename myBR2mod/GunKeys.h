@@ -3,19 +3,24 @@
 #include "Config.h"
 
 // equipped weapon index is stored at Rayne's object with offset of +1139C
+// don't overwrite this value. bad things happen
 // unsigned int* equippedWeaponIndex = (unsigned int*)(Rayne2::RayneBase + 0x1139C);
+
+// function to call for weapon switch
+typedef int(__thiscall* switchWeaponFn)(void* CMultigun, int weaponIndex, char playSound);
+
+constexpr uintptr_t switchWeaponFunctionAddress = 0x005B5070;
+constexpr uintptr_t multiGunOffset = 0x11380;
 
 class GunKeys {
 private:
 	// unsigned int* currentWeapon = (unsigned int*)(rayneBase + 0x1139C);
-	// we have to wait to assign this until after safety check
-	unsigned int* currentWeapon;
+	unsigned int* currentWeapon = 0;
 
 	bool safe = false;
 
 public:
-	GunKeys(): 
-		safe(false) {};
+	GunKeys() {};
 	~GunKeys() {};
 
 	// 0-6
@@ -81,10 +86,19 @@ public:
 		this->resetCurrentWeaponAddress();
 
 		if (this->isSafe()) {
-		DEBUG_LOG("Switching weapon to " << weaponMode << "at address " << this->currentWeapon);
+		//DEBUG_LOG("Switching weapon to " << weaponMode << "at address " << this->currentWeapon);
+		//DEBUG_LOG(currentWeapon);
+		//*this->currentWeapon = weaponMode;
 
-		DEBUG_LOG(currentWeapon);
-		*this->currentWeapon = weaponMode;
+		uintptr_t rayneBase = *reinterpret_cast<uintptr_t*>(Rayne2::RayneBasePtr);
+		if (rayneBase == 0) return;
+
+		// we need a check here to make sure that the weapon is unlocked before equipping it
+
+		void* multiGun = reinterpret_cast<void*>(rayneBase + multiGunOffset);
+		auto weaponSwitchCall = reinterpret_cast<switchWeaponFn>(switchWeaponFunctionAddress);
+		int result = weaponSwitchCall(multiGun, weaponMode, 1);
+		// DEBUG_LOG(result);
 		}
 	}
 };

@@ -176,22 +176,28 @@ DWORD WINAPI MainThread(LPVOID param) {
 
     // gun keys
     inputs.push_back(KeyInput(GUN_SELECT_BLOODSHOT_KEY, true, [&gunKeys]() {
-        gunKeys.switchWeapon(0);
+        //gunKeys.switchWeapon(0);
+        gunKeys.switchWeapon(GunKeys::WeaponModes::BloodShot);
         }));
     inputs.push_back(KeyInput(GUN_SELECT_BLOODSTREAM_KEY, true, [&gunKeys]() {
-        gunKeys.switchWeapon(1);
+        //gunKeys.switchWeapon(1);
+        gunKeys.switchWeapon(GunKeys::WeaponModes::BloodStream);
         }));
     inputs.push_back(KeyInput(GUN_SELECT_BLOODSPRAY_KEY, true, [&gunKeys]() {
-        gunKeys.switchWeapon(2);
+        //gunKeys.switchWeapon(2);
+        gunKeys.switchWeapon(GunKeys::WeaponModes::BloodSpray);
         }));
     inputs.push_back(KeyInput(GUN_SELECT_BLOODBOMB_KEY, true, [&gunKeys]() {
-        gunKeys.switchWeapon(3);
+        //gunKeys.switchWeapon(3);
+        gunKeys.switchWeapon(GunKeys::WeaponModes::BloodBomb);
         }));
     inputs.push_back(KeyInput(GUN_SELECT_BLOODFLAME_KEY, true, [&gunKeys]() {
-        gunKeys.switchWeapon(4);
+        //gunKeys.switchWeapon(4);
+        gunKeys.switchWeapon(GunKeys::WeaponModes::BloodFlame);
         }));
     inputs.push_back(KeyInput(GUN_SELECT_BLOODHAMMER_KEY, true, [&gunKeys]() {
-        gunKeys.switchWeapon(5);
+        //gunKeys.switchWeapon(5);
+        gunKeys.switchWeapon(GunKeys::WeaponModes::BloodHammer);
         }));
 
     DEBUG_LOG("[DLL] Starting hook. Press F7 to toggle photo mode\nPress F8 to toggle super slow mode\nPress F9 to toggle no HUD");
