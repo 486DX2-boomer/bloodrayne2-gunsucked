@@ -45,7 +45,10 @@
     <ClInclude Include="GunKeys.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MouseHandler.h">
+    <ClInclude Include="MouseInput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InputBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

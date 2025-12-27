@@ -1,8 +1,9 @@
 #pragma once
 #include <Windows.h>
 #include <functional>
+#include "InputBase.h"
 
-class KeyInput {
+class KeyInput : public InputBase {
 private:
     int virtualKeyCode;
     bool previousState;
@@ -57,7 +58,7 @@ public:
         return shouldTrigger;
     }
 
-    void checkAndExecute() {
+    void checkAndExecute() override {
 
         if (!this->isGameFocused()) { // ignore if window not active
             return;
@@ -73,12 +74,12 @@ public:
         this->callback = cb;
     }
 
-    bool hasCallback() const {
-        return this->callback != nullptr;
-    }
+    //bool hasCallback() const {
+    //    return this->callback != nullptr;
+    //}
 
     // Reset state (for if game loses focus)
-    void reset() {
-        this->previousState = false;
-    }
+    //void reset() {
+    //    this->previousState = false;
+    //}
 };

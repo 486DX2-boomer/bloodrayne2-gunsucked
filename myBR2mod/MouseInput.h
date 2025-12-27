@@ -4,19 +4,26 @@
 #pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "dxguid.lib")
 #include "Config.h"
+#include "InputBase.h"
 
-class MouseHandler {
+class MouseInput : public InputBase {
 private:
+    // we have pretty much HAVE to use DirectInput here
+    // Win32 mouse events can't be captured without hooking a window
+    // GameInput isn't compatible with anything before Win10 19H1
+    // 
     IDirectInput8* directInput = nullptr;
     IDirectInputDevice8* mouse = nullptr;
 
     bool initialized = false;
     bool wheelDownTriggered = false;
 
-public:
-    MouseHandler() {}
+    std::function<void()> callback;
 
-    ~MouseHandler() {
+public:
+    MouseInput(std::function<void()> cb) : callback(cb) {}
+
+    ~MouseInput() {
         if (this->mouse) {
             this->mouse->Unacquire();
             this->mouse->Release();
@@ -26,6 +33,7 @@ public:
         }
     }
 
+    // call manually after instantiation
     bool initialize() {
         if (this->initialized) return true;
 
@@ -83,9 +91,20 @@ public:
         }
     }
 
-    bool wasMousewheelDown() {
+    bool wasMouseWheelDown() {
         bool result = this->wheelDownTriggered;
         this->wheelDownTriggered = false;
         return result;
+    }
+
+    void checkAndExecute() override {
+        if (!this->initialized) {
+            return;
+        }
+
+        this->poll();
+        if (this->wasMouseWheelDown()) {
+            this->callback();
+        }
     }
 };

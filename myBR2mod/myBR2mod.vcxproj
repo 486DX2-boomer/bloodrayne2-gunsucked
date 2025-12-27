@@ -145,9 +145,10 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="GunBalance.h" />
     <ClInclude Include="GunKeys.h" />
+    <ClInclude Include="InputBase.h" />
     <ClInclude Include="KeyInput.h" />
     <ClInclude Include="MinHook.h" />
-    <ClInclude Include="MouseHandler.h" />
+    <ClInclude Include="MouseInput.h" />
     <ClInclude Include="NoHud.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PhotoModeCamera.h" />

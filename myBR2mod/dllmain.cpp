@@ -3,13 +3,14 @@
 #include <stdio.h>
 #include <vector>
 #include "Config.h"
+#include "InputBase.h"
 #include "KeyInput.h"
+#include "MouseInput.h"
 #include "PhotoModeCamera.h"
 #include "NoHud.h"
 #include "SuperSlowMode.h"
 #include "GunBalance.h"
 #include "GunKeys.h"
-#include "MouseHandler.h"
 
 void setupConsole() {
     if (!AllocConsole()) {
@@ -77,10 +78,6 @@ DWORD WINAPI MainThread(LPVOID param) {
     GunBalance gunBalance;
     GunKeys gunKeys;
 
-#ifdef ENABLE_MOUSEWHEEL_DOWN_PREVIOUS_WEAPON
-    MouseHandler mouseHandler;
-#endif
-
     // Gunbalance must be hooked immediately or else it will override values too late to work.
     if (!gunBalance.installHook()) {
         DEBUG_LOG("Failed to install gun balance hook - aborting");
@@ -104,110 +101,114 @@ DWORD WINAPI MainThread(LPVOID param) {
         DEBUG_LOG("Failed to install no hud hook - aborting");
         return 1;
     }
-
-#ifdef ENABLE_MOUSEWHEEL_DOWN_PREVIOUS_WEAPON
-    // init mouse handler
-    mouseHandler.initialize();
-#endif
-
     // capture NoHud for photomode
     photoMode.captureNoHudRef(&noHud);
     // capture superslow for photomode
     photoMode.captureSuperSlowRef(&superSlowMode);
 
     // Input list and callbacks
-    std::vector<KeyInput> inputs;
+    std::vector<std::unique_ptr<InputBase>> inputs;
 
     // Debug key - no callback required, handle manually
     KeyInput debugCheckKey(DEBUG_CHECK_KEY, true);
 
     // Photo mode toggle
-    inputs.push_back(KeyInput(TOGGLE_PHOTO_MODE_KEY, true, [&photoMode]() {
+    inputs.push_back(std::make_unique<KeyInput>(TOGGLE_PHOTO_MODE_KEY, true, [&photoMode]() {
         photoMode.toggle();
         }));
 
     // Camera position adjustments (XZY order)
-    inputs.push_back(KeyInput(DECREMENT_X_KEY, false, [&photoMode]() {
+    inputs.push_back(std::make_unique<KeyInput>(DECREMENT_X_KEY, false, [&photoMode]() {
         photoMode.adjustPosition(-CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0, 0);
         }));
-    inputs.push_back(KeyInput(INCREMENT_X_KEY, false, [&photoMode]() {
+    inputs.push_back(std::make_unique<KeyInput>(INCREMENT_X_KEY, false, [&photoMode]() {
         photoMode.adjustPosition(CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0, 0);
         }));
-    inputs.push_back(KeyInput(DECREMENT_Z_KEY, false, [&photoMode]() {
+    inputs.push_back(std::make_unique<KeyInput>(DECREMENT_Z_KEY, false, [&photoMode]() {
         photoMode.adjustPosition(0, -CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0);
         }));
-    inputs.push_back(KeyInput(INCREMENT_Z_KEY, false, [&photoMode]() {
+    inputs.push_back(std::make_unique<KeyInput>(INCREMENT_Z_KEY, false, [&photoMode]() {
         photoMode.adjustPosition(0, CAMERA_POS_INCREMENT_DECREMENT_VALUE, 0);
         }));
-    inputs.push_back(KeyInput(DECREMENT_Y_KEY, false, [&photoMode]() {
+    inputs.push_back(std::make_unique<KeyInput>(DECREMENT_Y_KEY, false, [&photoMode]() {
         photoMode.adjustPosition(0, 0, -CAMERA_POS_INCREMENT_DECREMENT_VALUE);
         }));
-    inputs.push_back(KeyInput(INCREMENT_Y_KEY, false, [&photoMode]() {
+    inputs.push_back(std::make_unique<KeyInput>(INCREMENT_Y_KEY, false, [&photoMode]() {
         photoMode.adjustPosition(0, 0, CAMERA_POS_INCREMENT_DECREMENT_VALUE);
         }));
 
     // Target position adjustments (XZY order)
-    inputs.push_back(KeyInput(DECREMENT_ANGLE_PITCH_KEY, false, [&photoMode]() {
+    inputs.push_back(std::make_unique<KeyInput>(DECREMENT_ANGLE_PITCH_KEY, false, [&photoMode]() {
         photoMode.adjustAngle(-ANGLE_INCREMENT_DECREMENT_VALUE, 0, 0);
         }));
-    inputs.push_back(KeyInput(INCREMENT_ANGLE_PITCH_KEY, false, [&photoMode]() {
+    inputs.push_back(std::make_unique<KeyInput>(INCREMENT_ANGLE_PITCH_KEY, false, [&photoMode]() {
         photoMode.adjustAngle(ANGLE_INCREMENT_DECREMENT_VALUE, 0, 0);
         }));
-    inputs.push_back(KeyInput(DECREMENT_ANGLE_ROLL_KEY, false, [&photoMode]() {
+    inputs.push_back(std::make_unique<KeyInput>(DECREMENT_ANGLE_ROLL_KEY, false, [&photoMode]() {
         photoMode.adjustAngle(0, -ANGLE_INCREMENT_DECREMENT_VALUE, 0);
         }));
-    inputs.push_back(KeyInput(INCREMENT_ANGLE_ROLL_KEY, false, [&photoMode]() {
+    inputs.push_back(std::make_unique<KeyInput>(INCREMENT_ANGLE_ROLL_KEY, false, [&photoMode]() {
         photoMode.adjustAngle(0, ANGLE_INCREMENT_DECREMENT_VALUE, 0);
         }));
-    inputs.push_back(KeyInput(DECREMENT_ANGLE_YAW_KEY, false, [&photoMode]() {
+    inputs.push_back(std::make_unique<KeyInput>(DECREMENT_ANGLE_YAW_KEY, false, [&photoMode]() {
         photoMode.adjustAngle(0, 0, -ANGLE_INCREMENT_DECREMENT_VALUE);
         }));
-    inputs.push_back(KeyInput(INCREMENT_ANGLE_YAW_KEY, false, [&photoMode]() {
+    inputs.push_back(std::make_unique<KeyInput>(INCREMENT_ANGLE_YAW_KEY, false, [&photoMode]() {
         photoMode.adjustAngle(0, 0, ANGLE_INCREMENT_DECREMENT_VALUE);
         }));
 
     // FOV adjustments
-    inputs.push_back(KeyInput(DECREMENT_FOV_KEY, false, [&photoMode]() {
+    inputs.push_back(std::make_unique<KeyInput>(DECREMENT_FOV_KEY, false, [&photoMode]() {
         photoMode.adjustFov(-FOV_INCREMENT_DECREMENT_VALUE);
         }));
-    inputs.push_back(KeyInput(INCREMENT_FOV_KEY, false, [&photoMode]() {
+    inputs.push_back(std::make_unique<KeyInput>(INCREMENT_FOV_KEY, false, [&photoMode]() {
         photoMode.adjustFov(FOV_INCREMENT_DECREMENT_VALUE);
         }));
 
     // Super slow toggle
-    inputs.push_back(KeyInput(TOGGLE_SUPER_SLOW_MODE_KEY, true, [&superSlowMode]() {
+    inputs.push_back(std::make_unique<KeyInput>(TOGGLE_SUPER_SLOW_MODE_KEY, true, [&superSlowMode]() {
         superSlowMode.toggle();
         }));
 
     // No hud
-    inputs.push_back(KeyInput(TOGGLE_HUD_KEY, true, [&noHud]() {
+    inputs.push_back(std::make_unique<KeyInput>(TOGGLE_HUD_KEY, true, [&noHud]() {
         noHud.toggle();
         }));
 
     // gun keys
-    inputs.push_back(KeyInput(GUN_SELECT_BLOODSHOT_KEY, true, [&gunKeys]() {
+    inputs.push_back(std::make_unique<KeyInput>(GUN_SELECT_BLOODSHOT_KEY, true, [&gunKeys]() {
         gunKeys.switchWeapon(GunKeys::WeaponModes::BloodShot);
         }));
-    inputs.push_back(KeyInput(GUN_SELECT_BLOODSTREAM_KEY, true, [&gunKeys]() {
+    inputs.push_back(std::make_unique<KeyInput>(GUN_SELECT_BLOODSTREAM_KEY, true, [&gunKeys]() {
         gunKeys.switchWeapon(GunKeys::WeaponModes::BloodStream);
         }));
-    inputs.push_back(KeyInput(GUN_SELECT_BLOODSPRAY_KEY, true, [&gunKeys]() {
+    inputs.push_back(std::make_unique<KeyInput>(GUN_SELECT_BLOODSPRAY_KEY, true, [&gunKeys]() {
         gunKeys.switchWeapon(GunKeys::WeaponModes::BloodSpray);
         }));
-    inputs.push_back(KeyInput(GUN_SELECT_BLOODBOMB_KEY, true, [&gunKeys]() {
+    inputs.push_back(std::make_unique<KeyInput>(GUN_SELECT_BLOODBOMB_KEY, true, [&gunKeys]() {
         gunKeys.switchWeapon(GunKeys::WeaponModes::BloodBomb);
         }));
-    inputs.push_back(KeyInput(GUN_SELECT_BLOODFLAME_KEY, true, [&gunKeys]() {
+    inputs.push_back(std::make_unique<KeyInput>(GUN_SELECT_BLOODFLAME_KEY, true, [&gunKeys]() {
         gunKeys.switchWeapon(GunKeys::WeaponModes::BloodFlame);
         }));
-    inputs.push_back(KeyInput(GUN_SELECT_BLOODHAMMER_KEY, true, [&gunKeys]() {
+    inputs.push_back(std::make_unique<KeyInput>(GUN_SELECT_BLOODHAMMER_KEY, true, [&gunKeys]() {
         gunKeys.switchWeapon(GunKeys::WeaponModes::BloodHammer);
         }));
 
     // used if mousewheel down isn't enabled
-    inputs.push_back(KeyInput(GUN_SELECT_PREVIOUS_WEAPON_KEY, true, [&gunKeys]() {
+    inputs.push_back(std::make_unique<KeyInput>(GUN_SELECT_PREVIOUS_WEAPON_KEY, true, [&gunKeys]() {
         gunKeys.switchToPreviousWeapon();
         }));
+
+#if ENABLE_MOUSEWHEEL_DOWN_PREVIOUS_WEAPON
+    auto mouseInput = std::make_unique<MouseInput>([&gunKeys]() {
+        gunKeys.switchToPreviousWeapon();
+        });
+
+    if (mouseInput->initialize()) {
+        inputs.push_back(std::move(mouseInput));
+    }
+#endif
 
     DEBUG_LOG("[DLL] Starting hook. Press F7 to toggle photo mode\nPress F8 to toggle super slow mode\nPress F9 to toggle no HUD");
 
@@ -220,16 +221,16 @@ DWORD WINAPI MainThread(LPVOID param) {
 
         // Process inputs with callbacks
         for (auto& input : inputs) {
-            input.checkAndExecute();
+            input->checkAndExecute();
         }
 
-#ifdef ENABLE_MOUSEWHEEL_DOWN_PREVIOUS_WEAPON
-        mouseHandler.poll();
-        if (mouseHandler.wasMousewheelDown()) {
-            DEBUG_LOG("Mouse wheel down - swap to previous weapon");
-            gunKeys.switchToPreviousWeapon();
-        }
-#endif
+//#ifdef ENABLE_MOUSEWHEEL_DOWN_PREVIOUS_WEAPON
+//        mouseHandler.poll();
+//        if (mouseHandler.wasMouseWheelDown()) {
+//            DEBUG_LOG("Mouse wheel down - swap to previous weapon");
+//            gunKeys.switchToPreviousWeapon();
+//        }
+//#endif
 
         Sleep(16);
     }
