@@ -121,4 +121,21 @@ public:
 		DEBUG_LOG("switch weapon to " << weaponMode);
 		}
 	}
+
+	void switchToPreviousWeapon() {
+
+		this->resetCurrentWeaponAddress();
+
+		if (this->isSafe()) {
+			// this is the same as switchWeapon, should extract this to a new function
+			uintptr_t rayneBase = *reinterpret_cast<uintptr_t*>(Rayne2::RayneBasePtr);
+			if (rayneBase == 0) return;
+
+			void* multiGun = reinterpret_cast<void*>(rayneBase + multiGunOffset);
+			auto weaponSwitchCall = reinterpret_cast<switchWeaponFn>(switchWeaponFunctionAddress);
+
+			// reads previous weapon index from the game
+			int result = weaponSwitchCall(multiGun, *Rayne2::previousWeaponIndex, 1);
+		}
+	}
 };

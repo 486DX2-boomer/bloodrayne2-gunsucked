@@ -40,6 +40,16 @@ namespace Rayne2 {
     // weapon unlock states are stored in a 1 byte bitmask
     // eg 00000000 = no weapons unlocked, 00000011 = bloodshot and bloodstream unlocked
     constexpr uintptr_t UnlockedWeaponBitmaskOffset = 0x34;
+
+    // these addresses track current, previous, and next weapon from 0-6 and wraps around.
+    // they are read only
+    // example: if you have Blood Spray equipped:
+    // current is 2, previous is 1, next is 3
+    // if you have Blood Shot equipped:
+    // current is 0, previous is 5, next is 1
+    int* const previousWeaponIndex = (int*)0x05F2FAF0;
+    int* const currentEquippedWeaponIndex = (int*)0x05F2FAEC;
+    int* const nextWeaponIndex = (int*)0x05F2FAF4;
 }
 
 // key bindings
@@ -89,5 +99,11 @@ namespace Rayne2 {
 #define GUN_SELECT_BLOODBOMB_KEY 0x38 // 8
 #define GUN_SELECT_BLOODFLAME_KEY 0x39 // 9
 #define GUN_SELECT_BLOODHAMMER_KEY 0x30 // 0
-// can't find the keycode for mwheeldown
-//#define GUN_SELECT_PREVIOUS_KEY mousewheel down???
+
+// used if player is not using mousewheel down for previous weapon.
+// should be a toggle in the .ini file
+#define GUN_SELECT_PREVIOUS_WEAPON_KEY VK_OEM_MINUS // -
+
+// if enabled, mousewheel down switches to previous weapon
+// mousewheel up is already next weapon by default, so this allows bidirectional weapon mode scrolling
+#define ENABLE_MOUSEWHEEL_DOWN_PREVIOUS_WEAPON 1

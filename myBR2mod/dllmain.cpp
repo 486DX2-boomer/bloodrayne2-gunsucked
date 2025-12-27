@@ -9,6 +9,7 @@
 #include "SuperSlowMode.h"
 #include "GunBalance.h"
 #include "GunKeys.h"
+#include "MouseHandler.h"
 
 void setupConsole() {
     if (!AllocConsole()) {
@@ -76,6 +77,10 @@ DWORD WINAPI MainThread(LPVOID param) {
     GunBalance gunBalance;
     GunKeys gunKeys;
 
+#ifdef ENABLE_MOUSEWHEEL_DOWN_PREVIOUS_WEAPON
+    MouseHandler mouseHandler;
+#endif
+
     // Gunbalance must be hooked immediately or else it will override values too late to work.
     if (!gunBalance.installHook()) {
         DEBUG_LOG("Failed to install gun balance hook - aborting");
@@ -99,6 +104,11 @@ DWORD WINAPI MainThread(LPVOID param) {
         DEBUG_LOG("Failed to install no hud hook - aborting");
         return 1;
     }
+
+#ifdef ENABLE_MOUSEWHEEL_DOWN_PREVIOUS_WEAPON
+    // init mouse handler
+    mouseHandler.initialize();
+#endif
 
     // capture NoHud for photomode
     photoMode.captureNoHudRef(&noHud);
@@ -176,28 +186,27 @@ DWORD WINAPI MainThread(LPVOID param) {
 
     // gun keys
     inputs.push_back(KeyInput(GUN_SELECT_BLOODSHOT_KEY, true, [&gunKeys]() {
-        //gunKeys.switchWeapon(0);
         gunKeys.switchWeapon(GunKeys::WeaponModes::BloodShot);
         }));
     inputs.push_back(KeyInput(GUN_SELECT_BLOODSTREAM_KEY, true, [&gunKeys]() {
-        //gunKeys.switchWeapon(1);
         gunKeys.switchWeapon(GunKeys::WeaponModes::BloodStream);
         }));
     inputs.push_back(KeyInput(GUN_SELECT_BLOODSPRAY_KEY, true, [&gunKeys]() {
-        //gunKeys.switchWeapon(2);
         gunKeys.switchWeapon(GunKeys::WeaponModes::BloodSpray);
         }));
     inputs.push_back(KeyInput(GUN_SELECT_BLOODBOMB_KEY, true, [&gunKeys]() {
-        //gunKeys.switchWeapon(3);
         gunKeys.switchWeapon(GunKeys::WeaponModes::BloodBomb);
         }));
     inputs.push_back(KeyInput(GUN_SELECT_BLOODFLAME_KEY, true, [&gunKeys]() {
-        //gunKeys.switchWeapon(4);
         gunKeys.switchWeapon(GunKeys::WeaponModes::BloodFlame);
         }));
     inputs.push_back(KeyInput(GUN_SELECT_BLOODHAMMER_KEY, true, [&gunKeys]() {
-        //gunKeys.switchWeapon(5);
         gunKeys.switchWeapon(GunKeys::WeaponModes::BloodHammer);
+        }));
+
+    // used if mousewheel down isn't enabled
+    inputs.push_back(KeyInput(GUN_SELECT_PREVIOUS_WEAPON_KEY, true, [&gunKeys]() {
+        gunKeys.switchToPreviousWeapon();
         }));
 
     DEBUG_LOG("[DLL] Starting hook. Press F7 to toggle photo mode\nPress F8 to toggle super slow mode\nPress F9 to toggle no HUD");
@@ -213,6 +222,14 @@ DWORD WINAPI MainThread(LPVOID param) {
         for (auto& input : inputs) {
             input.checkAndExecute();
         }
+
+#ifdef ENABLE_MOUSEWHEEL_DOWN_PREVIOUS_WEAPON
+        mouseHandler.poll();
+        if (mouseHandler.wasMousewheelDown()) {
+            DEBUG_LOG("Mouse wheel down - swap to previous weapon");
+            gunKeys.switchToPreviousWeapon();
+        }
+#endif
 
         Sleep(16);
     }
