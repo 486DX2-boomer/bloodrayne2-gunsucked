@@ -11,6 +11,7 @@
 #include "SuperSlowMode.h"
 #include "GunBalance.h"
 #include "GunKeys.h"
+#include "DisplayMessage.h"
 
 void setupConsole() {
     if (!AllocConsole()) {
@@ -216,7 +217,9 @@ DWORD WINAPI MainThread(LPVOID param) {
 
         // Handle debug key manually (no callback)
         if (debugCheckKey.isActivated()) {
-            photoMode.PrintState();
+            //photoMode.PrintState();
+            DisplayMessage message;
+            message.boxedMessage("Hello from GunSucked mod!");
         }
 
         // Process inputs with callbacks

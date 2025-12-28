@@ -142,6 +142,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Config.h" />
+    <ClInclude Include="DisplayMessage.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="GunBalance.h" />
     <ClInclude Include="GunKeys.h" />

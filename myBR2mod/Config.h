@@ -12,14 +12,17 @@
 
 // game addresses
 namespace Rayne2 {
-    // CGameView
-    constexpr uintptr_t CameraBase = 0x05E34EE0;
 
     // CMainCharacter
     // these aren't safe to use without checking them at runtime
     // in the future we'll create a utility class or something that will find Rayne's object on init
     constexpr uintptr_t RayneBasePtr = 0x061276EC;
     uintptr_t RayneBase = *reinterpret_cast<uintptr_t*>(RayneBasePtr);
+
+    // photo mode stuff
+
+    // CGameView
+    constexpr uintptr_t CameraBase = 0x05E34EE0;
 
     // camera pos (XZY order)
     float* const CameraX = (float*)(CameraBase + 0x004);
@@ -33,8 +36,15 @@ namespace Rayne2 {
     bool* const PushCamera = (bool*)(0x05E3473D);
     float* const TimeFactor = (float*)(0x0619FB68);
 
+    // UI and HUD stuff
+
+    // what appears to be an object that handles HUD, UI, and subtitles/message boxes
+    void* const UIManager = (void*)0x05E335E8;
+
     bool* const DrawHud = (bool*)(0x05F2FA58); // 0 for off, 1 for on
 
+    // weapon stuff
+    // 
     // pointer to object that tracks if weapon modes are unlocked
     constexpr uintptr_t UnlockedWeaponObjPtr = 0x007BF4BC;
     // weapon unlock states are stored in a 1 byte bitmask
