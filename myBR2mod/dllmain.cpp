@@ -12,6 +12,7 @@
 #include "GunBalance.h"
 #include "GunKeys.h"
 #include "DisplayMessage.h"
+#include "PlaySound.h"
 
 void setupConsole() {
     if (!AllocConsole()) {
@@ -220,6 +221,8 @@ DWORD WINAPI MainThread(LPVOID param) {
             //photoMode.PrintState();
             DisplayMessage message;
             message.boxedMessage("Hello from GunSucked mod!");
+            PlaySound sound;
+            sound.confirm();
         }
 
         // Process inputs with callbacks

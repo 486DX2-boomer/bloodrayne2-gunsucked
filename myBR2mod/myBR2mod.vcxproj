@@ -153,6 +153,7 @@
     <ClInclude Include="NoHud.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PhotoModeCamera.h" />
+    <ClInclude Include="PlaySound.h" />
     <ClInclude Include="SuperSlowMode.h" />
   </ItemGroup>
   <ItemGroup>

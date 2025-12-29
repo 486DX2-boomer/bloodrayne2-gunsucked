@@ -44,7 +44,7 @@ namespace Rayne2 {
     bool* const DrawHud = (bool*)(0x05F2FA58); // 0 for off, 1 for on
 
     // weapon stuff
-    // 
+
     // pointer to object that tracks if weapon modes are unlocked
     constexpr uintptr_t UnlockedWeaponObjPtr = 0x007BF4BC;
     // weapon unlock states are stored in a 1 byte bitmask
