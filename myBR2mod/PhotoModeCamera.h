@@ -5,6 +5,7 @@
 #pragma comment(lib, "libMinHook.x86.lib")
 #include "NoHud.h"
 #include "SuperSlowMode.h"
+#include "PlaySound.h"
 
 // Function signature for FUN_005e1a10 in Ghidra
 // We hook the rendering code and overwrite the values at the end of the update loop.
@@ -185,6 +186,10 @@ private:
     // so we can restore time factor when exiting photo mode
     SuperSlowMode* superSlow;
 
+    // play sounds when toggling on or off
+    // bool playSoundOnPhotoModeToggle = true;
+    PlaySound sound;
+
     void captureCurrentState() {
         this->photoX = *this->cameraX;  // 0x004 → param_1[0] → 0x06121F34
         this->photoY = *this->cameraZ;  // 0x008 → param_1[1] → 0x06121F38 (vertical)
@@ -310,9 +315,11 @@ public:
     void toggle() {
         if (this->enabled) {
             this->disable();
+            this->sound.confirm();
         }
         else {
             this->enable();
+            this->sound.cancel();
         }
     }
 
@@ -320,6 +327,9 @@ public:
     // Parameters use XZY order to match key bindings
     void adjustPosition(float dx, float dz, float dy) {
         if (!this->enabled) return;
+
+        // here we should reduce dx, dz, and dy by a value corresponding to higher fov
+        // a "lower sensitivity" to make zoomed in compositions easier.
 
         this->photoX += dx;
         this->photoY += dy;
@@ -330,6 +340,9 @@ public:
 
     void adjustAngle(float dx, float dz, float dy) {
         if (!this->enabled) return;
+
+        // here we should reduce dx, dz, and dy by a value corresponding to higher fov
+        // a "lower sensitivity" to make zoomed in compositions easier.
 
         this->anglesPitch += dx;
         this->anglesYaw += dy;
