@@ -96,13 +96,26 @@ DWORD WINAPI MainThread(LPVOID param) {
         return 1;
     }
 
+    // need to review outfit and figure out what steps are what. what is initialize, what is enable. why do we scan directory separately
+    // all of that could be condensed into one initialization function not a dozen
     if (!outfit.initialize()) {
         DEBUG_LOG("Failed to init outfit system");
     }
 
-    // this is brute-forcing it to wait until the handlers are ready to be overwritten
-    // need to move this to a polling loop that runs before WaitForGameReady runs.
-    Sleep(1000);
+    // waits until the file handlers are swapped.
+    // this should happen pretty quickly
+    int outfitTimeout = 0;
+    while (!outfit.checkAndEnableLooseFiles()) {
+        Sleep(16);
+        outfitTimeout += 1;
+
+        // time out after 30 sec to ensure it doesn't silently hang here
+        if (outfitTimeout >= 480000) {
+            DEBUG_LOG("Outfit: WARNING: couldn't swap file handlers!");
+            break;
+        }
+    }
+
     // Enable loose file priority (handlers are now ready)
     if (!outfit.enableLooseFiles()) {
         DEBUG_LOG("[DLL] Failed to enable loose file priority");
