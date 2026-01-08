@@ -38,9 +38,14 @@ namespace Rayne2Outfit {
     constexpr uintptr_t PTR_PLAYER_STATE = 0x007c07f8;         // Pointer to player state object
     constexpr uintptr_t OFFSET_OUTFIT_ID = 0x3cc;              // Offset to outfit ID within player state
 
-    // Asset handler system (for loose file priority)
-    constexpr uintptr_t HANDLER_ARRAY = 0x05dcc0a0;
-    constexpr uintptr_t HANDLER_COUNT = 0x05dcc0b4;
+    // Asset handlers
+    constexpr uintptr_t HANDLER_ARRAY = 0x05dcc0a0;  // an array of two function pointers
+    constexpr uintptr_t HANDLER_COUNT = 0x05dcc0b4; // forget why we need this
+
+    constexpr uintptr_t POD_HANDLER_FUNCTION = 0x005A3FD0;    // the default handler. loads assets from .POD archives
+    // a fallback handler. If the assets aren't found in the POD archives, the game attempts to load them from subfolders in the game dir
+    // if we swap the positions of these two at 0x05dcc0a0 and 0x05dcc0a4, the game will load from folders first  
+    constexpr uintptr_t LOOSE_FILE_HANDLER_FUNCTION = 0x004937B0;
 
     // Original outfit count
     constexpr int BASE_OUTFIT_COUNT = 10;
@@ -217,7 +222,7 @@ private:
     FindFirstFileA_t originalFindFirstFileA = nullptr;
 
     // Original handler order for restoration
-    uintptr_t originalHandlerOrder[2] = { 0, 0 };
+    uintptr_t originalHandlerOrder[2] = { 0, 0 }; // what does this do? looks like nonsense
 
     // ========================================================================
     // Helper: Detect game directory from executable path
@@ -516,11 +521,11 @@ private:
         }
 
         // Debug: log first 10 calls to verify hook is working
-        static int createFileCallCount = 0;
-        if (createFileCallCount < 10) {
-            DEBUG_LOG("[CreateFileA] Call #" << createFileCallCount << ": " << (lpFileName ? lpFileName : "NULL"));
-            createFileCallCount++;
-        }
+        // static int createFileCallCount = 0;
+        // if (createFileCallCount < 10) {
+            // DEBUG_LOG("[CreateFileA] Call #" << createFileCallCount << ": " << (lpFileName ? lpFileName : "NULL"));
+            // createFileCallCount++;
+        // }
 
         // Early exit for null filename
         if (lpFileName == nullptr) {
@@ -1011,6 +1016,7 @@ public:
     }
 
     // Install function hooks - call after WaitForGameReady
+    // why is this a redirect to installHooks()? just make installHooks public
     bool installHook() {
         return this->installHooks();
     }

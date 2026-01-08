@@ -39,7 +39,7 @@ bool WaitForGameReady(PhotoModeCamera& photoMode, NoHud& noHud, GunKeys& gunKeys
     bool cameraHookSafe = false;
     bool hudHookSafe = false;
     bool gunKeysSafe = false;
-    bool outfitReady = false;
+    //bool outfitReady = false;
 
     while (true) {
         photoMode.checkSafeToHook();
@@ -60,12 +60,14 @@ bool WaitForGameReady(PhotoModeCamera& photoMode, NoHud& noHud, GunKeys& gunKeys
             gunKeysSafe = true;
         }
 
-        if (!outfitReady && outfit.checkAndEnableLooseFiles()) {
-            DEBUG_LOG("[Outfit] Handlers ready after " << elapsed << "ms");
-            outfitReady = true;
-        }
+        // hooks and enable loose file priorities are two different events
+        // we don't need to wait for the hooks to be ready to swap the file handlers- we need to do it ASAP
+        //if (!outfitReady && outfit.checkAndEnableLooseFiles()) {
+        //    DEBUG_LOG("[Outfit] Handlers ready after " << elapsed << "ms");
+        //    outfitReady = true;
+        //}
 
-        if (cameraHookSafe && hudHookSafe && gunKeysSafe && outfitReady) {
+        if (cameraHookSafe && hudHookSafe && gunKeysSafe) {
             DEBUG_LOG("Hooks ready after " << elapsed << "ms");
             return true;
         }
@@ -98,8 +100,25 @@ DWORD WINAPI MainThread(LPVOID param) {
         DEBUG_LOG("Failed to init outfit system");
     }
 
+    // this is brute-forcing it to wait until the handlers are ready to be overwritten
+    // need to move this to a polling loop that runs before WaitForGameReady runs.
+    Sleep(1000);
+    // Enable loose file priority (handlers are now ready)
+    if (!outfit.enableLooseFiles()) {
+        DEBUG_LOG("[DLL] Failed to enable loose file priority");
+        // Continue anyway - won't break the game, just won't load custom assets
+    }
+    outfit.checkAndEnableLooseFiles();
     outfit.scanDirectory("mods\\outfits");
     outfit.printStatus();
+
+    // outfit hooks need to be installed before the first level load, independent of the other hooks
+    // because the other hooks wait for Rayne's obj to be initialized, it's too late if we wait for them to be safe
+    // Install Outfit hooks
+    if (!outfit.installHook()) {
+        DEBUG_LOG("[DLL] Failed to install outfit hooks - aborting");
+        return 1;
+    }
 
     // Wait for game to initialize before installing these
     if (!WaitForGameReady(photoMode, noHud, gunKeys, outfit)) {
@@ -117,20 +136,6 @@ DWORD WINAPI MainThread(LPVOID param) {
     if (!noHud.installHook()) {
         DEBUG_LOG("Failed to install no hud hook - aborting");
         return 1;
-    }
-
-    // Install Outfit hook
-    // We need to get this timing right. Too early and the file handlers aren't ready to be swapped. Too late and it doesn't work on the first level load.
-    // This is because the outfit hook needs to be ready *before* Rayne's obj is initialized, but NoHud doesn't get initialized until Rayne's obj is ready
-    if (!outfit.installHook()) {
-        DEBUG_LOG("[DLL] Failed to install outfit hooks - aborting");
-        return 1;
-    }
-
-    // Enable loose file priority (handlers are now ready)
-    if (!outfit.enableLooseFiles()) {
-        DEBUG_LOG("[DLL] Failed to enable loose file priority");
-        // Continue anyway - won't break the game, just won't load custom assets
     }
 
     // capture NoHud for photomode
