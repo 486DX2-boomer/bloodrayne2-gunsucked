@@ -151,6 +151,7 @@
     <ClInclude Include="MinHook.h" />
     <ClInclude Include="MouseInput.h" />
     <ClInclude Include="NoHud.h" />
+    <ClInclude Include="Outfit.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PhotoModeCamera.h" />
     <ClInclude Include="PlaySound.h" />

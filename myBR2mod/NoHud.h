@@ -135,12 +135,12 @@ public:
 			// Rayne's obj is dynamically allocated, so we have to follow the pointer.
 			uintptr_t* rayneBasePtr = reinterpret_cast<uintptr_t*>(0x061276EC);
 			uintptr_t rayneBase = *rayneBasePtr;
-			DEBUG_LOG("[NoHud] rayneBasePtr value: 0x" << std::hex << rayneBase);
+			//DEBUG_LOG("[NoHud] rayneBasePtr value: 0x" << std::hex << rayneBase);
 
 
 			if (rayneBase == 0) {
 				this->safeToHook = false;
-				DEBUG_LOG("Raynebase null");
+				//DEBUG_LOG("Raynebase null");
 				return;
 			}
 

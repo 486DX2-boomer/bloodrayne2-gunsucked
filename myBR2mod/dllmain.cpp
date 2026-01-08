@@ -13,6 +13,7 @@
 #include "GunKeys.h"
 #include "DisplayMessage.h"
 #include "PlaySound.h"
+#include "Outfit.h"
 
 void setupConsole() {
     if (!AllocConsole()) {
@@ -30,7 +31,7 @@ void setupConsole() {
 }
 
 // Wait for game to be ready before hooking
-bool WaitForGameReady(PhotoModeCamera& photoMode, NoHud& noHud, GunKeys& gunKeys, int pollIntervalMs = 500) {
+bool WaitForGameReady(PhotoModeCamera& photoMode, NoHud& noHud, GunKeys& gunKeys, Outfit& outfit, int pollIntervalMs = 500) {
     DEBUG_LOG("[DLL] Waiting for game init...");
 
     int elapsed = 0;
@@ -38,11 +39,12 @@ bool WaitForGameReady(PhotoModeCamera& photoMode, NoHud& noHud, GunKeys& gunKeys
     bool cameraHookSafe = false;
     bool hudHookSafe = false;
     bool gunKeysSafe = false;
+    bool outfitReady = false;
 
     while (true) {
         photoMode.checkSafeToHook();
         if (photoMode.isSafeToHook()) {
-            DEBUG_LOG("Photo mode ready after " << elapsed << "ms");
+            //DEBUG_LOG("Photo mode ready after " << elapsed << "ms");
             cameraHookSafe = true;
         }
 
@@ -58,7 +60,12 @@ bool WaitForGameReady(PhotoModeCamera& photoMode, NoHud& noHud, GunKeys& gunKeys
             gunKeysSafe = true;
         }
 
-        if (cameraHookSafe && hudHookSafe && gunKeysSafe) {
+        if (!outfitReady && outfit.checkAndEnableLooseFiles()) {
+            DEBUG_LOG("[Outfit] Handlers ready after " << elapsed << "ms");
+            outfitReady = true;
+        }
+
+        if (cameraHookSafe && hudHookSafe && gunKeysSafe && outfitReady) {
             DEBUG_LOG("Hooks ready after " << elapsed << "ms");
             return true;
         }
@@ -79,6 +86,7 @@ DWORD WINAPI MainThread(LPVOID param) {
     NoHud noHud;
     GunBalance gunBalance;
     GunKeys gunKeys;
+    Outfit outfit;
 
     // Gunbalance must be hooked immediately or else it will override values too late to work.
     if (!gunBalance.installHook()) {
@@ -86,8 +94,15 @@ DWORD WINAPI MainThread(LPVOID param) {
         return 1;
     }
 
+    if (!outfit.initialize()) {
+        DEBUG_LOG("Failed to init outfit system");
+    }
+
+    outfit.scanDirectory("mods\\outfits");
+    outfit.printStatus();
+
     // Wait for game to initialize before installing these
-    if (!WaitForGameReady(photoMode, noHud, gunKeys)) {
+    if (!WaitForGameReady(photoMode, noHud, gunKeys, outfit)) {
         DEBUG_LOG("[DLL] Game validation failed - aborting");
         return 1;
     }
@@ -103,6 +118,21 @@ DWORD WINAPI MainThread(LPVOID param) {
         DEBUG_LOG("Failed to install no hud hook - aborting");
         return 1;
     }
+
+    // Install Outfit hook
+    // We need to get this timing right. Too early and the file handlers aren't ready to be swapped. Too late and it doesn't work on the first level load.
+    // This is because the outfit hook needs to be ready *before* Rayne's obj is initialized, but NoHud doesn't get initialized until Rayne's obj is ready
+    if (!outfit.installHook()) {
+        DEBUG_LOG("[DLL] Failed to install outfit hooks - aborting");
+        return 1;
+    }
+
+    // Enable loose file priority (handlers are now ready)
+    if (!outfit.enableLooseFiles()) {
+        DEBUG_LOG("[DLL] Failed to enable loose file priority");
+        // Continue anyway - won't break the game, just won't load custom assets
+    }
+
     // capture NoHud for photomode
     photoMode.captureNoHudRef(&noHud);
     // capture superslow for photomode
@@ -213,6 +243,9 @@ DWORD WINAPI MainThread(LPVOID param) {
 #endif
 
     DEBUG_LOG("[DLL] Starting hook. Press F7 to toggle photo mode\nPress F8 to toggle super slow mode\nPress F9 to toggle no HUD");
+    
+    // for changing the outfit index, get rid after testing
+    int* outfitIndex = (int*)0x5e339B4;
 
     while (true) {
 
@@ -220,7 +253,9 @@ DWORD WINAPI MainThread(LPVOID param) {
         if (debugCheckKey.isActivated()) {
             //photoMode.PrintState();
             DisplayMessage message;
-            message.boxedMessage("Hello from GunSucked mod!");
+            //message.boxedMessage("Hello from GunSucked mod!");
+            message.boxedMessage("overwriting outfit index");
+            *outfitIndex = 0x0b; // 11
             PlaySound sound;
             sound.confirm();
         }
