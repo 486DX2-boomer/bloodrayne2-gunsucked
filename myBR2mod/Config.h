@@ -117,3 +117,6 @@ namespace Rayne2 {
 // if enabled, mousewheel down switches to previous weapon
 // mousewheel up is already next weapon by default, so this allows bidirectional weapon mode scrolling
 #define ENABLE_MOUSEWHEEL_DOWN_PREVIOUS_WEAPON 1
+
+// how many entries allowed to be added to the outfits menu. Outfits are about 1.4kb each
+#define OUTFIT_MAX_ENTRIES 1024

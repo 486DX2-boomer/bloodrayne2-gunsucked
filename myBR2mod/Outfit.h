@@ -38,6 +38,9 @@ namespace Rayne2Outfit {
     constexpr uintptr_t PTR_PLAYER_STATE = 0x007c07f8;         // Pointer to player state object
     constexpr uintptr_t OFFSET_OUTFIT_ID = 0x3cc;              // Offset to outfit ID within player state
 
+    // Outfit index storage - this is what actually determines which outfit loads
+    constexpr uintptr_t OUTFIT_INDEX_STORAGE = 0x05e339B4;
+
     // Asset handlers
     constexpr uintptr_t HANDLER_ARRAY = 0x05dcc0a0;  // an array of two function pointers
     constexpr uintptr_t HANDLER_COUNT = 0x05dcc0b4; // forget why we need this
@@ -49,6 +52,24 @@ namespace Rayne2Outfit {
 
     // Original outfit count
     constexpr int BASE_OUTFIT_COUNT = 10;
+
+    // Menu system addresses
+    constexpr uintptr_t FN_ADD_MENU_ITEM = 0x0055a760;      // Adds a menu item (FUN_0055a760)
+    constexpr uintptr_t FN_ALLOC_MENU_ITEM = 0x0055a6d0;    // Allocates menu item structure (FUN_0055a6d0)
+    constexpr uintptr_t MENU_STATE = 0x05ef4bf8;            // Current menu state/type (DAT_05ef4bf8)
+    constexpr uintptr_t MENU_ITEM_COUNT = 0x05ef4c28;       // Current menu item count (DAT_05ef4c28)
+    constexpr uintptr_t MENU_SELECTION_INDEX = 0x05EF4AE8;  // Currently selected menu item (0-indexed)
+
+    // Menu state for outfit selection
+    constexpr int MENU_STATE_OUTFITS = 0x2e;                // Case 0x2e is the outfit menu
+
+    // Action code formula: Action Code = Outfit ID + ACTION_CODE_BASE
+    constexpr int ACTION_CODE_BASE = 0xFA;                  // So outfit ID 1 = action code 0xFB
+    constexpr int ACTION_CODE_STANDARD_OUTFIT = 0xFB;       // Action code for Standard Outfit (reused for custom)
+
+    // SetOutfitIndex function - called when an outfit is selected
+    // Signature: void __thiscall SetOutfitIndex(PlayerState* this, int outfitID)
+    constexpr uintptr_t FN_SET_OUTFIT_INDEX = 0x004f6990;
 }
 
 // ============================================================================
@@ -61,6 +82,10 @@ typedef char* (__stdcall* GetPathByID_t)(int outfitID);
 // Functions with no parameters use __cdecl (plain RET)
 typedef char* (__cdecl* GetPathForCurrent_t)(void);
 typedef unsigned int(__cdecl* GetOutfitIndex_t)(void);
+
+// SetOutfitIndex - thiscall (ECX = this, stack = outfitID)
+// We'll use a naked hook since it's thiscall
+typedef void(__stdcall* SetOutfitIndex_t)(int outfitID);
 
 // CreateFileA signature
 typedef HANDLE(WINAPI* CreateFileA_t)(
@@ -75,6 +100,14 @@ typedef HANDLE(WINAPI* CreateFileA_t)(
 
 // FindFirstFileA signature
 typedef HANDLE(WINAPI* FindFirstFileA_t)(LPCSTR lpFileName, LPWIN32_FIND_DATAA lpFindFileData);
+
+// Menu system function signatures
+// FUN_0055a760 - adds a menu item, uses registers for parameters (EDI = display name string)
+typedef void(__cdecl* AddMenuItem_t)(void);
+
+// FUN_0055a6d0 - allocates menu item structure
+// Uses non-standard calling convention: EAX = action code, EDX = outfit ID, EDI = display name
+typedef void* (__cdecl* AllocMenuItem_t)(void);
 
 // ============================================================================
 // Base Outfit Definitions
@@ -188,6 +221,298 @@ struct OutfitEntry {
 };
 
 // ============================================================================
+// OutfitMenuHook - Injects custom outfits into the outfit selection menu
+// ============================================================================
+// Hooks FUN_0055a760 (AddMenuItem) to detect when the outfit menu is being built.
+// After the 10 base outfits are added, we inject our custom outfit entries.
+//
+// Menu item structure uses:
+// - EAX: Action code (outfit ID + 0xFA)
+// - EDX: Outfit ID (1-based)
+// - EDI: Display name string pointer
+// ============================================================================
+
+// Forward declaration
+class Outfit;
+
+class OutfitMenuHook;
+static OutfitMenuHook* g_menuHookInstance = nullptr;
+
+// Saved register state for the menu hook (register-based calling convention)
+static DWORD g_savedEAX = 0;
+static DWORD g_savedEDX = 0;
+static DWORD g_savedEDI = 0;
+static DWORD g_savedESI = 0;
+static DWORD g_savedECX = 0;
+
+// Trampoline pointer for the naked hook to jump to original
+static void* g_originalAddMenuItemTrampoline = nullptr;
+
+// SetOutfitIndex hook - trampoline and saved state
+static void* g_originalSetOutfitIndexTrampoline = nullptr;
+static DWORD g_setOutfitIndex_ECX = 0;  // 'this' pointer (player state)
+static DWORD g_setOutfitIndex_outfitID = 0;  // outfit ID from stack
+
+// Forward declaration of the C++ implementation (defined after Outfit class)
+static void __cdecl OutfitMenuHook_Impl();
+
+// Forward declaration of SetOutfitIndex hook implementation
+static void __cdecl SetOutfitIndexHook_Impl();
+
+// ============================================================================
+// Naked hook function - must be a free function (MSVC limitation)
+// Preserves all registers across the hook so the game's register-based
+// calling convention is maintained.
+// 
+// IMPORTANT: We call our impl AFTER the original function returns, so that
+// when we inject custom outfits after the 10th base outfit, we're injecting
+// AFTER Rayne in Armor has been added (not before).
+// ============================================================================
+static void __declspec(naked) OutfitMenuHook_NakedHook() {
+    __asm {
+        // Save ALL registers that might contain parameters
+        pushad
+        pushfd
+
+        // Save the register values we care about for later inspection
+        mov g_savedEAX, eax
+        mov g_savedEDX, edx
+        mov g_savedEDI, edi
+        mov g_savedESI, esi
+        mov g_savedECX, ecx
+
+        // Restore flags and registers for the original call
+        popfd
+        popad
+
+        // Call the original function FIRST
+        call g_originalAddMenuItemTrampoline
+
+        // Now save registers again and call our handler AFTER the original
+        pushad
+        pushfd
+        call OutfitMenuHook_Impl
+        popfd
+        popad
+
+        // Return to caller (original already returned via call, not jmp)
+        ret
+    }
+}
+
+// ============================================================================
+// SetOutfitIndex hook - intercepts outfit selection to handle custom outfits
+// Original function: void __thiscall SetOutfitIndex(PlayerState* this, int outfitID)
+// ECX = this, [ESP+4] = outfitID (after return address)
+// ============================================================================
+static void __declspec(naked) SetOutfitIndexHook_Naked() {
+    __asm {
+        // Save ECX (this pointer) and get the outfitID from stack
+        mov g_setOutfitIndex_ECX, ecx
+        mov eax, [esp + 4]  // outfitID is first arg after return address
+        mov g_setOutfitIndex_outfitID, eax
+
+        // Save all registers and call our handler
+        pushad
+        pushfd
+        call SetOutfitIndexHook_Impl
+        popfd
+        popad
+
+        // Our handler may have modified g_setOutfitIndex_outfitID
+        // Write the (potentially modified) value back to the stack
+        mov eax, g_setOutfitIndex_outfitID
+        mov[esp + 4], eax
+
+        // Restore ECX and jump to original
+        mov ecx, g_setOutfitIndex_ECX
+        jmp g_originalSetOutfitIndexTrampoline
+    }
+}
+
+class OutfitMenuHook {
+private:
+    bool initialized = false;
+    bool hookInstalled = false;
+    bool setOutfitHookInstalled = false;
+    int outfitMenuCallCount = 0;  // Tracks calls to AddMenuItem during outfit menu building
+
+    // Original function pointers
+    AddMenuItem_t originalAddMenuItem = nullptr;
+    void* originalSetOutfitIndex = nullptr;
+
+    // Reference to parent Outfit system (set during initialize)
+    Outfit* outfitSystem = nullptr;
+
+    // Friend declaration so the free function can access private members
+    friend void __cdecl OutfitMenuHook_Impl();
+    friend void __cdecl SetOutfitIndexHook_Impl();
+
+    // ========================================================================
+    // Inject custom outfit menu entries - implemented after Outfit class
+    // ========================================================================
+    void injectCustomOutfits();
+
+    // ========================================================================
+    // Add a single outfit menu item using inline assembly
+    // ========================================================================
+    // Based on disassembly analysis of case 0x2e in FUN_0055eb10:
+    //   MOV ECX, <display name string pointer>
+    //   XOR ESI, ESI          ; ESI = 0
+    //   MOV EAX, <action code> ; e.g. 0xFB for outfit 1
+    //   CALL FUN_0055a760
+    //
+    // IMPORTANT: We use action code 0xFB (Standard Outfit) for ALL custom outfits.
+    // This ensures the game's switch statement handles them correctly (goes to level select).
+    // We then hook SetOutfitIndex to intercept and set the correct custom outfit ID
+    // based on the menu selection index.
+    // ========================================================================
+    void addOutfitMenuItem(int outfitID, const char* displayName) {
+        // Use the Standard Outfit action code (0xFB) for all custom outfits
+        // The actual outfit ID will be determined by our SetOutfitIndex hook
+        // based on the menu selection index
+        int actionCode = Rayne2Outfit::ACTION_CODE_STANDARD_OUTFIT;
+
+        DEBUG_LOG("[MenuHook] Adding menu item: ID=" << outfitID
+            << ", ActionCode=0x" << std::hex << actionCode << std::dec
+            << " (using Standard action code)"
+            << ", Name=" << displayName);
+
+        uintptr_t addMenuItemAddr = Rayne2Outfit::FN_ADD_MENU_ITEM;
+
+        __asm {
+            // Save registers we'll modify
+            push eax
+            push esi
+            push ecx
+
+            // Set up parameters exactly as the game does:
+            // ECX = display name string pointer
+            // ESI = 0
+            // EAX = action code
+            mov ecx, displayName
+            xor esi, esi
+            mov eax, actionCode
+
+            // Call FUN_0055a760 (AddMenuItem) - NO alloc call needed!
+            call addMenuItemAddr
+
+            // Restore registers
+            pop ecx
+            pop esi
+            pop eax
+        }
+    }
+
+public:
+    OutfitMenuHook() = default;
+
+    ~OutfitMenuHook() {
+        this->uninstallHook();
+    }
+
+    bool initialize(Outfit* outfit) {
+        if (this->initialized) return true;
+
+        this->outfitSystem = outfit;
+        g_menuHookInstance = this;
+        this->initialized = true;
+
+        DEBUG_LOG("[MenuHook] Initialized");
+        return true;
+    }
+
+    bool installHook() {
+        if (this->hookInstalled) return true;
+        if (!this->initialized) {
+            DEBUG_LOG("[MenuHook] Cannot install hook - not initialized");
+            return false;
+        }
+
+        // Hook FUN_0055a760 (AddMenuItem)
+        MH_STATUS status = MH_CreateHook(
+            (LPVOID)Rayne2Outfit::FN_ADD_MENU_ITEM,
+            (LPVOID)&OutfitMenuHook_NakedHook,
+            (LPVOID*)&this->originalAddMenuItem
+        );
+
+        if (status != MH_OK) {
+            DEBUG_LOG("[MenuHook] Failed to create AddMenuItem hook: " << status);
+            return false;
+        }
+
+        // Set the global trampoline pointer for the naked hook to use
+        g_originalAddMenuItemTrampoline = (void*)this->originalAddMenuItem;
+
+        status = MH_EnableHook((LPVOID)Rayne2Outfit::FN_ADD_MENU_ITEM);
+        if (status != MH_OK) {
+            DEBUG_LOG("[MenuHook] Failed to enable AddMenuItem hook: " << status);
+            MH_RemoveHook((LPVOID)Rayne2Outfit::FN_ADD_MENU_ITEM);
+            return false;
+        }
+
+        this->hookInstalled = true;
+        DEBUG_LOG("[MenuHook] AddMenuItem hook installed successfully");
+
+        // Hook FUN_004f6990 (SetOutfitIndex) to intercept custom outfit selections
+        status = MH_CreateHook(
+            (LPVOID)Rayne2Outfit::FN_SET_OUTFIT_INDEX,
+            (LPVOID)&SetOutfitIndexHook_Naked,
+            (LPVOID*)&this->originalSetOutfitIndex
+        );
+
+        if (status != MH_OK) {
+            DEBUG_LOG("[MenuHook] Failed to create SetOutfitIndex hook: " << status);
+            // Continue without this hook - menu will still work, just won't set custom outfits
+        }
+        else {
+            g_originalSetOutfitIndexTrampoline = this->originalSetOutfitIndex;
+
+            status = MH_EnableHook((LPVOID)Rayne2Outfit::FN_SET_OUTFIT_INDEX);
+            if (status != MH_OK) {
+                DEBUG_LOG("[MenuHook] Failed to enable SetOutfitIndex hook: " << status);
+                MH_RemoveHook((LPVOID)Rayne2Outfit::FN_SET_OUTFIT_INDEX);
+            }
+            else {
+                this->setOutfitHookInstalled = true;
+                DEBUG_LOG("[MenuHook] SetOutfitIndex hook installed successfully");
+            }
+        }
+
+        return true;
+    }
+
+    void uninstallHook() {
+        if (this->setOutfitHookInstalled) {
+            MH_DisableHook((LPVOID)Rayne2Outfit::FN_SET_OUTFIT_INDEX);
+            MH_RemoveHook((LPVOID)Rayne2Outfit::FN_SET_OUTFIT_INDEX);
+            this->setOutfitHookInstalled = false;
+            this->originalSetOutfitIndex = nullptr;
+            DEBUG_LOG("[MenuHook] SetOutfitIndex hook uninstalled");
+        }
+
+        if (!this->hookInstalled) return;
+
+        MH_DisableHook((LPVOID)Rayne2Outfit::FN_ADD_MENU_ITEM);
+        MH_RemoveHook((LPVOID)Rayne2Outfit::FN_ADD_MENU_ITEM);
+
+        this->hookInstalled = false;
+        this->originalAddMenuItem = nullptr;
+        DEBUG_LOG("[MenuHook] AddMenuItem hook uninstalled");
+    }
+
+    void shutdown() {
+        this->uninstallHook();
+        this->outfitSystem = nullptr;
+        this->initialized = false;
+        g_menuHookInstance = nullptr;
+    }
+
+    bool isHookInstalled() const { return this->hookInstalled; }
+    bool isSetOutfitHookInstalled() const { return this->setOutfitHookInstalled; }
+};
+
+// ============================================================================
 // Outfit Class - Main Interface
 // ============================================================================
 // Forward declaration for the static hook callbacks
@@ -203,6 +528,9 @@ private:
 
     std::vector<OutfitEntry> customOutfits;
     int nextOutfitID = Rayne2Outfit::BASE_OUTFIT_COUNT + 1;  // Start at 11
+
+    // Menu hook system
+    OutfitMenuHook menuHook;
 
     // Game directory path (detected at runtime)
     char gameDirectory[MAX_PATH] = { 0 };
@@ -786,6 +1114,12 @@ private:
             return false;
         }
 
+        // Install menu hook for injecting custom outfits into the menu
+        if (!this->menuHook.installHook()) {
+            DEBUG_LOG("[Outfit] Warning: Failed to install menu hook - custom outfits won't appear in menu");
+            // Continue anyway - manual outfit selection via debug key will still work
+        }
+
         this->hooksInstalled = true;
         DEBUG_LOG("[Outfit] All hooks installed successfully");
         return true;
@@ -1008,7 +1342,13 @@ public:
         }
 
         // Reserve space in vector to prevent reallocation
-        this->customOutfits.reserve(32);
+        this->customOutfits.reserve(OUTFIT_MAX_ENTRIES);
+
+        // Initialize menu hook system
+        if (!this->menuHook.initialize(this)) {
+            DEBUG_LOG("[Outfit] Warning: Could not initialize menu hook");
+            // Continue anyway - menu won't show custom outfits but loading will work
+        }
 
         this->initialized = true;
         DEBUG_LOG("[Outfit] Initialized successfully");
@@ -1038,6 +1378,7 @@ public:
     void shutdown() {
         if (!this->initialized) return;
 
+        this->menuHook.shutdown();
         this->uninstallHooks();
         this->disableLooseFilePriority();
         this->customOutfits.clear();
@@ -1061,8 +1402,8 @@ public:
             return false;
         }
 
-        if (this->customOutfits.size() >= 32) {
-            DEBUG_LOG("[Outfit] Maximum custom outfit count reached (32)");
+        if (this->customOutfits.size() >= OUTFIT_MAX_ENTRIES) {
+            DEBUG_LOG("[Outfit] Maximum custom outfit count reached");
             return false;
         }
 
@@ -1146,3 +1487,129 @@ public:
         }
     }
 };
+
+// ============================================================================
+// OutfitMenuHook - Deferred implementations (need Outfit to be complete)
+// ============================================================================
+
+// This is the C++ logic called from the naked OutfitMenuHook_NakedHook wrapper
+// It's a free function (friend of OutfitMenuHook) because it's called from a naked function
+static void __cdecl OutfitMenuHook_Impl() {
+    if (!g_menuHookInstance) {
+        return;
+    }
+
+    // Check if we're in the outfit menu (case 0x2e)
+    int menuState = *(int*)Rayne2Outfit::MENU_STATE;
+    if (menuState != Rayne2Outfit::MENU_STATE_OUTFITS) {
+        // Not in outfit menu, reset counter and return
+        g_menuHookInstance->outfitMenuCallCount = 0;
+        return;
+    }
+
+    // Increment counter for outfit menu items
+    g_menuHookInstance->outfitMenuCallCount++;
+
+    // After the 10th base outfit is added, inject our custom outfits
+    if (g_menuHookInstance->outfitMenuCallCount == Rayne2Outfit::BASE_OUTFIT_COUNT) {
+        g_menuHookInstance->injectCustomOutfits();
+        // Reset counter so we don't re-inject on subsequent calls
+        g_menuHookInstance->outfitMenuCallCount = 0;
+    }
+}
+
+inline void OutfitMenuHook::injectCustomOutfits() {
+    if (!this->outfitSystem) {
+        DEBUG_LOG("[MenuHook] No outfit system reference");
+        return;
+    }
+
+    const std::vector<OutfitEntry>& customOutfits = this->outfitSystem->getCustomOutfits();
+    if (customOutfits.empty()) {
+        DEBUG_LOG("[MenuHook] No custom outfits to inject");
+        return;
+    }
+
+    DEBUG_LOG("[MenuHook] Injecting " << customOutfits.size() << " custom outfit(s) into menu");
+
+    for (size_t i = 0; i < customOutfits.size(); i++) {
+        const OutfitEntry& outfit = customOutfits[i];
+        this->addOutfitMenuItem(outfit.outfitID, outfit.displayName);
+    }
+}
+
+// ============================================================================
+// SetOutfitIndex Hook Implementation
+// ============================================================================
+// Called when the game tries to set an outfit index (e.g., when selecting from menu).
+// If the user selected a custom outfit (menu index >= BASE_OUTFIT_COUNT), we
+// override the outfit ID being set to our custom outfit's ID.
+// ============================================================================
+static void __cdecl SetOutfitIndexHook_Impl() {
+    if (!g_menuHookInstance || !g_menuHookInstance->outfitSystem) {
+        return;
+    }
+
+    // Read the current menu selection index
+    int menuSelectionIndex = *(int*)Rayne2Outfit::MENU_SELECTION_INDEX;
+
+    // Check if we're in the outfit menu
+    int menuState = *(int*)Rayne2Outfit::MENU_STATE;
+
+    // The outfit being set by the game
+    int requestedOutfitID = (int)g_setOutfitIndex_outfitID;
+
+    DEBUG_LOG("[SetOutfitHook] Called: requestedID=" << requestedOutfitID
+        << ", menuIndex=" << menuSelectionIndex
+        << ", menuState=0x" << std::hex << menuState << std::dec);
+
+    if (menuState != Rayne2Outfit::MENU_STATE_OUTFITS) {
+        // Not in outfit menu, don't interfere
+        DEBUG_LOG("[SetOutfitHook] Not in outfit menu, passing through");
+        return;
+    }
+
+    // Menu indices 0-9 are base outfits (Standard, Dress variations, etc.)
+    // Menu indices 10+ are our custom outfits
+    // 
+    // However, it seems like there might be an off-by-one issue.
+    // If selecting index 10 gives us Standard (ID 1), but index 11 gives us 
+    // our first custom outfit (ID 11), then maybe the check should be > not >=
+    // OR the menu index is 1-indexed in some contexts.
+    //
+    // Let's check: if requestedOutfitID == 1 (Standard) AND menuIndex >= 10,
+    // that means a custom outfit was selected but the game defaulted to Standard.
+
+    if (menuSelectionIndex >= Rayne2Outfit::BASE_OUTFIT_COUNT) {
+        // This is a custom outfit selection!
+        // The custom outfit index in our array is (menuSelectionIndex - BASE_OUTFIT_COUNT)
+        int customOutfitIndex = menuSelectionIndex - Rayne2Outfit::BASE_OUTFIT_COUNT;
+
+        const std::vector<OutfitEntry>& customOutfits = g_menuHookInstance->outfitSystem->getCustomOutfits();
+
+        DEBUG_LOG("[SetOutfitHook] Custom selection detected: menuIndex=" << menuSelectionIndex
+            << ", customOutfitIndex=" << customOutfitIndex
+            << ", totalCustomOutfits=" << customOutfits.size());
+
+        if (customOutfitIndex >= 0 && customOutfitIndex < (int)customOutfits.size()) {
+            int customOutfitID = customOutfits[customOutfitIndex].outfitID;
+
+            DEBUG_LOG("[SetOutfitHook] Setting custom outfit: "
+                << customOutfits[customOutfitIndex].displayName
+                << " (ID=" << customOutfitID << ")");
+
+            // Write the custom outfit ID directly to the outfit storage
+            *(int*)Rayne2Outfit::OUTFIT_INDEX_STORAGE = customOutfitID;
+
+            // Also modify the argument that will be passed to the original function
+            g_setOutfitIndex_outfitID = customOutfitID;
+        }
+        else {
+            DEBUG_LOG("[SetOutfitHook] ERROR: Invalid custom outfit index: " << customOutfitIndex
+                << " (valid range: 0-" << (customOutfits.size() - 1) << ")");
+        }
+    }
+    else {
+        DEBUG_LOG("[SetOutfitHook] Base outfit selected, passing through");
+    }
+}
