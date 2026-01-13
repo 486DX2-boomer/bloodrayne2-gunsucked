@@ -604,6 +604,18 @@ private:
             lowerPath[i] = (char)tolower((unsigned char)relativePath[i]);
         }
 
+        // ====================================================================
+        // DATA folder support (edge case)
+        // ====================================================================
+        // Some mods include DATA files (e.g., .FX effect files) to complement
+        // the outfit. Known example: "Dejavu Blue Rayne" Dark Rayne mod.
+        // We allow ANY file in the DATA folder to be redirected - the actual
+        // redirection only happens if the file exists in the mod's DATA folder.
+        // ====================================================================
+        if (strstr(lowerPath, "\\data\\") != nullptr || strncmp(lowerPath, "data\\", 5) == 0) {
+            return true;
+        }
+
         // Check for Rayne-related patterns
         // Models: rayne.bfm, rayne_*.bfm, weapons_rayne*.smf
         // Textures: rayne.tex, rayne_*.tex, hrayne*.tif
@@ -1328,6 +1340,8 @@ private:
         // Dark Rayne (base 6)
         // ====================================================================
         if (hasFileCI("ART", "RAYNE_DARK.TEX")) return 6;
+        if (hasFileCI("ART", "RAYNE_DARK_BUMPMAP.TEX")) return 6;
+        if (hasFileCI("ART", "RAYNE_DARK_GLOSSMAP.TEX")) return 6;
 
         // ====================================================================
         // Standard outfit (base 0) - check last as fallback
