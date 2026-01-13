@@ -264,8 +264,8 @@ DWORD WINAPI MainThread(LPVOID param) {
     DEBUG_LOG("[DLL] Starting hook. Press F7 to toggle photo mode\nPress F8 to toggle super slow mode\nPress F9 to toggle no HUD");
     
     // for testing the outfit index, remove this later
-    int* outfitIndex = (int*)0x5e339B4;
-    *outfitIndex = 0x0b; // 11
+    // int* outfitIndex = (int*)0x5e339B4;
+    // *outfitIndex = 0x0b; // 11
 
     while (true) {
 
@@ -275,11 +275,11 @@ DWORD WINAPI MainThread(LPVOID param) {
             //photoMode.PrintState();
 
             DisplayMessage message;
-            //message.boxedMessage("Hello from GunSucked mod!");
+            message.boxedMessage("Hello from GunSucked mod!");
 
             // for testing the outfit index, remove this later
-            *outfitIndex += 1;
-            message.boxedMessage("overwriting outfit index");
+            // *outfitIndex += 1;
+            // message.boxedMessage("overwriting outfit index");
 
             PlaySound sound;
             sound.confirm();

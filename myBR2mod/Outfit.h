@@ -608,6 +608,11 @@ private:
         // Models: rayne.bfm, rayne_*.bfm, weapons_rayne*.smf
         // Textures: rayne.tex, rayne_*.tex, hrayne*.tif
         // Other: rayne.dfm, rayne_*.dfm, rayne.jug, rayne_*.jug
+        //
+        // Also include outfit-specific assets that don't follow the "rayne" naming:
+        // - Armor outfit: mans_metal_armor.*
+        // - Cowgirl outfit: cowgirl.*
+        // - Rayne's weapons: weapon_*rayne* or weapons_rayne*
 
         const char* filename = strrchr(lowerPath, '\\');
         if (filename == nullptr) {
@@ -617,10 +622,26 @@ private:
             filename++;  // Skip the backslash
         }
 
-        // Check filename patterns
+        // Check filename patterns - Rayne character assets
         if (strncmp(filename, "rayne", 5) == 0) return true;
         if (strncmp(filename, "hrayne", 6) == 0) return true;
-        if (strncmp(filename, "weapons_rayne", 13) == 0) return true;
+
+        // Rayne's weapon assets - must contain "rayne" somewhere in the name
+        // This catches: weapons_rayne*, weapon_rayne*, weapon_dark_rayne*, etc.
+        if ((strncmp(filename, "weapon_", 7) == 0 || strncmp(filename, "weapons_", 8) == 0) &&
+            strstr(filename, "rayne") != nullptr) {
+            return true;
+        }
+
+        // Armor outfit specific
+        if (strncmp(filename, "mans_metal_armor", 16) == 0) return true;
+
+        // Cowgirl outfit specific
+        if (strncmp(filename, "cowgirl", 7) == 0) return true;
+
+        // Chainlink/bullwhip (harpoon textures)
+        if (strncmp(filename, "chainlink", 9) == 0) return true;
+        if (strncmp(filename, "bullwhip", 8) == 0) return true;
 
         return false;
     }
@@ -1257,23 +1278,64 @@ private:
             return fs::exists(folderPath + "\\" + subPath + "\\" + filename);
             };
 
-        // Check MODELS folder for character model
-        if (hasFile("MODELS", "RAYNE_SCHOOLGIRL.BFM") || hasFile("MODELS", "rayne_schoolgirl.bfm")) return 9;
-        if (hasFile("MODELS", "RAYNE_ARMOR.BFM") || hasFile("MODELS", "rayne_armor.bfm")) return 8;
-        if (hasFile("MODELS", "RAYNE_COWGIRL.BFM") || hasFile("MODELS", "rayne_cowgirl.bfm")) return 7;
-        if (hasFile("MODELS", "RAYNE_DARK.BFM") || hasFile("MODELS", "rayne_dark.bfm")) return 6;
-        if (hasFile("MODELS", "RAYNE_DRESS.BFM") || hasFile("MODELS", "rayne_dress.bfm")) return 1;
+        // Case-insensitive file check helper
+        auto hasFileCI = [&](const std::string& subPath, const std::string& filename) {
+            std::string lower = filename;
+            std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+            std::string upper = filename;
+            std::transform(upper.begin(), upper.end(), upper.begin(), ::toupper);
+            return hasFile(subPath, lower) || hasFile(subPath, upper) || hasFile(subPath, filename);
+            };
 
-        // Check ART folder for textures
-        if (hasFile("ART", "RAYNE_SCHOOLGIRL.TEX") || hasFile("ART", "rayne_schoolgirl.tex")) return 9;
-        if (hasFile("ART", "MANS_METAL_ARMOR.TEX") || hasFile("ART", "mans_metal_armor.tex")) return 8;
-        if (hasFile("ART", "RAYNE_COWGIRL.TEX") || hasFile("ART", "rayne_cowgirl.tex")) return 7;
-        if (hasFile("ART", "RAYNE_DARK.TEX") || hasFile("ART", "rayne_dark.tex")) return 6;
-        if (hasFile("ART", "HRAYNEDRESS.TIF") || hasFile("ART", "hraynedress.tif")) return 1;
+        // ====================================================================
+        // Check MODELS folder for character model files (.BFM)
+        // ====================================================================
+        if (hasFileCI("MODELS", "RAYNE_SCHOOLGIRL.BFM")) return 9;
+        if (hasFileCI("MODELS", "RAYNE_ARMOR.BFM")) return 8;
+        if (hasFileCI("MODELS", "RAYNE_COWGIRL.BFM")) return 7;
+        if (hasFileCI("MODELS", "RAYNE_DARK.BFM")) return 6;
+        if (hasFileCI("MODELS", "RAYNE_DRESS.BFM")) return 1;
 
-        // Default to standard outfit (rayne)
-        if (hasFile("MODELS", "RAYNE.BFM") || hasFile("MODELS", "rayne.bfm")) return 0;
-        if (hasFile("ART", "RAYNE.TEX") || hasFile("ART", "rayne.tex")) return 0;
+        // ====================================================================
+        // Check ART folder for texture files (.TEX, .TIF)
+        // Evening Gown / Dress (base 1) - multiple texture naming conventions
+        // ====================================================================
+        if (hasFileCI("ART", "RAYNE_DRESS.TEX")) return 1;
+        if (hasFileCI("ART", "HRAYNEDRESS.TIF")) return 1;
+        if (hasFileCI("ART", "RAYNE_DRESS_BUMPMAP.TEX")) return 1;
+        if (hasFileCI("ART", "RAYNE_DRESS_GLOSSMAP.TEX")) return 1;
+
+        // ====================================================================
+        // Schoolgirl (base 9)
+        // ====================================================================
+        if (hasFileCI("ART", "RAYNE_SCHOOLGIRL.TEX")) return 9;
+        if (hasFileCI("ART", "RAYNE_SCHOOLGIRL_BUMPMAP.TEX")) return 9;
+        if (hasFileCI("ART", "RAYNE_SCHOOLGIRL_GLOSSMAP.TEX")) return 9;
+
+        // ====================================================================
+        // Armor (base 8)
+        // ====================================================================
+        if (hasFileCI("ART", "MANS_METAL_ARMOR.TEX")) return 8;
+        if (hasFileCI("ART", "RAYNE_ARMOR.TEX")) return 8;
+
+        // ====================================================================
+        // Cowgirl (base 7) - note: some mods use COWGIRL.TEX, not RAYNE_COWGIRL.TEX
+        // ====================================================================
+        if (hasFileCI("ART", "COWGIRL.TEX")) return 7;
+        if (hasFileCI("ART", "RAYNE_COWGIRL.TEX")) return 7;
+
+        // ====================================================================
+        // Dark Rayne (base 6)
+        // ====================================================================
+        if (hasFileCI("ART", "RAYNE_DARK.TEX")) return 6;
+
+        // ====================================================================
+        // Standard outfit (base 0) - check last as fallback
+        // ====================================================================
+        if (hasFileCI("MODELS", "RAYNE.BFM")) return 0;
+        if (hasFileCI("ART", "RAYNE.TEX")) return 0;
+        if (hasFileCI("ART", "RAYNE_BUMPMAP.TEX")) return 0;
+        if (hasFileCI("ART", "RAYNE_GLOSSMAP.TEX")) return 0;
 
         return 0;  // Default to standard outfit
     }
@@ -1403,7 +1465,7 @@ public:
         }
 
         if (this->customOutfits.size() >= OUTFIT_MAX_ENTRIES) {
-            DEBUG_LOG("[Outfit] Maximum custom outfit count reached");
+            DEBUG_LOG("[Outfit] Maximum custom outfit count reached (" << OUTFIT_MAX_ENTRIES << ")");
             return false;
         }
 

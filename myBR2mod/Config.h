@@ -118,5 +118,5 @@ namespace Rayne2 {
 // mousewheel up is already next weapon by default, so this allows bidirectional weapon mode scrolling
 #define ENABLE_MOUSEWHEEL_DOWN_PREVIOUS_WEAPON 1
 
-// how many entries allowed to be added to the outfits menu. Outfits are about 1.4kb each
+// how many entries allowed to be added to the outfits menu. Outfits are about 1.4kb each. Wonder if we can allocate them dynamically?
 #define OUTFIT_MAX_ENTRIES 1024
