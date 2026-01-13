@@ -129,7 +129,7 @@ DWORD WINAPI MainThread(LPVOID param) {
     // outfit hooks need to be installed before the first level load, independent of the other hooks
     // because the other hooks wait for Rayne's obj to be initialized, it's too late if we wait for them to be safe
     // Install Outfit hooks
-    if (!outfit.installHook()) {
+    if (!outfit.installHooks()) {
         DEBUG_LOG("[DLL] Failed to install outfit hooks - aborting");
         return 1;
     }
