@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include <filesystem>
-#include <algorithm>
 #include "Config.h"
 #include "MinHook.h"
 
@@ -81,7 +80,6 @@ typedef void* (__cdecl* AllocMenuItem_t)(void);
 
 // Base Outfit Definitions
 struct BaseOutfitDefinition {
-    int index;
     const char* internalName;
     const char* dfmPath;
     const char* gunPath;
@@ -91,16 +89,16 @@ struct BaseOutfitDefinition {
 };
 
 static const BaseOutfitDefinition baseOutfits[] = {
-    { 0, "rayne",             "rayne.dfm",             "WEAPONS_RAYNES_GUN.SMF",             "chainlink.tif", "weapons_rayne_blade_01.smf",      "rayne.jug" },
-    { 1, "rayne_dress",       "rayne_dress.dfm",       "WEAPONS_RAYNES_GUN.SMF",             "chainlink.tif", "weapons_rayne_blade_01.smf",      "rayne_dress.jug" },
-    { 2, "rayne_dress_blue",  "rayne_dress_blue.dfm",  "WEAPONS_RAYNES_GUN.SMF",             "chainlink.tif", "weapons_rayne_blade_01.smf",      "rayne_dress.jug" },
-    { 3, "rayne_dress_red",   "rayne_dress_red.dfm",   "WEAPONS_RAYNES_GUN.SMF",             "chainlink.tif", "weapons_rayne_blade_01.smf",      "rayne_dress.jug" },
-    { 4, "rayne_dress_dragon","rayne_dress_dragon.dfm","WEAPONS_RAYNES_GUN.SMF",             "chainlink.tif", "weapons_rayne_blade_01.smf",      "rayne_dress.jug" },
-    { 5, "rayne_dress_green", "rayne_dress_green.dfm", "WEAPONS_RAYNES_GUN.SMF",             "chainlink.tif", "weapons_rayne_blade_01.smf",      "rayne_dress.jug" },
-    { 6, "rayne_dark",        "rayne_dark.dfm",        "weapons_dark_raynes_gun.smf",        "chainlink.tif", "weapons_rayne_blade_dark.smf",    "rayne_dark.jug" },
-    { 7, "rayne_cowgirl",     "rayne_cowgirl.dfm",     "weapons_cowgirl_raynes_gun.smf",     "bullwhip.tif",  "weapons_rayne_blade_cowgirl.smf", "rayne_cowgirl.jug" },
-    { 8, "rayne_armor",       "rayne_armor.dfm",       "weapons_armor_raynes_gun.smf",       "chainlink.tif", "weapons_rayne_blade_armor.smf",   "rayne_armor.jug" },
-    { 9, "rayne_schoolgirl",  "rayne_schoolgirl.dfm",  "weapons_rayne_desert eagle_gun.smf", "chainlink.tif", "weapons_rayne_katana.smf",        "rayne_schoolgirl.jug" }
+    { "rayne",             "rayne.dfm",             "WEAPONS_RAYNES_GUN.SMF",             "chainlink.tif", "weapons_rayne_blade_01.smf",      "rayne.jug" },
+    { "rayne_dress",       "rayne_dress.dfm",       "WEAPONS_RAYNES_GUN.SMF",             "chainlink.tif", "weapons_rayne_blade_01.smf",      "rayne_dress.jug" },
+    { "rayne_dress_blue",  "rayne_dress_blue.dfm",  "WEAPONS_RAYNES_GUN.SMF",             "chainlink.tif", "weapons_rayne_blade_01.smf",      "rayne_dress.jug" },
+    { "rayne_dress_red",   "rayne_dress_red.dfm",   "WEAPONS_RAYNES_GUN.SMF",             "chainlink.tif", "weapons_rayne_blade_01.smf",      "rayne_dress.jug" },
+    { "rayne_dress_dragon","rayne_dress_dragon.dfm","WEAPONS_RAYNES_GUN.SMF",             "chainlink.tif", "weapons_rayne_blade_01.smf",      "rayne_dress.jug" },
+    { "rayne_dress_green", "rayne_dress_green.dfm", "WEAPONS_RAYNES_GUN.SMF",             "chainlink.tif", "weapons_rayne_blade_01.smf",      "rayne_dress.jug" },
+    { "rayne_dark",        "rayne_dark.dfm",        "weapons_dark_raynes_gun.smf",        "chainlink.tif", "weapons_rayne_blade_dark.smf",    "rayne_dark.jug" },
+    { "rayne_cowgirl",     "rayne_cowgirl.dfm",     "weapons_cowgirl_raynes_gun.smf",     "bullwhip.tif",  "weapons_rayne_blade_cowgirl.smf", "rayne_cowgirl.jug" },
+    { "rayne_armor",       "rayne_armor.dfm",       "weapons_armor_raynes_gun.smf",       "chainlink.tif", "weapons_rayne_blade_armor.smf",   "rayne_armor.jug" },
+    { "rayne_schoolgirl",  "rayne_schoolgirl.dfm",  "weapons_rayne_desert eagle_gun.smf", "chainlink.tif", "weapons_rayne_katana.smf",        "rayne_schoolgirl.jug" }
 };
 
 // OutfitEntry
@@ -190,13 +188,6 @@ class Outfit;
 class OutfitMenuHook;
 static OutfitMenuHook* g_menuHookInstance = nullptr;
 
-// Saved register state for the menu hook (register-based calling convention)
-static DWORD g_savedEAX = 0;
-static DWORD g_savedEDX = 0;
-static DWORD g_savedEDI = 0;
-static DWORD g_savedESI = 0;
-static DWORD g_savedECX = 0;
-
 // Trampoline pointers for naked hooks
 static void* g_originalAddMenuItemTrampoline = nullptr;
 static void* g_originalSetOutfitIndexTrampoline = nullptr;
@@ -212,12 +203,6 @@ static void __declspec(naked) OutfitMenuHook_NakedHook() {
     __asm {
         pushad
         pushfd
-
-        mov g_savedEAX, eax
-        mov g_savedEDX, edx
-        mov g_savedEDI, edi
-        mov g_savedESI, esi
-        mov g_savedECX, ecx
 
         popfd
         popad
@@ -259,7 +244,6 @@ class OutfitMenuHook {
 private:
     bool initialized = false;
     bool hookInstalled = false;
-    bool setOutfitHookInstalled = false;
     int outfitMenuCallCount = 0;
 
     AddMenuItem_t originalAddMenuItem = nullptr;
@@ -362,16 +346,12 @@ public:
                 MH_RemoveHook((LPVOID)OutfitStuff::FN_SET_OUTFIT_INDEX);
             }
             else {
-                this->setOutfitHookInstalled = true;
                 DEBUG_LOG("[MenuHook] SetOutfitIndex hook installed successfully");
             }
         }
 
         return true;
     }
-
-    bool isHookInstalled() const { return this->hookInstalled; }
-    bool isSetOutfitHookInstalled() const { return this->setOutfitHookInstalled; }
 };
 
 // Outfit Class - Main Interface
@@ -801,7 +781,7 @@ private:
         return name;
     }
 
-    std::string generateInternalName(const std::string& displayName, int outfitID) {
+    std::string generateInternalName(int outfitID) {
         return "custom_" + std::to_string(outfitID);
     }
 
@@ -1040,7 +1020,7 @@ public:
         std::string displayName = this->parseDisplayName(folderName);
         entry.setDisplayName(displayName.c_str());
 
-        std::string internalName = this->generateInternalName(displayName, entry.outfitID);
+        std::string internalName = this->generateInternalName(entry.outfitID);
         entry.setInternalName(internalName.c_str());
 
         entry.inheritFromBase();
@@ -1076,10 +1056,6 @@ public:
     }
 
     // Getters
-    bool isInitialized() const { return this->initialized; }
-    bool areHooksInstalled() const { return this->hooksInstalled; }
-    bool isLooseFilePriorityEnabled() const { return this->handlersSwapped; }
-    size_t getCustomOutfitCount() const { return this->customOutfits.size(); }
     int getTotalOutfitCount() const { return OutfitStuff::BASE_OUTFIT_COUNT + (int)this->customOutfits.size(); }
     const std::vector<OutfitEntry>& getCustomOutfits() const { return this->customOutfits; }
 
