@@ -34,6 +34,9 @@ namespace Rayne2 {
     int* const CameraMode = (int*)(CameraBase + 0x214);
 
     bool* const PushCamera = (bool*)(0x05E3473D);
+    // Some misunderstood mechanics behind TimeFactor
+    // It's not "slow mo", this value does not change when using Dilated/SlowMo/Time Freeze
+    // this must control "delta" for the update loop and slow mo powers are controlled elsewhere
     float* const TimeFactor = (float*)(0x0619FB68);
 
     // UI and HUD stuff
@@ -60,6 +63,17 @@ namespace Rayne2 {
     int* const previousWeaponIndex = (int*)0x05F2FAF0;
     int* const currentEquippedWeaponIndex = (int*)0x05F2FAEC;
     int* const nextWeaponIndex = (int*)0x05F2FAF4;
+
+    // Player object
+    // Health base + 0x39c8
+    // Rage base + 0x8360
+
+    uintptr_t const RayneHealthOffset = 0x39c8;
+    uintptr_t const RayneMaxHealthOffset = 0x39cc;
+    uintptr_t const RayneRageOffset = 0x8360;
+    uintptr_t const RayneMaxRageOffset = 0x8364;
+
+    // uintptr_t const RayneAmmunitionOffset = 0x07FC; // offset is from CMultigun not CMainCharacter so have to find, name and calculate this separately
 }
 
 // key bindings
@@ -120,3 +134,8 @@ namespace Rayne2 {
 
 // how many entries allowed to be added to the outfits menu. Outfits are about 1.4kb each. Wonder if we can allocate them dynamically?
 #define OUTFIT_MAX_ENTRIES 1024
+
+// Casual Mode
+// enable regenerating health
+// Casual mode has some problems (detailed in CasualMode.h) and isn't ready to be added yet.
+#define ENABLE_CASUAL_MODE 0

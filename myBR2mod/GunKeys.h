@@ -104,6 +104,7 @@ public:
 		//DEBUG_LOG(currentWeapon);
 		//*this->currentWeapon = weaponMode;
 
+		// this check is used in NoHud too, it would not hurt to put this in a Rayne object class
 		uintptr_t rayneBase = *reinterpret_cast<uintptr_t*>(Rayne2::RayneBasePtr);
 		if (rayneBase == 0) return;
 

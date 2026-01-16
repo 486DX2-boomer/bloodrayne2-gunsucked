@@ -14,6 +14,7 @@
 #include "DisplayMessage.h"
 #include "PlaySound.h"
 #include "Outfit.h"
+#include "CasualMode.h"
 
 void setupConsole() {
     if (!AllocConsole()) {
@@ -89,6 +90,9 @@ DWORD WINAPI MainThread(LPVOID param) {
     GunBalance gunBalance;
     GunKeys gunKeys;
     Outfit outfit;
+#if ENABLE_CASUAL_MODE
+    CasualMode casualMode; // don't enable casualMode for release yet, not working properly
+#endif
 
     // Gunbalance must be hooked immediately or else it will override values too late to work.
     if (!gunBalance.installHook()) {
@@ -268,6 +272,10 @@ DWORD WINAPI MainThread(LPVOID param) {
     // *outfitIndex = 0x0b; // 11
 
     while (true) {
+
+#if ENABLE_CASUAL_MODE
+        casualMode.update();
+#endif
 
         // Handles debug key manually (no callback)
         if (debugCheckKey.isActivated()) {
