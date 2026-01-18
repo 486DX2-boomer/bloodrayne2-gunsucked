@@ -1,4 +1,8 @@
 #pragma once
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <filesystem>
 
 // logging and console
 #define DEBUG_CONSOLE_ENABLED true
@@ -139,3 +143,185 @@ namespace Rayne2 {
 // enable regenerating health
 // Casual mode has some problems (detailed in CasualMode.h) and isn't ready to be added yet.
 #define ENABLE_CASUAL_MODE 0
+
+class Config {
+public:
+
+    // features enabled
+    bool enableGunBalance;
+    bool enableGunKeys;
+    bool enablePhotoMode;
+    bool enableSuperSlowMo;
+    bool enableNoHud;
+    bool enableOutfitMods;
+
+    // camera controls
+    int cameraDecrementXKey;
+    int cameraIncrementXKey;
+
+    int cameraDecrementZKey;
+    int cameraIncrementZKey;
+
+    int cameraDecrementYKey;
+    int cameraIncrementYKey;
+
+    int cameraDecrementAnglePitchKey;
+    int cameraIncrementAnglePitchkey;
+
+    int cameraDecrementAngleYawKey;
+    int cameraIncrementAngleYawKey;
+
+    int cameraDecrementAngleRollKey;
+    int cameraIncrementAngleRollKey;
+
+    int cameraDecrementFovKey;
+    int cameraIncrementFovKey;
+    
+    // toggle keys
+    int togglePhotoModeKey;
+    int toggleSuperSlowModeKey;
+    int toggleHudKey;
+    // int debugCheckKey;
+
+    // tuning values
+    float cameraPosIncDecValue;
+    float cameraAngleIncDecValue;
+    float cameraFovIncDecValue;
+    
+    float superSlowModeTimeFactor;
+
+    // behaviors
+    bool photoModeDisableHudOnEnter;
+    bool photoModeRestoreTimeFactorOnExit;
+
+    // gun hotkeys
+    int gunSelectBloodShotKey;
+    int gunSelectBloodStreamKey;
+    int gunSelectBloodSprayKey;
+    int gunSelectBloodBombKey;
+    int gunSelectBloodFlameKey;
+    int gunSelectBloodHammerKey;
+    int gunSelectPreviousWeaponKey;
+    bool gunMouseWheelDownPreviousWeapon;
+
+    // internal stuff
+    int outfitMaxEntries;
+    std::string outfitModPath;
+
+    Config() {};
+    ~Config() {};
+
+    bool loadConfig() {};
+
+    bool configExists() {
+        DEBUG_LOG("Checking for config file...");
+        std::filesystem::path configPath = "gunsucked.ini";
+
+        if (std::filesystem::exists(configPath)) {
+            DEBUG_LOG("Config file found");
+            return true;
+        }
+        else {
+            DEBUG_LOG("No config file found. Writing default...");
+            return false;
+        }
+    };
+
+    bool writeDefaultConfig() {
+        std::ofstream config("gunsucked.ini");
+
+        if (!config.is_open()) {
+            return false;  // failed to create
+        }
+
+        config << "; key bindings use Win32 virtual key codes" << std::endl;
+        config << "; refer to https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes for valid keys" << std::endl;
+
+        config << std::endl;
+
+        config << "[features]" << std::endl;
+        config << "enableGunBalance = true" << std::endl;
+        config << "enableGunKeys = true" << std::endl;
+        config << "enablePhotoMode = true" << std::endl;
+        config << "enableSuperSlowMo = true" << std::endl;
+        config << "enableNoHud = true" << std::endl;
+        config << "enableOutfitMods = true" << std::endl;
+
+        config << std::endl;
+
+        config << "[photoMode]" << std::endl;
+
+        config << "decrementXKey = VK_OEM_4" << std::endl;
+        config << "incrementXKey = VK_OEM_6" << std::endl;
+
+        config << "decrementZKey = VK_OEM_1" << std::endl;
+        config << "incrementZKey = VK_OEM_7" << std::endl;
+
+        config << "decrementYKey = VK_OEM_COMMA" << std::endl;
+        config << "incrementYKey = VK_OEM_PERIOD" << std::endl;
+
+        config << "decrementAnglePitchKey = VK_UP" << std::endl;
+        config << "incrementAnglePitchKey = VK_DOWN" << std::endl;
+
+        config << "decrementAngleYawKey = VK_LEFT" << std::endl;
+        config << "incrementAngleYawKey = VK_RIGHT" << std::endl;
+
+        config << "decrementAngleRollKey = VK_DELETE" << std::endl;
+        config << "IncrementAngleRollKey = VK_INSERT" << std::endl;
+
+        config << "decrementFovKey = VK_NEXT" << std::endl;
+        config << "incrementFovKey = VK_PRIOR" << std::endl;
+
+        config << std::endl;
+
+        config << "[toggleKeys]" << std::endl;
+        config << "togglePhotoModeKey = VK_F7" << std::endl;
+        config << "toggleSuperSlowModeKey = VK_F8" << std::endl;
+        config << "toggleHudKey = VK_F9" << std::endl;
+
+        config << std::endl;
+
+        config << "[tuningValues]" << std::endl;
+        config << "; increment/decrement values, ie, camera sensitivity" << std::endl;
+        config << "cameraPosIncDecValue = 0.066" << std::endl;
+        config << "cameraAngleIncDecValue = 0.016" << std::endl;
+        config << "cameraFovIncDecValue = 1.0" << std::endl;
+
+        config << std::endl;
+
+        config << "; super slow mo time factor. in-game cheat menu uses 0.1-1.0" << std::endl;
+        config << "; default is 0.05. values above 1.0 make the game run faster" << std::endl;
+        config << "; don't use negative values. weird stuff happens" << std::endl;
+        config << "superSlowModeTimefactor = 0.05" << std::endl;
+
+        config << std::endl;
+
+        config << "[behaviors]" << std::endl;
+        config << "photoModeDisableHudOnEnter = true" << std::endl;
+        config << "photoModeRestoreTimeFactorOnExit = true" << std::endl;
+
+        config << std::endl;
+
+        config << "[gunHotkeys]" << std::endl;
+        config << "gunSelectBloodShotKey = 0x35" << std::endl;
+        config << "gunSelectBloodStreamKey = 0x36" << std::endl;
+        config << "gunSelectBloodSprayKey = 0x37" << std::endl;
+        config << "gunSelectBloodBombKey = 0x38" << std::endl;
+        config << "gunSelectBloodFlameKey = 0x39" << std::endl;
+        config << "gunSelectBloodHammerKey = 0x30" << std::endl;
+        config << "gunSelectPreviousWeaponKey = VK_OEM_MINUS" << std::endl;
+        config << "; if true, mousewheel down selects previous weapon mode" << std::endl;
+        config << "gunMouseWheelDownPreviousWeapon = true" << std::endl;
+
+        config << std::endl;
+
+        config << "[internalSettings]" << std::endl;
+        config << "outfitMaxEntries = 1024" << std::endl;
+        config << "outfitModPath = mods\\outfits" << std::endl;
+
+        // write to gunsucked.ini
+        config.close();
+        return true;
+    };
+};
+

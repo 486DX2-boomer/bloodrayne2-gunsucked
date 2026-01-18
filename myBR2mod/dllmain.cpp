@@ -14,7 +14,7 @@
 #include "DisplayMessage.h"
 #include "PlaySound.h"
 #include "Outfit.h"
-#include "CasualMode.h"
+//#include "CasualMode.h"
 
 void setupConsole() {
     if (!AllocConsole()) {
@@ -84,15 +84,27 @@ bool WaitForGameReady(PhotoModeCamera& photoMode, NoHud& noHud, GunKeys& gunKeys
 
 DWORD WINAPI MainThread(LPVOID param) {
 
+    // check for gunsucked.ini
+    Config config;
+    if (!config.configExists()) {
+        if (!config.writeDefaultConfig()) {
+            DEBUG_LOG("Error: Couldn't write gunsucked.ini");
+        }
+    }
+
+    // load values from config file
+
+    // fallback if config doesn't load (display a warning)
+
     PhotoModeCamera photoMode;
     SuperSlowMode superSlowMode;
     NoHud noHud;
     GunBalance gunBalance;
     GunKeys gunKeys;
     Outfit outfit;
-#if ENABLE_CASUAL_MODE
-    CasualMode casualMode; // don't enable casualMode for release yet, not working properly
-#endif
+//#if ENABLE_CASUAL_MODE
+//    CasualMode casualMode; // don't enable casualMode for release yet, not working properly
+//#endif
 
     // Gunbalance must be hooked immediately or else it will override values too late to work.
     if (!gunBalance.installHook()) {
@@ -273,9 +285,9 @@ DWORD WINAPI MainThread(LPVOID param) {
 
     while (true) {
 
-#if ENABLE_CASUAL_MODE
-        casualMode.update();
-#endif
+//#if ENABLE_CASUAL_MODE
+//        casualMode.update();
+//#endif
 
         // Handles debug key manually (no callback)
         if (debugCheckKey.isActivated()) {
