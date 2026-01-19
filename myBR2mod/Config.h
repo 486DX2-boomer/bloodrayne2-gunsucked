@@ -208,10 +208,18 @@ public:
     int outfitMaxEntries;
     std::string outfitModPath;
 
-    Config() {};
+    Config() {
+        // ensure initialized
+         this->setInternalDefaultConfig();
+    };
+
     ~Config() {};
 
-    bool loadConfig() {};
+    bool loadConfig() {
+        // attempt to load gunsucked.ini
+
+        // if unsuccesful, fall back to defaults (should have already been set in constructor via setInternalDefaultConfig)
+    };
 
     bool configExists() {
         DEBUG_LOG("Checking for config file...");
@@ -226,6 +234,77 @@ public:
             return false;
         }
     };
+
+    // fallback for if loading .ini fails
+    // so I kind of don't like this because there's no canonical default config source
+    // any changes to config must be reflected in loadDefaultConfig and writeDefaultConfig
+    // so maybe think about not using this and instead having a centralized place where the canon "Default config" comes from
+    // maybe writeDefaultConfig should both write the .ini file and configure the object at the same time
+    // actually I don't like that solution either
+    // I'll think about this later
+    void setInternalDefaultConfig() {
+        // enable features
+        this->enableGunBalance = true;
+        this->enableGunKeys = true;
+        this->enablePhotoMode = true;
+        this->enableSuperSlowMo = true;
+        this->enableNoHud = true;
+        this->enableOutfitMods = true;
+
+        // camera keybinds
+        this->cameraDecrementXKey = VK_OEM_4;
+        this->cameraIncrementXKey = VK_OEM_6;
+
+        this->cameraDecrementZKey = VK_OEM_1;
+        this->cameraIncrementZKey = VK_OEM_7;
+
+        this->cameraDecrementYKey = VK_OEM_COMMA;
+        this->cameraIncrementYKey = VK_OEM_PERIOD;
+
+        this->cameraDecrementAnglePitchKey = VK_UP;
+        this->cameraIncrementAnglePitchkey = VK_DOWN;
+
+        this->cameraDecrementAngleYawKey = VK_LEFT;
+        this->cameraIncrementAngleYawKey = VK_RIGHT;
+
+        this->cameraDecrementAngleRollKey = VK_DELETE;
+        this->cameraIncrementAngleRollKey = VK_INSERT;
+
+        this->cameraDecrementFovKey = VK_NEXT;
+        this->cameraIncrementFovKey = VK_PRIOR;
+
+        // toggle keys
+        this->togglePhotoModeKey = VK_F7;
+        this->toggleSuperSlowModeKey = VK_F8;
+        this->toggleHudKey = VK_F9;
+
+        // tuning values
+        this->cameraPosIncDecValue = 0.066f;
+        this->cameraAngleIncDecValue = 0.016f;
+        this->cameraFovIncDecValue = 1.0f;
+
+        this->superSlowModeTimeFactor = 0.05f;
+
+        // behaviors
+
+        this->photoModeDisableHudOnEnter = true;
+        this->photoModeRestoreTimeFactorOnExit = true;
+
+        // gun hotkeys
+        this->gunSelectBloodShotKey = 0x35;
+        this->gunSelectBloodStreamKey = 0x36;
+        this->gunSelectBloodSprayKey = 0x37;
+        this->gunSelectBloodBombKey = 0x38;
+        this->gunSelectBloodFlameKey = 0x39;
+        this->gunSelectBloodHammerKey = 0x30;
+        this->gunSelectPreviousWeaponKey = VK_OEM_MINUS;
+        this->gunMouseWheelDownPreviousWeapon = true;
+
+        // internal settings
+        this->outfitMaxEntries = 1024;
+        this->outfitModPath = "mods\\outfits";
+
+    }
 
     bool writeDefaultConfig() {
         std::ofstream config("gunsucked.ini");
@@ -303,15 +382,15 @@ public:
         config << std::endl;
 
         config << "[gunHotkeys]" << std::endl;
-        config << "gunSelectBloodShotKey = 0x35" << std::endl;
-        config << "gunSelectBloodStreamKey = 0x36" << std::endl;
-        config << "gunSelectBloodSprayKey = 0x37" << std::endl;
-        config << "gunSelectBloodBombKey = 0x38" << std::endl;
-        config << "gunSelectBloodFlameKey = 0x39" << std::endl;
-        config << "gunSelectBloodHammerKey = 0x30" << std::endl;
-        config << "gunSelectPreviousWeaponKey = VK_OEM_MINUS" << std::endl;
+        config << "selectBloodShotKey = 0x35" << std::endl;
+        config << "selectBloodStreamKey = 0x36" << std::endl;
+        config << "selectBloodSprayKey = 0x37" << std::endl;
+        config << "selectBloodBombKey = 0x38" << std::endl;
+        config << "selectBloodFlameKey = 0x39" << std::endl;
+        config << "selectBloodHammerKey = 0x30" << std::endl;
+        config << "selectPreviousWeaponKey = VK_OEM_MINUS" << std::endl;
         config << "; if true, mousewheel down selects previous weapon mode" << std::endl;
-        config << "gunMouseWheelDownPreviousWeapon = true" << std::endl;
+        config << "mouseWheelDownPreviousWeapon = true" << std::endl;
 
         config << std::endl;
 
