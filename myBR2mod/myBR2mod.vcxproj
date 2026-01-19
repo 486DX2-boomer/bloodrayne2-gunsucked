@@ -146,6 +146,8 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="GunBalance.h" />
     <ClInclude Include="GunKeys.h" />
+    <ClInclude Include="ini.h" />
+    <ClInclude Include="INIReader.h" />
     <ClInclude Include="InputBase.h" />
     <ClInclude Include="KeyInput.h" />
     <ClInclude Include="MinHook.h" />
@@ -159,6 +161,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="ini.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="INIReader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -92,11 +92,17 @@ DWORD WINAPI MainThread(LPVOID param) {
         }
     }
 
-    // config.logConfig();
-
     // load values from config file
+    if (!config.loadConfig()) {
+        // fallback if config doesn't load
+        DEBUG_LOG("Error: Couldn't load gunsucked.ini");
+        // display a warning here (win32 message box so it doesn't fail silently
+    }
+    else {
+        DEBUG_LOG("Config loaded");
+    }
 
-    // fallback if config doesn't load (display a warning)
+    // config.logConfig();
 
     PhotoModeCamera photoMode;
     SuperSlowMode superSlowMode;

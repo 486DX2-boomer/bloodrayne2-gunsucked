@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include "INIReader.h"
 
 // logging and console
 #define DEBUG_CONSOLE_ENABLED true
@@ -145,6 +146,8 @@ namespace Rayne2 {
 #define ENABLE_CASUAL_MODE 0
 
 class Config {
+private:
+
 public:
 
     // features enabled
@@ -217,8 +220,11 @@ public:
 
     bool loadConfig() {
         // attempt to load gunsucked.ini
+        DEBUG_LOG("Attempting to parse gunsucked.ini...");
+        INIReader reader("gunsucked.ini");
 
         // if unsuccesful, fall back to defaults (should have already been set in constructor via setInternalDefaultConfig)
+        return true;
     };
 
     bool configExists() {

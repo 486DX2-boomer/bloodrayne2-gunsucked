@@ -60,12 +60,24 @@
     <ClInclude Include="Outfit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ini.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="INIReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ini.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="INIReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
