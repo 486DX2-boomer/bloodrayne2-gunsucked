@@ -92,6 +92,8 @@ DWORD WINAPI MainThread(LPVOID param) {
         }
     }
 
+    // config.logConfig();
+
     // load values from config file
 
     // fallback if config doesn't load (display a warning)

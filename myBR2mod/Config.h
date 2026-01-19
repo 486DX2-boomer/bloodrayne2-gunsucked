@@ -402,5 +402,21 @@ public:
         config.close();
         return true;
     };
+
+    void logConfig() {
+        DEBUG_LOG(this->enableGunBalance);
+        DEBUG_LOG(this->enableGunKeys);
+        DEBUG_LOG(this->enablePhotoMode);
+        DEBUG_LOG(this->enableNoHud);
+        DEBUG_LOG(this->enableOutfitMods);
+
+        DEBUG_LOG(this->cameraDecrementXKey);
+        DEBUG_LOG(this->togglePhotoModeKey);
+        DEBUG_LOG(this->superSlowModeTimeFactor);
+        
+        DEBUG_LOG(this->photoModeDisableHudOnEnter);
+        DEBUG_LOG(this->gunSelectBloodShotKey);
+        DEBUG_LOG(this->outfitMaxEntries);
+    }
 };
 
