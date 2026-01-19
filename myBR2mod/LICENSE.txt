@@ -1,0 +1,115 @@
+Gunsucked Mod - For Bloodrayne 2 Terminal Cut
+
+(c) 2026
+
+The original code in this project (code not covered by third-party 
+licenses below) is provided freely for use, modification, and 
+redistribution under the following conditions:
+
+PERMITTED USES
+
+   You are encouraged to:
+   - Use this code for personal projects
+   - Modify, adapt, and improve this code
+   - Include this code in other mod projects
+   - Distribute this code or derivatives freely
+   - Create content (videos, streams, articles) featuring mods using 
+     this code, including monetized content
+   - Accept voluntary donations for your work, provided the mod itself
+     remains freely accessible to all users
+
+PROHIBITED USES
+
+   You may not:
+   - Distribute this code, or any mod incorporating this code, 
+     exclusively to paying subscribers, patrons, or customers
+   - Restrict access to this code or any mod incorporating this code
+     behind any payment, whether as "early access," delayed paywall,
+     or any other arrangement where payment is required to obtain the
+     mod at any point in its distribution lifecycle
+   - Sell this code or any mod incorporating this code as a standalone 
+     product
+   - Include this code or any mod incorporating this code in paid 
+     compilations, bundles, or "mod packs"
+   - Claim original authorship of unmodified portions of this code
+   - Use the original project name for derivative works
+
+REQUIREMENTS FOR REDISTRIBUTION
+
+   If you distribute this code or derivatives, you must:
+   - Include this license file in its entirety
+   - Clearly indicate any modifications you have made
+   - Maintain the prohibition on commercial/paywalled distribution
+   - Use naming that distinguishes your derivative from the original
+     project
+
+This software is provided "as is" without warranty of any kind. The 
+author is not liable for any damages arising from its use.
+
+-------------------------------------------------------------------------------
+
+THIRD-PARTY LICENSES
+
+This project includes the following third-party libraries, which are 
+distributed under their original licenses:
+
+-------------------------------------------------------------------------------
+
+MinHook - The Minimalistic API Hooking Library for x64/x86
+Copyright (C) 2009-2017 Tsuda Kageyu.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER
+OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Portions of MinHook are Copyright (c) 2008-2009, Vyacheslav Patkov 
+(Hacker Disassembler Engine 32/64 C), distributed under the same terms.
+
+-------------------------------------------------------------------------------
+
+inih - Simple INI file parser
+Copyright (c) 2009, Ben Hoyt
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of Ben Hoyt nor the names of its contributors
+      may be used to endorse or promote products derived from this software
+      without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY BEN HOYT ''AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL BEN HOYT BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+-------------------------------------------------------------------------------

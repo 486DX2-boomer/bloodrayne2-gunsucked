@@ -74,4 +74,9 @@
       <Filter>Header Files</Filter>
     </Library>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="LICENSE.txt">
+      <Filter>Source Files</Filter>
+    </Text>
+  </ItemGroup>
 </Project>
