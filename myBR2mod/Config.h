@@ -276,7 +276,7 @@ public:
     std::string outfitModPath;
 
     Config() {
-        // ensure initialized
+        // ensure initialized - but defaults are also loaded from loadConfig() if INIReader's Get methods fail
          this->setInternalDefaultConfig();
     };
 
@@ -290,12 +290,76 @@ public:
         // if unsuccessful, fall back to defaults (should have already been set in constructor via setInternalDefaultConfig()
         int error = reader.ParseError();
         if (error == -1 || error == -2) {
+            DEBUG_LOG("Ini parsing error. using defaults");
             return false;
         }
         else if (error > 0) {
-            DEBUG_LOG(reader.ParseErrorMessage());
+            DEBUG_LOG("Ini parsing error: " << reader.ParseErrorMessage());
             return false;
         }
+
+        // the last argument to INIReader's Get methods is a default, so should always reference ConfigDefaults
+
+        // features
+        this->enableGunBalance = reader.GetBoolean("features", "enableGunBalance", ConfigDefaults::enableGunBalance);
+        this->enableGunKeys = reader.GetBoolean("features", "enableGunKeys", ConfigDefaults::enableGunKeys);
+        this->enablePhotoMode = reader.GetBoolean("features", "enablePhotoMode", ConfigDefaults::enablePhotoMode);
+        this->enableSuperSlowMo = reader.GetBoolean("features", "enableSuperSlowMo", ConfigDefaults::enableSuperSlowMo);
+        this->enableNoHud = reader.GetBoolean("features", "enableNoHud", ConfigDefaults::enableNoHud);
+        this->enableOutfitMods = reader.GetBoolean("features", "enableOutfitMods", ConfigDefaults::enableOutfitMods);
+
+        // photo mode
+        this->cameraDecrementXKey = (int)reader.GetInteger("photoMode", "cameraDecrementXKey", ConfigDefaults::cameraDecrementXKey);
+        this->cameraIncrementXKey = (int)reader.GetInteger("photoMode", "cameraIncrementXKey", ConfigDefaults::cameraIncrementXKey);
+
+        this->cameraDecrementZKey = (int)reader.GetInteger("photoMode", "cameraDecrementZKey", ConfigDefaults::cameraDecrementZKey);
+        this->cameraIncrementZKey = (int)reader.GetInteger("photoMode", "cameraIncrementZKey", ConfigDefaults::cameraIncrementZKey);
+
+        this->cameraDecrementYKey = (int)reader.GetInteger("photoMode", "cameraDecrementYKey", ConfigDefaults::cameraDecrementYKey);
+        this->cameraIncrementYKey = (int)reader.GetInteger("photoMode", "cameraIncrementYKey", ConfigDefaults::cameraIncrementYKey);
+
+        this->cameraDecrementAnglePitchKey = (int)reader.GetInteger("photoMode", "cameraDecrementAnglePitchKey", ConfigDefaults::cameraDecrementAnglePitchKey);
+        this->cameraIncrementAnglePitchKey = (int)reader.GetInteger("photoMode", "cameraIncrementAnglePitchKey", ConfigDefaults::cameraIncrementAnglePitchKey);
+
+        this->cameraDecrementAngleYawKey = (int)reader.GetInteger("photoMode", "cameraDecrementAngleYawKey", ConfigDefaults::cameraDecrementAngleYawKey);
+        this->cameraIncrementAngleYawKey = (int)reader.GetInteger("photoMode", "cameraIncrementAngleYawKey", ConfigDefaults::cameraIncrementAngleYawKey);
+
+        this->cameraDecrementAngleRollKey = (int)reader.GetInteger("photoMode", "cameraDecrementAngleRollKey", ConfigDefaults::cameraDecrementAngleRollKey);
+        this->cameraIncrementAngleRollKey = (int)reader.GetInteger("photoMode", "cameraIncrementAngleRollKey", ConfigDefaults::cameraIncrementAngleRollKey);
+
+        this->cameraDecrementFovKey = (int)reader.GetInteger("photoMode", "cameraDecrementFovKey", ConfigDefaults::cameraDecrementFovKey);
+        this->cameraIncrementFovKey = (int)reader.GetInteger("photoMode", "cameraIncrementFovKey", ConfigDefaults::cameraIncrementFovKey);
+
+        // toggle keys
+        this->togglePhotoModeKey = (int)reader.GetInteger("toggleKeys", "togglePhotoModeKey", ConfigDefaults::togglePhotoModeKey);
+        this->toggleSuperSlowModeKey = (int)reader.GetInteger("toggleKeys", "toggleSuperSlowModeKey", ConfigDefaults::toggleSuperSlowModeKey);
+        this->toggleHudKey = (int)reader.GetInteger("toggleKeys", "toggleHudKey", ConfigDefaults::toggleHudKey);
+
+        // tuning values
+        this->cameraPosIncDecValue = (float)reader.GetReal("tuningValues", "cameraPosIncDecValue", ConfigDefaults::cameraPosIncDecValue);
+        this->cameraAngleIncDecValue = (float)reader.GetReal("tuningValues", "cameraAngleIncDecValue", ConfigDefaults::cameraAngleIncDecValue);
+        this->cameraFovIncDecValue = (float)reader.GetReal("tuningValues", "cameraFovIncDecValue", ConfigDefaults::cameraFovIncDecValue);
+
+        this->superSlowModeTimeFactor = (float)reader.GetReal("tuningValues", "superSlowModeTimeFactor", ConfigDefaults::superSlowModeTimeFactor);
+
+        // behaviors
+        this->photoModeDisableHudOnEnter = reader.GetBoolean("behaviors", "photoModeDisableHudOnEnter", ConfigDefaults::photoModeDisableHudOnEnter);
+        this->photoModeRestoreTimeFactorOnExit = reader.GetBoolean("behaviors", "photoModeRestoreTimeFactorOnExit", ConfigDefaults::photoModeRestoreTimeFactorOnExit);
+
+        // gun hotkeys
+        this->gunSelectBloodShotKey = (int)reader.GetInteger("gunHotkeys", "gunSelectBloodShotKey", ConfigDefaults::gunSelectBloodShotKey);
+        this->gunSelectBloodStreamKey = (int)reader.GetInteger("gunHotkeys", "gunSelectBloodStreamKey", ConfigDefaults::gunSelectBloodStreamKey);
+        this->gunSelectBloodSprayKey = (int)reader.GetInteger("gunHotkeys", "gunSelectBloodSprayKey", ConfigDefaults::gunSelectBloodSprayKey);
+        this->gunSelectBloodBombKey = (int)reader.GetInteger("gunHotkeys", "gunSelectBloodBombKey", ConfigDefaults::gunSelectBloodBombKey);
+        this->gunSelectBloodFlameKey = (int)reader.GetInteger("gunHotkeys", "gunSelectBloodFlameKey", ConfigDefaults::gunSelectBloodFlameKey);
+        this->gunSelectBloodHammerKey = (int)reader.GetInteger("gunHotkeys", "gunSelectBloodHammerKey", ConfigDefaults::gunSelectBloodHammerKey);
+
+        this->gunSelectPreviousWeaponKey = (int)reader.GetInteger("gunHotkeys", "gunSelectPreviousWeaponKey", ConfigDefaults::gunSelectPreviousWeaponKey);
+        this->gunMouseWheelDownPreviousWeapon = reader.GetBoolean("gunHotkeys", "gunMouseWheelDownPreviousWeapon", ConfigDefaults::gunMouseWheelDownPreviousWeapon);
+
+        // internal settings
+        this->outfitMaxEntries = (int)reader.GetInteger("internalSettings", "outfitMaxEntries", ConfigDefaults::outfitMaxEntries);
+        this->outfitModPath = reader.Get("internalSettings", "outfitModPath", ConfigDefaults::outfitModPath);
 
         return true;
     };
@@ -391,6 +455,7 @@ public:
         config << std::endl;
 
         config << "[features]" << std::endl;
+        // write "true" or "false" to the ini, not "1" or "0"
         config << "enableGunBalance = " << (ConfigDefaults::enableGunBalance ? "true" : "false") << std::endl;
         config << "enableGunKeys = " << (ConfigDefaults::enableGunKeys ? "true" : "false") << std::endl;
         config << "enablePhotoMode = " << (ConfigDefaults::enablePhotoMode ? "true" : "false") << std::endl;
@@ -402,26 +467,26 @@ public:
 
         config << "[photoMode]" << std::endl;
 
-        config << "decrementXKey = " << ConfigDefaults::cameraDecrementXKey << std::endl;
-        config << "incrementXKey = " << ConfigDefaults::cameraIncrementXKey << std::endl;
+        config << "cameraDecrementXKey = " << ConfigDefaults::cameraDecrementXKey << std::endl;
+        config << "cameraIncrementXKey = " << ConfigDefaults::cameraIncrementXKey << std::endl;
 
-        config << "decrementZKey = " << ConfigDefaults::cameraDecrementZKey << std::endl;
-        config << "incrementZKey = " << ConfigDefaults::cameraIncrementZKey << std::endl;
+        config << "cameraDecrementZKey = " << ConfigDefaults::cameraDecrementZKey << std::endl;
+        config << "cameraIncrementZKey = " << ConfigDefaults::cameraIncrementZKey << std::endl;
 
-        config << "decrementYKey = " << ConfigDefaults::cameraDecrementYKey << std::endl;
-        config << "incrementYKey = " << ConfigDefaults::cameraIncrementYKey << std::endl;
+        config << "cameraDecrementYKey = " << ConfigDefaults::cameraDecrementYKey << std::endl;
+        config << "cameraIncrementYKey = " << ConfigDefaults::cameraIncrementYKey << std::endl;
 
-        config << "decrementAnglePitchKey = " << ConfigDefaults::cameraDecrementAnglePitchKey << std::endl;
-        config << "incrementAnglePitchKey = " << ConfigDefaults::cameraIncrementAnglePitchKey << std::endl;
+        config << "cameraDecrementAnglePitchKey = " << ConfigDefaults::cameraDecrementAnglePitchKey << std::endl;
+        config << "cameraIncrementAnglePitchKey = " << ConfigDefaults::cameraIncrementAnglePitchKey << std::endl;
 
-        config << "decrementAngleYawKey = " << ConfigDefaults::cameraDecrementAngleYawKey << std::endl;
-        config << "incrementAngleYawKey = " << ConfigDefaults::cameraIncrementAngleYawKey << std::endl;
+        config << "cameraDecrementAngleYawKey = " << ConfigDefaults::cameraDecrementAngleYawKey << std::endl;
+        config << "cameraIncrementAngleYawKey = " << ConfigDefaults::cameraIncrementAngleYawKey << std::endl;
 
-        config << "decrementAngleRollKey = " << ConfigDefaults::cameraDecrementAngleRollKey << std::endl;
-        config << "incrementAngleRollKey = " << ConfigDefaults::cameraIncrementAngleRollKey << std::endl;
+        config << "cameraDecrementAngleRollKey = " << ConfigDefaults::cameraDecrementAngleRollKey << std::endl;
+        config << "cameraIncrementAngleRollKey = " << ConfigDefaults::cameraIncrementAngleRollKey << std::endl;
 
-        config << "decrementFovKey = " << ConfigDefaults::cameraDecrementFovKey << std::endl;
-        config << "incrementFovKey = " << ConfigDefaults::cameraIncrementFovKey << std::endl;
+        config << "cameraDecrementFovKey = " << ConfigDefaults::cameraDecrementFovKey << std::endl;
+        config << "cameraIncrementFovKey = " << ConfigDefaults::cameraIncrementFovKey << std::endl;
 
         config << std::endl;
 
@@ -454,15 +519,15 @@ public:
         config << std::endl;
 
         config << "[gunHotkeys]" << std::endl;
-        config << "selectBloodShotKey = " << ConfigDefaults::gunSelectBloodShotKey << std::endl;
-        config << "selectBloodStreamKey = " << ConfigDefaults::gunSelectBloodStreamKey << std::endl;
-        config << "selectBloodSprayKey = " << ConfigDefaults::gunSelectBloodSprayKey << std::endl;
-        config << "selectBloodBombKey = " << ConfigDefaults::gunSelectBloodBombKey << std::endl;
-        config << "selectBloodFlameKey = " << ConfigDefaults::gunSelectBloodFlameKey << std::endl;
-        config << "selectBloodHammerKey = " << ConfigDefaults::gunSelectBloodHammerKey << std::endl;
-        config << "selectPreviousWeaponKey = " << ConfigDefaults::gunSelectPreviousWeaponKey << std::endl;
+        config << "gunSelectBloodShotKey = " << ConfigDefaults::gunSelectBloodShotKey << std::endl;
+        config << "gunSelectBloodStreamKey = " << ConfigDefaults::gunSelectBloodStreamKey << std::endl;
+        config << "gunSelectBloodSprayKey = " << ConfigDefaults::gunSelectBloodSprayKey << std::endl;
+        config << "gunSelectBloodBombKey = " << ConfigDefaults::gunSelectBloodBombKey << std::endl;
+        config << "gunSelectBloodFlameKey = " << ConfigDefaults::gunSelectBloodFlameKey << std::endl;
+        config << "gunSelectBloodHammerKey = " << ConfigDefaults::gunSelectBloodHammerKey << std::endl;
+        config << "gunSelectPreviousWeaponKey = " << ConfigDefaults::gunSelectPreviousWeaponKey << std::endl;
         config << "; if true, mousewheel down selects previous weapon mode" << std::endl;
-        config << "mouseWheelDownPreviousWeapon = " << (ConfigDefaults::gunMouseWheelDownPreviousWeapon ? "true" : "false") << std::endl;
+        config << "gunMouseWheelDownPreviousWeapon = " << (ConfigDefaults::gunMouseWheelDownPreviousWeapon ? "true" : "false") << std::endl;
 
         config << std::endl;
 
@@ -475,21 +540,17 @@ public:
         return true;
     }
 
-    // just for testing if we really loaded values or not
+    // for testing if we really loaded values or not
     void logConfig() {
-        DEBUG_LOG(this->enableGunBalance);
-        DEBUG_LOG(this->enableGunKeys);
-        DEBUG_LOG(this->enablePhotoMode);
-        DEBUG_LOG(this->enableNoHud);
-        DEBUG_LOG(this->enableOutfitMods);
+        DEBUG_LOG("cfg: gun balance " << this->enableGunBalance);
+        DEBUG_LOG("cfg: gun keys " << this->enableGunKeys);
+        DEBUG_LOG("cfg: photo mode " << this->enablePhotoMode);
+        DEBUG_LOG("cfg: nohud " << this->enableNoHud);
+        DEBUG_LOG("cfg: outfit mods " << this->enableOutfitMods);
 
-        DEBUG_LOG(this->cameraDecrementXKey);
-        DEBUG_LOG(this->togglePhotoModeKey);
-        DEBUG_LOG(this->superSlowModeTimeFactor);
-        
-        DEBUG_LOG(this->photoModeDisableHudOnEnter);
-        DEBUG_LOG(this->gunSelectBloodShotKey);
-        DEBUG_LOG(this->outfitMaxEntries);
+        DEBUG_LOG("cfg: super slow time factor " << this->superSlowModeTimeFactor);
+
+        DEBUG_LOG("cfg: outfit max entries " << this->outfitMaxEntries);
+        DEBUG_LOG("cfg: outfit mod path " << this->outfitModPath);
     }
 };
-

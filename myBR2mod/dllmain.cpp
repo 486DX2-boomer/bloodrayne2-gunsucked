@@ -102,7 +102,7 @@ DWORD WINAPI MainThread(LPVOID param) {
         DEBUG_LOG("Config loaded");
     }
 
-    // config.logConfig();
+    //config.logConfig();
 
     PhotoModeCamera photoMode;
     SuperSlowMode superSlowMode;
