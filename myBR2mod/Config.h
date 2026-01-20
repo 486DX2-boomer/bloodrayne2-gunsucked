@@ -467,48 +467,48 @@ public:
 
         config << "[photoMode]" << std::endl;
 
-        config << "cameraDecrementXKey = " << ConfigDefaults::cameraDecrementXKey << std::endl;
-        config << "cameraIncrementXKey = " << ConfigDefaults::cameraIncrementXKey << std::endl;
+        config << "cameraDecrementXKey = 0x" << std::hex << ConfigDefaults::cameraDecrementXKey << std::endl;
+        config << "cameraIncrementXKey = 0x" << std::hex << ConfigDefaults::cameraIncrementXKey << std::endl;
 
-        config << "cameraDecrementZKey = " << ConfigDefaults::cameraDecrementZKey << std::endl;
-        config << "cameraIncrementZKey = " << ConfigDefaults::cameraIncrementZKey << std::endl;
+        config << "cameraDecrementZKey = 0x" << std::hex << ConfigDefaults::cameraDecrementZKey << std::endl;
+        config << "cameraIncrementZKey = 0x" << std::hex << ConfigDefaults::cameraIncrementZKey << std::endl;
 
-        config << "cameraDecrementYKey = " << ConfigDefaults::cameraDecrementYKey << std::endl;
-        config << "cameraIncrementYKey = " << ConfigDefaults::cameraIncrementYKey << std::endl;
+        config << "cameraDecrementYKey = 0x" << std::hex << ConfigDefaults::cameraDecrementYKey << std::endl;
+        config << "cameraIncrementYKey = 0x" << std::hex << ConfigDefaults::cameraIncrementYKey << std::endl;
 
-        config << "cameraDecrementAnglePitchKey = " << ConfigDefaults::cameraDecrementAnglePitchKey << std::endl;
-        config << "cameraIncrementAnglePitchKey = " << ConfigDefaults::cameraIncrementAnglePitchKey << std::endl;
+        config << "cameraDecrementAnglePitchKey = 0x" << std::hex << ConfigDefaults::cameraDecrementAnglePitchKey << std::endl;
+        config << "cameraIncrementAnglePitchKey = 0x" << std::hex << ConfigDefaults::cameraIncrementAnglePitchKey << std::endl;
 
-        config << "cameraDecrementAngleYawKey = " << ConfigDefaults::cameraDecrementAngleYawKey << std::endl;
-        config << "cameraIncrementAngleYawKey = " << ConfigDefaults::cameraIncrementAngleYawKey << std::endl;
+        config << "cameraDecrementAngleYawKey = 0x" << std::hex << ConfigDefaults::cameraDecrementAngleYawKey << std::endl;
+        config << "cameraIncrementAngleYawKey = 0x" << std::hex << ConfigDefaults::cameraIncrementAngleYawKey << std::endl;
 
-        config << "cameraDecrementAngleRollKey = " << ConfigDefaults::cameraDecrementAngleRollKey << std::endl;
-        config << "cameraIncrementAngleRollKey = " << ConfigDefaults::cameraIncrementAngleRollKey << std::endl;
+        config << "cameraDecrementAngleRollKey = 0x" << std::hex << ConfigDefaults::cameraDecrementAngleRollKey << std::endl;
+        config << "cameraIncrementAngleRollKey = 0x" << std::hex << ConfigDefaults::cameraIncrementAngleRollKey << std::endl;
 
-        config << "cameraDecrementFovKey = " << ConfigDefaults::cameraDecrementFovKey << std::endl;
-        config << "cameraIncrementFovKey = " << ConfigDefaults::cameraIncrementFovKey << std::endl;
+        config << "cameraDecrementFovKey = 0x" << std::hex << ConfigDefaults::cameraDecrementFovKey << std::endl;
+        config << "cameraIncrementFovKey = 0x" << std::hex << ConfigDefaults::cameraIncrementFovKey << std::endl;
 
         config << std::endl;
 
         config << "[toggleKeys]" << std::endl;
-        config << "togglePhotoModeKey = " << ConfigDefaults::togglePhotoModeKey << std::endl;
-        config << "toggleSuperSlowModeKey = " << ConfigDefaults::toggleSuperSlowModeKey << std::endl;
-        config << "toggleHudKey = " << ConfigDefaults::toggleHudKey << std::endl;
+        config << "togglePhotoModeKey = 0x" << std::hex << ConfigDefaults::togglePhotoModeKey << std::endl;
+        config << "toggleSuperSlowModeKey = 0x" << std::hex << ConfigDefaults::toggleSuperSlowModeKey << std::endl;
+        config << "toggleHudKey = 0x" << std::hex << ConfigDefaults::toggleHudKey << std::endl;
 
         config << std::endl;
 
         config << "[tuningValues]" << std::endl;
         config << "; increment/decrement values, ie, camera sensitivity" << std::endl;
-        config << "cameraPosIncDecValue = " << ConfigDefaults::cameraPosIncDecValue << std::endl;
-        config << "cameraAngleIncDecValue = " << ConfigDefaults::cameraAngleIncDecValue << std::endl;
-        config << "cameraFovIncDecValue = " << ConfigDefaults::cameraFovIncDecValue << std::endl;
+        config << "cameraPosIncDecValue = " << std::dec << ConfigDefaults::cameraPosIncDecValue << std::endl;
+        config << "cameraAngleIncDecValue = " << std::dec << ConfigDefaults::cameraAngleIncDecValue << std::endl;
+        config << "cameraFovIncDecValue = " << std::dec << ConfigDefaults::cameraFovIncDecValue << std::endl;
 
         config << std::endl;
 
         config << "; super slow mo time factor. in-game cheat menu uses 0.1-1.0" << std::endl;
         config << "; default is 0.05. values above 1.0 make the game run faster" << std::endl;
         config << "; don't use negative values. weird stuff happens" << std::endl;
-        config << "superSlowModeTimeFactor = " << ConfigDefaults::superSlowModeTimeFactor << std::endl;
+        config << "superSlowModeTimeFactor = " << std::dec  << ConfigDefaults::superSlowModeTimeFactor << std::endl;
 
         config << std::endl;
 
@@ -519,20 +519,20 @@ public:
         config << std::endl;
 
         config << "[gunHotkeys]" << std::endl;
-        config << "gunSelectBloodShotKey = " << ConfigDefaults::gunSelectBloodShotKey << std::endl;
-        config << "gunSelectBloodStreamKey = " << ConfigDefaults::gunSelectBloodStreamKey << std::endl;
-        config << "gunSelectBloodSprayKey = " << ConfigDefaults::gunSelectBloodSprayKey << std::endl;
-        config << "gunSelectBloodBombKey = " << ConfigDefaults::gunSelectBloodBombKey << std::endl;
-        config << "gunSelectBloodFlameKey = " << ConfigDefaults::gunSelectBloodFlameKey << std::endl;
-        config << "gunSelectBloodHammerKey = " << ConfigDefaults::gunSelectBloodHammerKey << std::endl;
-        config << "gunSelectPreviousWeaponKey = " << ConfigDefaults::gunSelectPreviousWeaponKey << std::endl;
+        config << "gunSelectBloodShotKey = 0x" << std::hex << ConfigDefaults::gunSelectBloodShotKey << std::endl;
+        config << "gunSelectBloodStreamKey = 0x" << std::hex << ConfigDefaults::gunSelectBloodStreamKey << std::endl;
+        config << "gunSelectBloodSprayKey = 0x" << std::hex << ConfigDefaults::gunSelectBloodSprayKey << std::endl;
+        config << "gunSelectBloodBombKey = 0x" << std::hex << ConfigDefaults::gunSelectBloodBombKey << std::endl;
+        config << "gunSelectBloodFlameKey = 0x" << std::hex << ConfigDefaults::gunSelectBloodFlameKey << std::endl;
+        config << "gunSelectBloodHammerKey = 0x" << std::hex << ConfigDefaults::gunSelectBloodHammerKey << std::endl;
+        config << "gunSelectPreviousWeaponKey = 0x" << std::hex << ConfigDefaults::gunSelectPreviousWeaponKey << std::endl;
         config << "; if true, mousewheel down selects previous weapon mode" << std::endl;
         config << "gunMouseWheelDownPreviousWeapon = " << (ConfigDefaults::gunMouseWheelDownPreviousWeapon ? "true" : "false") << std::endl;
 
         config << std::endl;
 
         config << "[internalSettings]" << std::endl;
-        config << "outfitMaxEntries = " << ConfigDefaults::outfitMaxEntries << std::endl;
+        config << "outfitMaxEntries = " << std::dec << ConfigDefaults::outfitMaxEntries << std::endl;
         config << "outfitModPath = " << ConfigDefaults::outfitModPath << std::endl;
 
         // write to gunsucked.ini
