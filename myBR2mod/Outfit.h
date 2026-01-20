@@ -821,7 +821,11 @@ public:
             return false;
         }
 
-        MH_STATUS status;
+        MH_STATUS status = MH_Initialize();
+        if (status != MH_OK && status != MH_ERROR_ALREADY_INITIALIZED) {
+            DEBUG_LOG("[Outfit] MinHook init failed: " << status);
+            return false;
+        }
 
         status = MH_CreateHook(
             (LPVOID)OutfitStuff::FN_GET_GUN_PATH,
