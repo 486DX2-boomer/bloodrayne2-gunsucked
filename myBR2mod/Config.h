@@ -554,3 +554,5 @@ public:
         DEBUG_LOG("cfg: outfit mod path " << this->outfitModPath);
     }
 };
+
+extern Config g_config;
