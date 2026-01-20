@@ -233,7 +233,7 @@ public:
     int cameraIncrementYKey;
 
     int cameraDecrementAnglePitchKey;
-    int cameraIncrementAnglePitchkey;
+    int cameraIncrementAnglePitchKey;
 
     int cameraDecrementAngleYawKey;
     int cameraIncrementAngleYawKey;
@@ -335,7 +335,7 @@ public:
         this->cameraIncrementYKey = ConfigDefaults::cameraIncrementYKey;
 
         this->cameraDecrementAnglePitchKey = ConfigDefaults::cameraDecrementAnglePitchKey;
-        this->cameraIncrementAnglePitchkey = ConfigDefaults::cameraIncrementAnglePitchKey;
+        this->cameraIncrementAnglePitchKey = ConfigDefaults::cameraIncrementAnglePitchKey;
 
         this->cameraDecrementAngleYawKey = ConfigDefaults::cameraDecrementAngleYawKey;
         this->cameraIncrementAngleYawKey = ConfigDefaults::cameraIncrementAngleYawKey;
