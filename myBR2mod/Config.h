@@ -196,16 +196,18 @@ namespace ConfigDefaults {
     constexpr float cameraAngleIncDecValue = 0.016f;
     constexpr float cameraFovIncDecValue = 1.0f;
 
-    constexpr float cameraMaxFov = 359.0f;
-    constexpr float cameraMinFov = 0.1f;
-    constexpr float cameraReferenceFov = 60.0f; // a base value for calculating derived sensitivity based on fov
-    constexpr float cameraSensitivityScale = 0.75f; // how camera sensitivity scales based on FOV
+    constexpr float cameraMaxFov = 999.0f; // fov values are inverted, ie higher number = tighter fov
+    constexpr float cameraMinFov = 1.0f; // fov values are inverted, ie lower number = wider fov
+    constexpr float cameraReferenceFov = 60.0f; // base value for calculating derived sensitivity based on fov, sensitivity scales above and below this value
+    constexpr float cameraSensitivityScale = 0.75f; // how aggressively camera sensitivity scales based on FOV
+    // constexpr float cameraMaxSensitivityScale = 0.2f; // the maximum sensitivity can scale to
 
     constexpr float superSlowModeTimeFactor = 0.05f;
 
     // behaviors
     constexpr bool photoModeDisableHudOnEnter = true;
     constexpr bool photoModeRestoreTimeFactorOnExit = true;
+    // constexpr bool photoModeAllowSensitivityScaling = true; // whether or not sensitivity is scaled by fov
 
     // gun hotkeys
     constexpr int gunSelectBloodShotKey = 0x35;
@@ -811,9 +813,12 @@ public:
 
         config << std::endl;
 
+        config << "; FoV values are inverted, ie, higher value = tighter field of view, lower value = wider" << std::endl;
         config << "cameraMinFov = " << std::dec << ConfigDefaults::cameraMinFov << std::endl;
         config << "cameraMaxFov = " << std::dec << ConfigDefaults::cameraMaxFov << std::endl;
+        config << "; base fov value for scaling reference, ie fov scales above and below this value" << std::endl;
         config << "cameraReferenceFov = " << std::dec << ConfigDefaults::cameraReferenceFov << std::endl;
+        config << "; sensitivity scaling factor, higher = faster scaling" << std::endl;
         config << "cameraSensitivityScale = " << std::dec << ConfigDefaults::cameraSensitivityScale << std::endl;
 
         config << std::endl;

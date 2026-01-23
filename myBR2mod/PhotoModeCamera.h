@@ -342,18 +342,18 @@ public:
     void adjustPosition(float dx, float dz, float dy) {
         if (!this->enabled) return;
 
-        DEBUG_LOG("[Camera] photofov: " << std::dec << this->photoFov);
-        DEBUG_LOG("[Camera] sens scaling: " << std::dec << g_Config.cameraSensitivityScale);
-        DEBUG_LOG("[Camera] fov scale result: " << std::dec << this->fovScale());
+        //DEBUG_LOG("[Camera] photofov: " << std::dec << this->photoFov);
+        //DEBUG_LOG("[Camera] sens scaling: " << std::dec << g_Config.cameraSensitivityScale);
+        //DEBUG_LOG("[Camera] fov scale result: " << std::dec << this->fovScale());
 
         // here we should reduce dx, dz, and dy by a value corresponding to higher fov
         // a "lower sensitivity" to make zoomed in compositions easier.
 
         float scale = this->fovScale();
 
-        DEBUG_LOG("[Camera] dx: " << std::dec << (dx * scale));
-        DEBUG_LOG("[Camera] dy: " << std::dec << (dy * scale));
-        DEBUG_LOG("[Camera] dz: " << std::dec << (dz * scale));
+        //DEBUG_LOG("[Camera] dx: " << std::dec << (dx * scale));
+        //DEBUG_LOG("[Camera] dy: " << std::dec << (dy * scale));
+        //DEBUG_LOG("[Camera] dz: " << std::dec << (dz * scale));
 
         this->photoX += dx * scale;
         this->photoY += dy * scale;
@@ -376,11 +376,12 @@ public:
 
         this->hook.setOverrideAngles(this->anglesPitch, this->anglesYaw, this->anglesRoll);
     }
-
     void adjustFov(float delta) {
         if (!this->enabled) return;
 
         this->photoFov += delta;
+        this->photoFov = std::clamp(this->photoFov, g_Config.cameraMinFov, g_Config.cameraMaxFov);
+
         this->hook.setOverrideFov(this->photoFov);
     }
 
