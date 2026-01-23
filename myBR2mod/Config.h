@@ -196,6 +196,11 @@ namespace ConfigDefaults {
     constexpr float cameraAngleIncDecValue = 0.016f;
     constexpr float cameraFovIncDecValue = 1.0f;
 
+    constexpr float cameraMaxFov = 359.0f;
+    constexpr float cameraMinFov = 0.1f;
+    constexpr float cameraReferenceFov = 60.0f; // a base value for calculating derived sensitivity based on fov
+    constexpr float cameraSensitivityScale = 0.75f; // how camera sensitivity scales based on FOV
+
     constexpr float superSlowModeTimeFactor = 0.05f;
 
     // behaviors
@@ -329,6 +334,11 @@ public:
     float cameraPosIncDecValue;
     float cameraAngleIncDecValue;
     float cameraFovIncDecValue;
+
+    float cameraMinFov;
+    float cameraMaxFov;
+    float cameraReferenceFov;
+    float cameraSensitivityScale;
     
     float superSlowModeTimeFactor;
 
@@ -482,6 +492,11 @@ public:
         this->cameraAngleIncDecValue = (float)reader.GetReal("tuningValues", "cameraAngleIncDecValue", ConfigDefaults::cameraAngleIncDecValue);
         this->cameraFovIncDecValue = (float)reader.GetReal("tuningValues", "cameraFovIncDecValue", ConfigDefaults::cameraFovIncDecValue);
 
+        this->cameraMinFov = (float)reader.GetReal("tuningValues", "cameraMinFov", ConfigDefaults::cameraMinFov);
+        this->cameraMaxFov = (float)reader.GetReal("tuningValues", "cameraMaxFov", ConfigDefaults::cameraMaxFov);
+        this->cameraReferenceFov = (float)reader.GetReal("tuningValues", "cameraReferenceFov", ConfigDefaults::cameraReferenceFov);
+        this->cameraSensitivityScale = (float)reader.GetReal("tuningValues", "cameraSensitivityScale", ConfigDefaults::cameraSensitivityScale);
+
         this->superSlowModeTimeFactor = (float)reader.GetReal("tuningValues", "superSlowModeTimeFactor", ConfigDefaults::superSlowModeTimeFactor);
 
         // behaviors
@@ -634,6 +649,11 @@ public:
         this->cameraAngleIncDecValue = ConfigDefaults::cameraAngleIncDecValue;
         this->cameraFovIncDecValue = ConfigDefaults::cameraFovIncDecValue;
 
+        this->cameraMinFov = ConfigDefaults::cameraMinFov;
+        this->cameraMaxFov = ConfigDefaults::cameraMaxFov;
+        this->cameraReferenceFov = ConfigDefaults::cameraReferenceFov;
+        this->cameraSensitivityScale = ConfigDefaults::cameraSensitivityScale;
+
         this->superSlowModeTimeFactor = ConfigDefaults::superSlowModeTimeFactor;
 
         // behaviors
@@ -784,10 +804,17 @@ public:
         config << std::endl;
 
         config << "[tuningValues]" << std::endl;
-        config << "; increment/decrement values, ie, camera sensitivity" << std::endl;
+        config << "; increment/decrement values, ie, base camera sensitivity" << std::endl;
         config << "cameraPosIncDecValue = " << std::dec << ConfigDefaults::cameraPosIncDecValue << std::endl;
         config << "cameraAngleIncDecValue = " << std::dec << ConfigDefaults::cameraAngleIncDecValue << std::endl;
         config << "cameraFovIncDecValue = " << std::dec << ConfigDefaults::cameraFovIncDecValue << std::endl;
+
+        config << std::endl;
+
+        config << "cameraMinFov = " << std::dec << ConfigDefaults::cameraMinFov << std::endl;
+        config << "cameraMaxFov = " << std::dec << ConfigDefaults::cameraMaxFov << std::endl;
+        config << "cameraReferenceFov = " << std::dec << ConfigDefaults::cameraReferenceFov << std::endl;
+        config << "cameraSensitivityScale = " << std::dec << ConfigDefaults::cameraSensitivityScale << std::endl;
 
         config << std::endl;
 

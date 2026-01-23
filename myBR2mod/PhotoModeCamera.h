@@ -323,17 +323,41 @@ public:
         }
     }
 
+    // to scale camera adjustments based on current fov
+    float fovScale() {
+        // the game stores FOV inverted from how you'd expect. higher fov = zoomed in, not out.
+        // so this formula is inverted from 
+        // return powf( this->photoFov / g_Config.cameraReferenceFov, g_Config.cameraSensitivityScale);
+
+        float scale = powf(g_Config.cameraReferenceFov / this->photoFov, g_Config.cameraSensitivityScale);
+
+        // clamp to a maximum sensitivity (remember to move this to a ConfigDefault)
+        if (scale > 2.0f) {
+            return 2.0f;
+        } else return scale;
+    }
+
     // Adjust camera position in world space
     // Parameters use XZY order to match key bindings
     void adjustPosition(float dx, float dz, float dy) {
         if (!this->enabled) return;
 
+        DEBUG_LOG("[Camera] photofov: " << std::dec << this->photoFov);
+        DEBUG_LOG("[Camera] sens scaling: " << std::dec << g_Config.cameraSensitivityScale);
+        DEBUG_LOG("[Camera] fov scale result: " << std::dec << this->fovScale());
+
         // here we should reduce dx, dz, and dy by a value corresponding to higher fov
         // a "lower sensitivity" to make zoomed in compositions easier.
 
-        this->photoX += dx;
-        this->photoY += dy;
-        this->photoZ += dz;
+        float scale = this->fovScale();
+
+        DEBUG_LOG("[Camera] dx: " << std::dec << (dx * scale));
+        DEBUG_LOG("[Camera] dy: " << std::dec << (dy * scale));
+        DEBUG_LOG("[Camera] dz: " << std::dec << (dz * scale));
+
+        this->photoX += dx * scale;
+        this->photoY += dy * scale;
+        this->photoZ += dz * scale;
 
         this->pushStateToHook();
     }
@@ -344,9 +368,11 @@ public:
         // here we should reduce dx, dz, and dy by a value corresponding to higher fov
         // a "lower sensitivity" to make zoomed in compositions easier.
 
-        this->anglesPitch += dx;
-        this->anglesYaw += dy;
-        this->anglesRoll += dz;
+        float scale = this->fovScale();
+
+        this->anglesPitch += dx * scale;
+        this->anglesYaw += dy * scale;
+        this->anglesRoll += dz * scale;
 
         this->hook.setOverrideAngles(this->anglesPitch, this->anglesYaw, this->anglesRoll);
     }
