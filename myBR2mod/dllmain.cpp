@@ -133,6 +133,8 @@ DWORD WINAPI MainThread(LPVOID param) {
 
     // Gunbalance must be hooked immediately or else it will override values too late to work.
     if (gunBalance) {
+        // load the config before hooking
+        gunBalance->loadFromConfig();
         if (!gunBalance->installHook()) {
             DEBUG_LOG("Failed to install gun balance hook - aborting");
             return 1;

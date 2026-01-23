@@ -5,7 +5,7 @@
 #pragma comment(lib, "libMinHook.x86.lib")
 
 // function signature for FUN_00585480
-// which (I think) is the function that initializes gun properties
+// the function that initializes gun properties
 // we hook it and overwrite it with our rebalanced values.
 typedef void(__fastcall* FN_SetGunProperties)(void* thisPointer);
 
@@ -39,22 +39,13 @@ struct GunProperties {
     float fireRateLvl2;
     float fireRateLvl3;
     float range;
-
-    // Load values from config file/ this doesn't do anything yet
-    void loadFromConfig(const char* section, const char* iniPath) {
-        // load ini
-        (void)section;
-        (void)iniPath;
-    }
 };
 
 // Total ammunition count is 1000 divided by ammo cost
 // so, given a desired total ammo count (desiredPoolSize), calculate the cost
-constexpr float costFromPool(float desiredPoolSize) {
-    return 1000.0f / desiredPoolSize;
-}
-
-// Gun balance properties // // //
+//constexpr float costFromPool(float desiredPoolSize) {
+//    return 1000.0f / desiredPoolSize;
+//}
 
 // Blood Shot
 // should have utility throughout the game
@@ -62,16 +53,16 @@ constexpr float costFromPool(float desiredPoolSize) {
 // slightly boosted damage and fire rate but not too crazy.
 GunProperties bloodShot = {
     .baseOffset = 0x2BC,   // where data starts within CMultigun
-    .ammoCostLvl1 = (costFromPool(180.0f)),    // default: 25
-    .ammoCostLvl2 = (costFromPool(200.0f)),    // default: 18
-    .ammoCostLvl3 = (costFromPool(220.0f)),    // default: 15
-    .damageLvl1 = 75.0f,   // default: 50
-    .damageLvl2 = 90.0f,   // default: 55
-    .damageLvl3 = 112.5f,  // default: 60
-    .fireRateLvl1 = 5.0f,    // default: 4
-    .fireRateLvl2 = 5.5f,    // default: 5
-    .fireRateLvl3 = 6.5f,    // default: 6
-    .range = 120.0f   // default: 80
+    .ammoCostLvl1 = ConfigDefaults::gunBloodShotAmmoCostLvl1,    // default: 25
+    .ammoCostLvl2 = ConfigDefaults::gunBloodShotAmmoCostLvl2,    // default: 18
+    .ammoCostLvl3 = ConfigDefaults::gunBloodShotAmmoCostLvl3,    // default: 15
+    .damageLvl1 = ConfigDefaults::gunBloodShotDamageLvl1,   // default: 50
+    .damageLvl2 = ConfigDefaults::gunBloodShotDamageLvl2,   // default: 55
+    .damageLvl3 = ConfigDefaults::gunBloodShotDamageLvl3,  // default: 60
+    .fireRateLvl1 = ConfigDefaults::gunBloodShotFireRateLvl1,    // default: 4
+    .fireRateLvl2 = ConfigDefaults::gunBloodShotFireRateLvl2,    // default: 5
+    .fireRateLvl3 = ConfigDefaults::gunBloodShotFireRateLvl3,    // default: 6
+    .range = ConfigDefaults::gunBloodShotRange   // default: 80
 };
 
 // Blood Stream
@@ -81,16 +72,16 @@ GunProperties bloodShot = {
 // maxed SMGs should absolutely shred enemies
 GunProperties bloodStream = {
     .baseOffset = 0x330,
-    .ammoCostLvl1 = (costFromPool(90.0f)),   // default: 25
-    .ammoCostLvl2 = (costFromPool(120.0f)),   // default: 22
-    .ammoCostLvl3 = (costFromPool(150.0f)),   // default: 20
-    .damageLvl1 = 75.0f,   // default: 50
-    .damageLvl2 = 80.0f,   // default: 55
-    .damageLvl3 = 85.0f,   // default: 60
-    .fireRateLvl1 = 12.0f,   // default: 8
-    .fireRateLvl2 = 16.0f,   // default: 10
-    .fireRateLvl3 = 20.0f,   // default: 12
-    .range = 100.0f   // default: 80
+    .ammoCostLvl1 = ConfigDefaults::gunBloodStreamAmmoCostLvl1,   // default: 25
+    .ammoCostLvl2 = ConfigDefaults::gunBloodStreamAmmoCostLvl2,   // default: 22
+    .ammoCostLvl3 = ConfigDefaults::gunBloodStreamAmmoCostLvl3,   // default: 20
+    .damageLvl1 = ConfigDefaults::gunBloodStreamDamageLvl1,   // default: 50
+    .damageLvl2 = ConfigDefaults::gunBloodStreamDamageLvl2,   // default: 55
+    .damageLvl3 = ConfigDefaults::gunBloodStreamDamageLvl3,   // default: 60
+    .fireRateLvl1 = ConfigDefaults::gunBloodStreamFireRateLvl1,   // default: 8
+    .fireRateLvl2 = ConfigDefaults::gunBloodStreamFireRateLvl2,   // default: 10
+    .fireRateLvl3 = ConfigDefaults::gunBloodStreamFireRateLvl3,   // default: 12
+    .range = ConfigDefaults::gunBloodStreamRange   // default: 80
 };
 
 // Blood Spray
@@ -99,16 +90,16 @@ GunProperties bloodStream = {
 // original damage was 13.3, 8.3, 10, probably a mistake
 GunProperties bloodSpray = {
     .baseOffset = 0x3A4,
-    .ammoCostLvl1 = (costFromPool(30.0f)),   // default: 100
-    .ammoCostLvl2 = (costFromPool(35.0f)),   // default: 50
-    .ammoCostLvl3 = (costFromPool(40.0f)),  // default: 50
-    .damageLvl1 = 20.0f,    // default: 13.33 (per pellet?)
-    .damageLvl2 = 33.0f,    // default: 8.33
-    .damageLvl3 = 45.0f,    // default: 10
-    .fireRateLvl1 = 1.5f,    // default: 1
-    .fireRateLvl2 = 1.66f,   // default: 1
-    .fireRateLvl3 = 1.75f,    // default: 1
-    .range = 80.0f           // default: 80
+    .ammoCostLvl1 = ConfigDefaults::gunBloodSprayAmmoCostLvl1,   // default: 100
+    .ammoCostLvl2 = ConfigDefaults::gunBloodSprayAmmoCostLvl2,   // default: 50
+    .ammoCostLvl3 = ConfigDefaults::gunBloodSprayAmmoCostLvl3,  // default: 50
+    .damageLvl1 = ConfigDefaults::gunBloodSprayDamageLvl1,    // default: 13.33 (per pellet?)
+    .damageLvl2 = ConfigDefaults::gunBloodSprayDamageLvl2,    // default: 8.33
+    .damageLvl3 = ConfigDefaults::gunBloodSprayDamageLvl3,    // default: 10
+    .fireRateLvl1 = ConfigDefaults::gunBloodSprayFireRateLvl1,    // default: 1
+    .fireRateLvl2 = ConfigDefaults::gunBloodSprayFireRateLvl2,   // default: 1
+    .fireRateLvl3 = ConfigDefaults::gunBloodSprayFireRateLvl3,    // default: 1
+    .range = ConfigDefaults::gunBloodSprayRange           // default: 80
 };
 
 // Blood Bomb
@@ -117,16 +108,16 @@ GunProperties bloodSpray = {
 // note: no idea how the damage calculations work on this weapon, so damage values are guesses
 GunProperties bloodBomb = {
     .baseOffset = 0x418,
-    .ammoCostLvl1 = (costFromPool(20.0f)),   // default: 200
-    .ammoCostLvl2 = (costFromPool(25.0f)),   // default: 80
-    .ammoCostLvl3 = (costFromPool(30.0f)),   // default: 67
-    .damageLvl1 = 200.0f,    // default: 100
-    .damageLvl2 = 275.0f,    // default: 50
-    .damageLvl3 = 350.0f,    // default: 50
-    .fireRateLvl1 = 1.0f,    // default: 1
-    .fireRateLvl2 = 1.25f,   // default: 2
-    .fireRateLvl3 = 1.5f,    // default: 1
-    .range = 80.0f           // default: 50
+    .ammoCostLvl1 = ConfigDefaults::gunBloodBombAmmoCostLvl1,   // default: 200
+    .ammoCostLvl2 = ConfigDefaults::gunBloodBombAmmoCostLvl2,   // default: 80
+    .ammoCostLvl3 = ConfigDefaults::gunBloodBombAmmoCostLvl3,   // default: 67
+    .damageLvl1 = ConfigDefaults::gunBloodBombDamageLvl1,    // default: 100
+    .damageLvl2 = ConfigDefaults::gunBloodBombDamageLvl2,    // default: 50
+    .damageLvl3 = ConfigDefaults::gunBloodBombDamageLvl3,    // default: 50
+    .fireRateLvl1 = ConfigDefaults::gunBloodBombFireRateLvl1,    // default: 1
+    .fireRateLvl2 = ConfigDefaults::gunBloodBombFireRateLvl2,   // default: 2
+    .fireRateLvl3 = ConfigDefaults::gunBloodBombFireRateLvl3,    // default: 1
+    .range = ConfigDefaults::gunBloodBombRange           // default: 50
 };
 
 // Blood Flame
@@ -135,32 +126,32 @@ GunProperties bloodBomb = {
 // again, don't know how damage is calculated; does it do tick damage or is it just instant + aoe?
 GunProperties bloodFlame = {
     .baseOffset = 0x48C,
-    .ammoCostLvl1 = (costFromPool(15.0f)),   // default: 200
-    .ammoCostLvl2 = (costFromPool(18.0f)),   // default: 80
-    .ammoCostLvl3 = (costFromPool(22.0f)),   // default: 67
-    .damageLvl1 = 100.0f,     // default: 100
-    .damageLvl2 = 120.0f,     // default: 50
-    .damageLvl3 = 140.0f,     // default: 50
-    .fireRateLvl1 = 1.0f,    // default: 1
-    .fireRateLvl2 = 1.2f,    // default: 1
-    .fireRateLvl3 = 1.4f,    // default: 1
-    .range = 25.0f           // default: 10
+    .ammoCostLvl1 = ConfigDefaults::gunBloodFlameAmmoCostLvl1,   // default: 200
+    .ammoCostLvl2 = ConfigDefaults::gunBloodFlameAmmoCostLvl2,   // default: 80
+    .ammoCostLvl3 = ConfigDefaults::gunBloodFlameAmmoCostLvl3,   // default: 67
+    .damageLvl1 = ConfigDefaults::gunBloodFlameDamageLvl1,     // default: 100
+    .damageLvl2 = ConfigDefaults::gunBloodFlameDamageLvl2,     // default: 50
+    .damageLvl3 = ConfigDefaults::gunBloodFlameDamageLvl3,     // default: 50
+    .fireRateLvl1 = ConfigDefaults::gunBloodFlameFireRateLvl1,    // default: 1
+    .fireRateLvl2 = ConfigDefaults::gunBloodFlameFireRateLvl2,    // default: 1
+    .fireRateLvl3 = ConfigDefaults::gunBloodFlameFireRateLvl3,    // default: 1
+    .range = ConfigDefaults::gunBloodFlameRange           // default: 10
 };
 
 // Blood Hammer
 // ammo 12/14/16
 GunProperties bloodHammer = {
     .baseOffset = 0x500,
-    .ammoCostLvl1 = (costFromPool(12.0f)),  // default: 300
-    .ammoCostLvl2 = (costFromPool(14.0f)),  // default: 131
-    .ammoCostLvl3 = (costFromPool(16.0f)),  // default: 116
-    .damageLvl1 = 400.0f,    // default: 300
-    .damageLvl2 = 500.0f,    // default: 325
-    .damageLvl3 = 600.0f,    // default: 350
-    .fireRateLvl1 = 1.0f,   // default: 1
-    .fireRateLvl2 = 1.1f,   // default: 1
-    .fireRateLvl3 = 1.2f,    // default: 1
-    .range = 250.0f          // default: 200
+    .ammoCostLvl1 = ConfigDefaults::gunBloodHammerAmmoCostLvl1,  // default: 300
+    .ammoCostLvl2 = ConfigDefaults::gunBloodHammerAmmoCostLvl2,  // default: 131
+    .ammoCostLvl3 = ConfigDefaults::gunBloodHammerAmmoCostLvl3,  // default: 116
+    .damageLvl1 = ConfigDefaults::gunBloodHammerDamageLvl1,    // default: 300
+    .damageLvl2 = ConfigDefaults::gunBloodHammerDamageLvl2,    // default: 325
+    .damageLvl3 = ConfigDefaults::gunBloodHammerDamageLvl3,    // default: 350
+    .fireRateLvl1 = ConfigDefaults::gunBloodHammerFireRateLvl1,   // default: 1
+    .fireRateLvl2 = ConfigDefaults::gunBloodHammerFireRateLvl2,   // default: 1
+    .fireRateLvl3 = ConfigDefaults::gunBloodHammerFireRateLvl3,    // default: 1
+    .range = ConfigDefaults::gunBloodHammerRange          // default: 200
 };
 
 // collection to iterate over in writeGunProperties
@@ -277,6 +268,80 @@ public:
     ~GunBalance() {
         this->hook.uninstall();
     }
+
+    // Load values from g_Config into the gun properties
+    // Call after g_Config is loaded and before installing hook
+    void loadFromConfig() {
+        bloodShot.ammoCostLvl1 = g_Config.gunBloodShotAmmoCostLvl1;
+        bloodShot.ammoCostLvl2 = g_Config.gunBloodShotAmmoCostLvl2;
+        bloodShot.ammoCostLvl3 = g_Config.gunBloodShotAmmoCostLvl3;
+        bloodShot.damageLvl1 = g_Config.gunBloodShotDamageLvl1;
+        bloodShot.damageLvl2 = g_Config.gunBloodShotDamageLvl2;
+        bloodShot.damageLvl3 = g_Config.gunBloodShotDamageLvl3;
+        bloodShot.fireRateLvl1 = g_Config.gunBloodShotFireRateLvl1;
+        bloodShot.fireRateLvl2 = g_Config.gunBloodShotFireRateLvl2;
+        bloodShot.fireRateLvl3 = g_Config.gunBloodShotFireRateLvl3;
+        bloodShot.range = g_Config.gunBloodShotRange;
+
+        bloodStream.ammoCostLvl1 = g_Config.gunBloodStreamAmmoCostLvl1;
+        bloodStream.ammoCostLvl2 = g_Config.gunBloodStreamAmmoCostLvl2;
+        bloodStream.ammoCostLvl3 = g_Config.gunBloodStreamAmmoCostLvl3;
+        bloodStream.damageLvl1 = g_Config.gunBloodStreamDamageLvl1;
+        bloodStream.damageLvl2 = g_Config.gunBloodStreamDamageLvl2;
+        bloodStream.damageLvl3 = g_Config.gunBloodStreamDamageLvl3;
+        bloodStream.fireRateLvl1 = g_Config.gunBloodStreamFireRateLvl1;
+        bloodStream.fireRateLvl2 = g_Config.gunBloodStreamFireRateLvl2;
+        bloodStream.fireRateLvl3 = g_Config.gunBloodStreamFireRateLvl3;
+        bloodStream.range = g_Config.gunBloodStreamRange;
+
+        bloodSpray.ammoCostLvl1 = g_Config.gunBloodSprayAmmoCostLvl1;
+        bloodSpray.ammoCostLvl2 = g_Config.gunBloodSprayAmmoCostLvl2;
+        bloodSpray.ammoCostLvl3 = g_Config.gunBloodSprayAmmoCostLvl3;
+        bloodSpray.damageLvl1 = g_Config.gunBloodSprayDamageLvl1;
+        bloodSpray.damageLvl2 = g_Config.gunBloodSprayDamageLvl2;
+        bloodSpray.damageLvl3 = g_Config.gunBloodSprayDamageLvl3;
+        bloodSpray.fireRateLvl1 = g_Config.gunBloodSprayFireRateLvl1;
+        bloodSpray.fireRateLvl2 = g_Config.gunBloodSprayFireRateLvl2;
+        bloodSpray.fireRateLvl3 = g_Config.gunBloodSprayFireRateLvl3;
+        bloodSpray.range = g_Config.gunBloodSprayRange;
+
+        bloodBomb.ammoCostLvl1 = g_Config.gunBloodBombAmmoCostLvl1;
+        bloodBomb.ammoCostLvl2 = g_Config.gunBloodBombAmmoCostLvl2;
+        bloodBomb.ammoCostLvl3 = g_Config.gunBloodBombAmmoCostLvl3;
+        bloodBomb.damageLvl1 = g_Config.gunBloodBombDamageLvl1;
+        bloodBomb.damageLvl2 = g_Config.gunBloodBombDamageLvl2;
+        bloodBomb.damageLvl3 = g_Config.gunBloodBombDamageLvl3;
+        bloodBomb.fireRateLvl1 = g_Config.gunBloodBombFireRateLvl1;
+        bloodBomb.fireRateLvl2 = g_Config.gunBloodBombFireRateLvl2;
+        bloodBomb.fireRateLvl3 = g_Config.gunBloodBombFireRateLvl3;
+        bloodBomb.range = g_Config.gunBloodBombRange;
+
+        bloodFlame.ammoCostLvl1 = g_Config.gunBloodFlameAmmoCostLvl1;
+        bloodFlame.ammoCostLvl2 = g_Config.gunBloodFlameAmmoCostLvl2;
+        bloodFlame.ammoCostLvl3 = g_Config.gunBloodFlameAmmoCostLvl3;
+        bloodFlame.damageLvl1 = g_Config.gunBloodFlameDamageLvl1;
+        bloodFlame.damageLvl2 = g_Config.gunBloodFlameDamageLvl2;
+        bloodFlame.damageLvl3 = g_Config.gunBloodFlameDamageLvl3;
+        bloodFlame.fireRateLvl1 = g_Config.gunBloodFlameFireRateLvl1;
+        bloodFlame.fireRateLvl2 = g_Config.gunBloodFlameFireRateLvl2;
+        bloodFlame.fireRateLvl3 = g_Config.gunBloodFlameFireRateLvl3;
+        bloodFlame.range = g_Config.gunBloodFlameRange;
+
+        bloodHammer.ammoCostLvl1 = g_Config.gunBloodHammerAmmoCostLvl1;
+        bloodHammer.ammoCostLvl2 = g_Config.gunBloodHammerAmmoCostLvl2;
+        bloodHammer.ammoCostLvl3 = g_Config.gunBloodHammerAmmoCostLvl3;
+        bloodHammer.damageLvl1 = g_Config.gunBloodHammerDamageLvl1;
+        bloodHammer.damageLvl2 = g_Config.gunBloodHammerDamageLvl2;
+        bloodHammer.damageLvl3 = g_Config.gunBloodHammerDamageLvl3;
+        bloodHammer.fireRateLvl1 = g_Config.gunBloodHammerFireRateLvl1;
+        bloodHammer.fireRateLvl2 = g_Config.gunBloodHammerFireRateLvl2;
+        bloodHammer.fireRateLvl3 = g_Config.gunBloodHammerFireRateLvl3;
+        bloodHammer.range = g_Config.gunBloodHammerRange;
+
+        // We have to update the guns vector because they don't mutate in place
+        guns = { bloodShot, bloodStream, bloodSpray, bloodBomb, bloodFlame, bloodHammer };
+    }
+
     bool installHook() {
         return this->hook.install();
     }

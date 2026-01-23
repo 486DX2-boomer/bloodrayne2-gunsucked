@@ -145,6 +145,14 @@ namespace Rayne2 {
 // Casual mode has some problems (detailed in CasualMode.h) and isn't ready to be added yet.
 #define ENABLE_CASUAL_MODE 0
 
+namespace Utilities {
+    // Rayne total ammunition = 1000.0
+    // all ammunition maximums per weapon mode are calculated as 1000/ammunition cost
+    constexpr float ammoCostFromPool(float desiredPoolSize) {
+        return 1000.0f / desiredPoolSize;
+    }
+}
+
 // this is the canonical default config
 // any default values should be referenced from here
 namespace ConfigDefaults {
@@ -203,6 +211,73 @@ namespace ConfigDefaults {
     constexpr int gunSelectBloodHammerKey = 0x30;
     constexpr int gunSelectPreviousWeaponKey = VK_OEM_MINUS;
     constexpr bool gunMouseWheelDownPreviousWeapon = true;
+
+    // gun balance
+    constexpr float gunBloodShotAmmoCostLvl1 = Utilities::ammoCostFromPool(180.0f); // default 25
+    constexpr float gunBloodShotAmmoCostLvl2 = Utilities::ammoCostFromPool(200.0f); // default 18
+    constexpr float gunBloodShotAmmoCostLvl3 = Utilities::ammoCostFromPool(220.0f); // default 15
+    constexpr float gunBloodShotDamageLvl1 = 75.0f; // default 50
+    constexpr float gunBloodShotDamageLvl2 = 90.0f; // default 55
+    constexpr float gunBloodShotDamageLvl3 = 112.5f; // default 60
+    constexpr float gunBloodShotFireRateLvl1 = 5.0f; // default 4
+    constexpr float gunBloodShotFireRateLvl2 = 5.5f; // default 5
+    constexpr float gunBloodShotFireRateLvl3 = 6.5f; // default 6
+    constexpr float gunBloodShotRange = 120.0f; // default 80
+
+    constexpr float gunBloodStreamAmmoCostLvl1 = Utilities::ammoCostFromPool(90.0f); // default 25
+    constexpr float gunBloodStreamAmmoCostLvl2 = Utilities::ammoCostFromPool(120.0f); // default 22
+    constexpr float gunBloodStreamAmmoCostLvl3 = Utilities::ammoCostFromPool(150.0f); // default 20
+    constexpr float gunBloodStreamDamageLvl1 = 75.0f; // default 50
+    constexpr float gunBloodStreamDamageLvl2 = 80.0f; // default 55
+    constexpr float gunBloodStreamDamageLvl3 = 85.0f; // default 60
+    constexpr float gunBloodStreamFireRateLvl1 = 12.0f; // default 8
+    constexpr float gunBloodStreamFireRateLvl2 = 16.0f; // default 10
+    constexpr float gunBloodStreamFireRateLvl3 = 20.0f; // default 12
+    constexpr float gunBloodStreamRange = 100.0f; // default 80
+
+    constexpr float gunBloodSprayAmmoCostLvl1 = Utilities::ammoCostFromPool(30.0f); // default 100
+    constexpr float gunBloodSprayAmmoCostLvl2 = Utilities::ammoCostFromPool(35.0f); // default 50
+    constexpr float gunBloodSprayAmmoCostLvl3 = Utilities::ammoCostFromPool(40.0f); // default 50
+    constexpr float gunBloodSprayDamageLvl1 = 20.0f; // default 13.33
+    constexpr float gunBloodSprayDamageLvl2 = 33.0f; // default 8.33
+    constexpr float gunBloodSprayDamageLvl3 = 45.0f; // default 10
+    constexpr float gunBloodSprayFireRateLvl1 = 1.5f; // default 1
+    constexpr float gunBloodSprayFireRateLvl2 = 1.66f; // default 1
+    constexpr float gunBloodSprayFireRateLvl3 = 1.75f; // default 1
+    constexpr float gunBloodSprayRange = 80.0f; // default 80
+
+    constexpr float gunBloodBombAmmoCostLvl1 = Utilities::ammoCostFromPool(20.0f); // default 200
+    constexpr float gunBloodBombAmmoCostLvl2 = Utilities::ammoCostFromPool(25.0f); // default 80
+    constexpr float gunBloodBombAmmoCostLvl3 = Utilities::ammoCostFromPool(30.0f); // default 67
+    constexpr float gunBloodBombDamageLvl1 = 200.0f; // default 100
+    constexpr float gunBloodBombDamageLvl2 = 275.0f; // default 50
+    constexpr float gunBloodBombDamageLvl3 = 350.0f; // default 50
+    constexpr float gunBloodBombFireRateLvl1 = 1.0f; // default 1
+    constexpr float gunBloodBombFireRateLvl2 = 1.25f; // default 2
+    constexpr float gunBloodBombFireRateLvl3 = 1.5f; // default 1
+    constexpr float gunBloodBombRange = 80.0f; // default 50
+
+    constexpr float gunBloodFlameAmmoCostLvl1 = Utilities::ammoCostFromPool(15.0f); // default 200
+    constexpr float gunBloodFlameAmmoCostLvl2 = Utilities::ammoCostFromPool(18.0f); // default 80
+    constexpr float gunBloodFlameAmmoCostLvl3 = Utilities::ammoCostFromPool(22.0f); // default 67
+    constexpr float gunBloodFlameDamageLvl1 = 100.0f; // default 100
+    constexpr float gunBloodFlameDamageLvl2 = 120.0f; // default 50
+    constexpr float gunBloodFlameDamageLvl3 = 140.0f; // default 50
+    constexpr float gunBloodFlameFireRateLvl1 = 1.0f; // default 1
+    constexpr float gunBloodFlameFireRateLvl2 = 1.2f; // default 1
+    constexpr float gunBloodFlameFireRateLvl3 = 1.4f; // default 1
+    constexpr float gunBloodFlameRange = 25.0f; // default 10
+
+    constexpr float gunBloodHammerAmmoCostLvl1 = Utilities::ammoCostFromPool(12.0f); // default 300
+    constexpr float gunBloodHammerAmmoCostLvl2 = Utilities::ammoCostFromPool(14.0f); // default 131
+    constexpr float gunBloodHammerAmmoCostLvl3 = Utilities::ammoCostFromPool(16.0f); // default 116
+    constexpr float gunBloodHammerDamageLvl1 = 400.0f; // default 300
+    constexpr float gunBloodHammerDamageLvl2 = 500.0f; // default 325
+    constexpr float gunBloodHammerDamageLvl3 = 600.0f; // default 350
+    constexpr float gunBloodHammerFireRateLvl1 = 1.0f; // default 1
+    constexpr float gunBloodHammerFireRateLvl2 = 1.1f; // default 1
+    constexpr float gunBloodHammerFireRateLvl3 = 1.2f; // default 1
+    constexpr float gunBloodHammerRange = 250.0f; // default 200
 
     // internal settings
     constexpr int outfitMaxEntries = 1024;
@@ -270,6 +345,73 @@ public:
     int gunSelectBloodHammerKey;
     int gunSelectPreviousWeaponKey;
     bool gunMouseWheelDownPreviousWeapon;
+
+    // gun balance
+    float gunBloodShotAmmoCostLvl1;
+    float gunBloodShotAmmoCostLvl2;
+    float gunBloodShotAmmoCostLvl3;
+    float gunBloodShotDamageLvl1;
+    float gunBloodShotDamageLvl2;
+    float gunBloodShotDamageLvl3;
+    float gunBloodShotFireRateLvl1;
+    float gunBloodShotFireRateLvl2;
+    float gunBloodShotFireRateLvl3;
+    float gunBloodShotRange;
+
+    float gunBloodStreamAmmoCostLvl1;
+    float gunBloodStreamAmmoCostLvl2;
+    float gunBloodStreamAmmoCostLvl3;
+    float gunBloodStreamDamageLvl1;
+    float gunBloodStreamDamageLvl2;
+    float gunBloodStreamDamageLvl3;
+    float gunBloodStreamFireRateLvl1;
+    float gunBloodStreamFireRateLvl2;
+    float gunBloodStreamFireRateLvl3;
+    float gunBloodStreamRange;
+
+    float gunBloodSprayAmmoCostLvl1;
+    float gunBloodSprayAmmoCostLvl2;
+    float gunBloodSprayAmmoCostLvl3;
+    float gunBloodSprayDamageLvl1;
+    float gunBloodSprayDamageLvl2;
+    float gunBloodSprayDamageLvl3;
+    float gunBloodSprayFireRateLvl1;
+    float gunBloodSprayFireRateLvl2;
+    float gunBloodSprayFireRateLvl3;
+    float gunBloodSprayRange;
+
+    float gunBloodBombAmmoCostLvl1;
+    float gunBloodBombAmmoCostLvl2;
+    float gunBloodBombAmmoCostLvl3;
+    float gunBloodBombDamageLvl1;
+    float gunBloodBombDamageLvl2;
+    float gunBloodBombDamageLvl3;
+    float gunBloodBombFireRateLvl1;
+    float gunBloodBombFireRateLvl2;
+    float gunBloodBombFireRateLvl3;
+    float gunBloodBombRange;
+
+    float gunBloodFlameAmmoCostLvl1;
+    float gunBloodFlameAmmoCostLvl2;
+    float gunBloodFlameAmmoCostLvl3;
+    float gunBloodFlameDamageLvl1;
+    float gunBloodFlameDamageLvl2;
+    float gunBloodFlameDamageLvl3;
+    float gunBloodFlameFireRateLvl1;
+    float gunBloodFlameFireRateLvl2;
+    float gunBloodFlameFireRateLvl3;
+    float gunBloodFlameRange;
+
+    float gunBloodHammerAmmoCostLvl1;
+    float gunBloodHammerAmmoCostLvl2;
+    float gunBloodHammerAmmoCostLvl3;
+    float gunBloodHammerDamageLvl1;
+    float gunBloodHammerDamageLvl2;
+    float gunBloodHammerDamageLvl3;
+    float gunBloodHammerFireRateLvl1;
+    float gunBloodHammerFireRateLvl2;
+    float gunBloodHammerFireRateLvl3;
+    float gunBloodHammerRange;
 
     // internal stuff
     int outfitMaxEntries;
@@ -357,6 +499,78 @@ public:
         this->gunSelectPreviousWeaponKey = (int)reader.GetInteger("gunHotkeys", "gunSelectPreviousWeaponKey", ConfigDefaults::gunSelectPreviousWeaponKey);
         this->gunMouseWheelDownPreviousWeapon = reader.GetBoolean("gunHotkeys", "gunMouseWheelDownPreviousWeapon", ConfigDefaults::gunMouseWheelDownPreviousWeapon);
 
+        // gun balance - BloodShot
+        this->gunBloodShotAmmoCostLvl1 = (float)reader.GetReal("gunBalance", "gunBloodShotAmmoCostLvl1", ConfigDefaults::gunBloodShotAmmoCostLvl1);
+        this->gunBloodShotAmmoCostLvl2 = (float)reader.GetReal("gunBalance", "gunBloodShotAmmoCostLvl2", ConfigDefaults::gunBloodShotAmmoCostLvl2);
+        this->gunBloodShotAmmoCostLvl3 = (float)reader.GetReal("gunBalance", "gunBloodShotAmmoCostLvl3", ConfigDefaults::gunBloodShotAmmoCostLvl3);
+        this->gunBloodShotDamageLvl1 = (float)reader.GetReal("gunBalance", "gunBloodShotDamageLvl1", ConfigDefaults::gunBloodShotDamageLvl1);
+        this->gunBloodShotDamageLvl2 = (float)reader.GetReal("gunBalance", "gunBloodShotDamageLvl2", ConfigDefaults::gunBloodShotDamageLvl2);
+        this->gunBloodShotDamageLvl3 = (float)reader.GetReal("gunBalance", "gunBloodShotDamageLvl3", ConfigDefaults::gunBloodShotDamageLvl3);
+        this->gunBloodShotFireRateLvl1 = (float)reader.GetReal("gunBalance", "gunBloodShotFireRateLvl1", ConfigDefaults::gunBloodShotFireRateLvl1);
+        this->gunBloodShotFireRateLvl2 = (float)reader.GetReal("gunBalance", "gunBloodShotFireRateLvl2", ConfigDefaults::gunBloodShotFireRateLvl2);
+        this->gunBloodShotFireRateLvl3 = (float)reader.GetReal("gunBalance", "gunBloodShotFireRateLvl3", ConfigDefaults::gunBloodShotFireRateLvl3);
+        this->gunBloodShotRange = (float)reader.GetReal("gunBalance", "gunBloodShotRange", ConfigDefaults::gunBloodShotRange);
+
+        // gun balance - BloodStream
+        this->gunBloodStreamAmmoCostLvl1 = (float)reader.GetReal("gunBalance", "gunBloodStreamAmmoCostLvl1", ConfigDefaults::gunBloodStreamAmmoCostLvl1);
+        this->gunBloodStreamAmmoCostLvl2 = (float)reader.GetReal("gunBalance", "gunBloodStreamAmmoCostLvl2", ConfigDefaults::gunBloodStreamAmmoCostLvl2);
+        this->gunBloodStreamAmmoCostLvl3 = (float)reader.GetReal("gunBalance", "gunBloodStreamAmmoCostLvl3", ConfigDefaults::gunBloodStreamAmmoCostLvl3);
+        this->gunBloodStreamDamageLvl1 = (float)reader.GetReal("gunBalance", "gunBloodStreamDamageLvl1", ConfigDefaults::gunBloodStreamDamageLvl1);
+        this->gunBloodStreamDamageLvl2 = (float)reader.GetReal("gunBalance", "gunBloodStreamDamageLvl2", ConfigDefaults::gunBloodStreamDamageLvl2);
+        this->gunBloodStreamDamageLvl3 = (float)reader.GetReal("gunBalance", "gunBloodStreamDamageLvl3", ConfigDefaults::gunBloodStreamDamageLvl3);
+        this->gunBloodStreamFireRateLvl1 = (float)reader.GetReal("gunBalance", "gunBloodStreamFireRateLvl1", ConfigDefaults::gunBloodStreamFireRateLvl1);
+        this->gunBloodStreamFireRateLvl2 = (float)reader.GetReal("gunBalance", "gunBloodStreamFireRateLvl2", ConfigDefaults::gunBloodStreamFireRateLvl2);
+        this->gunBloodStreamFireRateLvl3 = (float)reader.GetReal("gunBalance", "gunBloodStreamFireRateLvl3", ConfigDefaults::gunBloodStreamFireRateLvl3);
+        this->gunBloodStreamRange = (float)reader.GetReal("gunBalance", "gunBloodStreamRange", ConfigDefaults::gunBloodStreamRange);
+
+        // gun balance - BloodSpray
+        this->gunBloodSprayAmmoCostLvl1 = (float)reader.GetReal("gunBalance", "gunBloodSprayAmmoCostLvl1", ConfigDefaults::gunBloodSprayAmmoCostLvl1);
+        this->gunBloodSprayAmmoCostLvl2 = (float)reader.GetReal("gunBalance", "gunBloodSprayAmmoCostLvl2", ConfigDefaults::gunBloodSprayAmmoCostLvl2);
+        this->gunBloodSprayAmmoCostLvl3 = (float)reader.GetReal("gunBalance", "gunBloodSprayAmmoCostLvl3", ConfigDefaults::gunBloodSprayAmmoCostLvl3);
+        this->gunBloodSprayDamageLvl1 = (float)reader.GetReal("gunBalance", "gunBloodSprayDamageLvl1", ConfigDefaults::gunBloodSprayDamageLvl1);
+        this->gunBloodSprayDamageLvl2 = (float)reader.GetReal("gunBalance", "gunBloodSprayDamageLvl2", ConfigDefaults::gunBloodSprayDamageLvl2);
+        this->gunBloodSprayDamageLvl3 = (float)reader.GetReal("gunBalance", "gunBloodSprayDamageLvl3", ConfigDefaults::gunBloodSprayDamageLvl3);
+        this->gunBloodSprayFireRateLvl1 = (float)reader.GetReal("gunBalance", "gunBloodSprayFireRateLvl1", ConfigDefaults::gunBloodSprayFireRateLvl1);
+        this->gunBloodSprayFireRateLvl2 = (float)reader.GetReal("gunBalance", "gunBloodSprayFireRateLvl2", ConfigDefaults::gunBloodSprayFireRateLvl2);
+        this->gunBloodSprayFireRateLvl3 = (float)reader.GetReal("gunBalance", "gunBloodSprayFireRateLvl3", ConfigDefaults::gunBloodSprayFireRateLvl3);
+        this->gunBloodSprayRange = (float)reader.GetReal("gunBalance", "gunBloodSprayRange", ConfigDefaults::gunBloodSprayRange);
+
+        // gun balance - BloodBomb
+        this->gunBloodBombAmmoCostLvl1 = (float)reader.GetReal("gunBalance", "gunBloodBombAmmoCostLvl1", ConfigDefaults::gunBloodBombAmmoCostLvl1);
+        this->gunBloodBombAmmoCostLvl2 = (float)reader.GetReal("gunBalance", "gunBloodBombAmmoCostLvl2", ConfigDefaults::gunBloodBombAmmoCostLvl2);
+        this->gunBloodBombAmmoCostLvl3 = (float)reader.GetReal("gunBalance", "gunBloodBombAmmoCostLvl3", ConfigDefaults::gunBloodBombAmmoCostLvl3);
+        this->gunBloodBombDamageLvl1 = (float)reader.GetReal("gunBalance", "gunBloodBombDamageLvl1", ConfigDefaults::gunBloodBombDamageLvl1);
+        this->gunBloodBombDamageLvl2 = (float)reader.GetReal("gunBalance", "gunBloodBombDamageLvl2", ConfigDefaults::gunBloodBombDamageLvl2);
+        this->gunBloodBombDamageLvl3 = (float)reader.GetReal("gunBalance", "gunBloodBombDamageLvl3", ConfigDefaults::gunBloodBombDamageLvl3);
+        this->gunBloodBombFireRateLvl1 = (float)reader.GetReal("gunBalance", "gunBloodBombFireRateLvl1", ConfigDefaults::gunBloodBombFireRateLvl1);
+        this->gunBloodBombFireRateLvl2 = (float)reader.GetReal("gunBalance", "gunBloodBombFireRateLvl2", ConfigDefaults::gunBloodBombFireRateLvl2);
+        this->gunBloodBombFireRateLvl3 = (float)reader.GetReal("gunBalance", "gunBloodBombFireRateLvl3", ConfigDefaults::gunBloodBombFireRateLvl3);
+        this->gunBloodBombRange = (float)reader.GetReal("gunBalance", "gunBloodBombRange", ConfigDefaults::gunBloodBombRange);
+
+        // gun balance - BloodFlame
+        this->gunBloodFlameAmmoCostLvl1 = (float)reader.GetReal("gunBalance", "gunBloodFlameAmmoCostLvl1", ConfigDefaults::gunBloodFlameAmmoCostLvl1);
+        this->gunBloodFlameAmmoCostLvl2 = (float)reader.GetReal("gunBalance", "gunBloodFlameAmmoCostLvl2", ConfigDefaults::gunBloodFlameAmmoCostLvl2);
+        this->gunBloodFlameAmmoCostLvl3 = (float)reader.GetReal("gunBalance", "gunBloodFlameAmmoCostLvl3", ConfigDefaults::gunBloodFlameAmmoCostLvl3);
+        this->gunBloodFlameDamageLvl1 = (float)reader.GetReal("gunBalance", "gunBloodFlameDamageLvl1", ConfigDefaults::gunBloodFlameDamageLvl1);
+        this->gunBloodFlameDamageLvl2 = (float)reader.GetReal("gunBalance", "gunBloodFlameDamageLvl2", ConfigDefaults::gunBloodFlameDamageLvl2);
+        this->gunBloodFlameDamageLvl3 = (float)reader.GetReal("gunBalance", "gunBloodFlameDamageLvl3", ConfigDefaults::gunBloodFlameDamageLvl3);
+        this->gunBloodFlameFireRateLvl1 = (float)reader.GetReal("gunBalance", "gunBloodFlameFireRateLvl1", ConfigDefaults::gunBloodFlameFireRateLvl1);
+        this->gunBloodFlameFireRateLvl2 = (float)reader.GetReal("gunBalance", "gunBloodFlameFireRateLvl2", ConfigDefaults::gunBloodFlameFireRateLvl2);
+        this->gunBloodFlameFireRateLvl3 = (float)reader.GetReal("gunBalance", "gunBloodFlameFireRateLvl3", ConfigDefaults::gunBloodFlameFireRateLvl3);
+        this->gunBloodFlameRange = (float)reader.GetReal("gunBalance", "gunBloodFlameRange", ConfigDefaults::gunBloodFlameRange);
+
+        // gun balance - BloodHammer
+        this->gunBloodHammerAmmoCostLvl1 = (float)reader.GetReal("gunBalance", "gunBloodHammerAmmoCostLvl1", ConfigDefaults::gunBloodHammerAmmoCostLvl1);
+        this->gunBloodHammerAmmoCostLvl2 = (float)reader.GetReal("gunBalance", "gunBloodHammerAmmoCostLvl2", ConfigDefaults::gunBloodHammerAmmoCostLvl2);
+        this->gunBloodHammerAmmoCostLvl3 = (float)reader.GetReal("gunBalance", "gunBloodHammerAmmoCostLvl3", ConfigDefaults::gunBloodHammerAmmoCostLvl3);
+        this->gunBloodHammerDamageLvl1 = (float)reader.GetReal("gunBalance", "gunBloodHammerDamageLvl1", ConfigDefaults::gunBloodHammerDamageLvl1);
+        this->gunBloodHammerDamageLvl2 = (float)reader.GetReal("gunBalance", "gunBloodHammerDamageLvl2", ConfigDefaults::gunBloodHammerDamageLvl2);
+        this->gunBloodHammerDamageLvl3 = (float)reader.GetReal("gunBalance", "gunBloodHammerDamageLvl3", ConfigDefaults::gunBloodHammerDamageLvl3);
+        this->gunBloodHammerFireRateLvl1 = (float)reader.GetReal("gunBalance", "gunBloodHammerFireRateLvl1", ConfigDefaults::gunBloodHammerFireRateLvl1);
+        this->gunBloodHammerFireRateLvl2 = (float)reader.GetReal("gunBalance", "gunBloodHammerFireRateLvl2", ConfigDefaults::gunBloodHammerFireRateLvl2);
+        this->gunBloodHammerFireRateLvl3 = (float)reader.GetReal("gunBalance", "gunBloodHammerFireRateLvl3", ConfigDefaults::gunBloodHammerFireRateLvl3);
+        this->gunBloodHammerRange = (float)reader.GetReal("gunBalance", "gunBloodHammerRange", ConfigDefaults::gunBloodHammerRange);
+
         // internal settings
         this->outfitMaxEntries = (int)reader.GetInteger("internalSettings", "outfitMaxEntries", ConfigDefaults::outfitMaxEntries);
         this->outfitModPath = reader.Get("internalSettings", "outfitModPath", ConfigDefaults::outfitModPath);
@@ -435,6 +649,78 @@ public:
         this->gunSelectBloodHammerKey = ConfigDefaults::gunSelectBloodHammerKey;
         this->gunSelectPreviousWeaponKey = ConfigDefaults::gunSelectPreviousWeaponKey;
         this->gunMouseWheelDownPreviousWeapon = ConfigDefaults::gunMouseWheelDownPreviousWeapon;
+
+        // gun balance - BloodShot
+        this->gunBloodShotAmmoCostLvl1 = ConfigDefaults::gunBloodShotAmmoCostLvl1;
+        this->gunBloodShotAmmoCostLvl2 = ConfigDefaults::gunBloodShotAmmoCostLvl2;
+        this->gunBloodShotAmmoCostLvl3 = ConfigDefaults::gunBloodShotAmmoCostLvl3;
+        this->gunBloodShotDamageLvl1 = ConfigDefaults::gunBloodShotDamageLvl1;
+        this->gunBloodShotDamageLvl2 = ConfigDefaults::gunBloodShotDamageLvl2;
+        this->gunBloodShotDamageLvl3 = ConfigDefaults::gunBloodShotDamageLvl3;
+        this->gunBloodShotFireRateLvl1 = ConfigDefaults::gunBloodShotFireRateLvl1;
+        this->gunBloodShotFireRateLvl2 = ConfigDefaults::gunBloodShotFireRateLvl2;
+        this->gunBloodShotFireRateLvl3 = ConfigDefaults::gunBloodShotFireRateLvl3;
+        this->gunBloodShotRange = ConfigDefaults::gunBloodShotRange;
+
+        // gun balance - BloodStream
+        this->gunBloodStreamAmmoCostLvl1 = ConfigDefaults::gunBloodStreamAmmoCostLvl1;
+        this->gunBloodStreamAmmoCostLvl2 = ConfigDefaults::gunBloodStreamAmmoCostLvl2;
+        this->gunBloodStreamAmmoCostLvl3 = ConfigDefaults::gunBloodStreamAmmoCostLvl3;
+        this->gunBloodStreamDamageLvl1 = ConfigDefaults::gunBloodStreamDamageLvl1;
+        this->gunBloodStreamDamageLvl2 = ConfigDefaults::gunBloodStreamDamageLvl2;
+        this->gunBloodStreamDamageLvl3 = ConfigDefaults::gunBloodStreamDamageLvl3;
+        this->gunBloodStreamFireRateLvl1 = ConfigDefaults::gunBloodStreamFireRateLvl1;
+        this->gunBloodStreamFireRateLvl2 = ConfigDefaults::gunBloodStreamFireRateLvl2;
+        this->gunBloodStreamFireRateLvl3 = ConfigDefaults::gunBloodStreamFireRateLvl3;
+        this->gunBloodStreamRange = ConfigDefaults::gunBloodStreamRange;
+
+        // gun balance - BloodSpray
+        this->gunBloodSprayAmmoCostLvl1 = ConfigDefaults::gunBloodSprayAmmoCostLvl1;
+        this->gunBloodSprayAmmoCostLvl2 = ConfigDefaults::gunBloodSprayAmmoCostLvl2;
+        this->gunBloodSprayAmmoCostLvl3 = ConfigDefaults::gunBloodSprayAmmoCostLvl3;
+        this->gunBloodSprayDamageLvl1 = ConfigDefaults::gunBloodSprayDamageLvl1;
+        this->gunBloodSprayDamageLvl2 = ConfigDefaults::gunBloodSprayDamageLvl2;
+        this->gunBloodSprayDamageLvl3 = ConfigDefaults::gunBloodSprayDamageLvl3;
+        this->gunBloodSprayFireRateLvl1 = ConfigDefaults::gunBloodSprayFireRateLvl1;
+        this->gunBloodSprayFireRateLvl2 = ConfigDefaults::gunBloodSprayFireRateLvl2;
+        this->gunBloodSprayFireRateLvl3 = ConfigDefaults::gunBloodSprayFireRateLvl3;
+        this->gunBloodSprayRange = ConfigDefaults::gunBloodSprayRange;
+
+        // gun balance - BloodBomb
+        this->gunBloodBombAmmoCostLvl1 = ConfigDefaults::gunBloodBombAmmoCostLvl1;
+        this->gunBloodBombAmmoCostLvl2 = ConfigDefaults::gunBloodBombAmmoCostLvl2;
+        this->gunBloodBombAmmoCostLvl3 = ConfigDefaults::gunBloodBombAmmoCostLvl3;
+        this->gunBloodBombDamageLvl1 = ConfigDefaults::gunBloodBombDamageLvl1;
+        this->gunBloodBombDamageLvl2 = ConfigDefaults::gunBloodBombDamageLvl2;
+        this->gunBloodBombDamageLvl3 = ConfigDefaults::gunBloodBombDamageLvl3;
+        this->gunBloodBombFireRateLvl1 = ConfigDefaults::gunBloodBombFireRateLvl1;
+        this->gunBloodBombFireRateLvl2 = ConfigDefaults::gunBloodBombFireRateLvl2;
+        this->gunBloodBombFireRateLvl3 = ConfigDefaults::gunBloodBombFireRateLvl3;
+        this->gunBloodBombRange = ConfigDefaults::gunBloodBombRange;
+
+        // gun balance - BloodFlame
+        this->gunBloodFlameAmmoCostLvl1 = ConfigDefaults::gunBloodFlameAmmoCostLvl1;
+        this->gunBloodFlameAmmoCostLvl2 = ConfigDefaults::gunBloodFlameAmmoCostLvl2;
+        this->gunBloodFlameAmmoCostLvl3 = ConfigDefaults::gunBloodFlameAmmoCostLvl3;
+        this->gunBloodFlameDamageLvl1 = ConfigDefaults::gunBloodFlameDamageLvl1;
+        this->gunBloodFlameDamageLvl2 = ConfigDefaults::gunBloodFlameDamageLvl2;
+        this->gunBloodFlameDamageLvl3 = ConfigDefaults::gunBloodFlameDamageLvl3;
+        this->gunBloodFlameFireRateLvl1 = ConfigDefaults::gunBloodFlameFireRateLvl1;
+        this->gunBloodFlameFireRateLvl2 = ConfigDefaults::gunBloodFlameFireRateLvl2;
+        this->gunBloodFlameFireRateLvl3 = ConfigDefaults::gunBloodFlameFireRateLvl3;
+        this->gunBloodFlameRange = ConfigDefaults::gunBloodFlameRange;
+
+        // gun balance - BloodHammer
+        this->gunBloodHammerAmmoCostLvl1 = ConfigDefaults::gunBloodHammerAmmoCostLvl1;
+        this->gunBloodHammerAmmoCostLvl2 = ConfigDefaults::gunBloodHammerAmmoCostLvl2;
+        this->gunBloodHammerAmmoCostLvl3 = ConfigDefaults::gunBloodHammerAmmoCostLvl3;
+        this->gunBloodHammerDamageLvl1 = ConfigDefaults::gunBloodHammerDamageLvl1;
+        this->gunBloodHammerDamageLvl2 = ConfigDefaults::gunBloodHammerDamageLvl2;
+        this->gunBloodHammerDamageLvl3 = ConfigDefaults::gunBloodHammerDamageLvl3;
+        this->gunBloodHammerFireRateLvl1 = ConfigDefaults::gunBloodHammerFireRateLvl1;
+        this->gunBloodHammerFireRateLvl2 = ConfigDefaults::gunBloodHammerFireRateLvl2;
+        this->gunBloodHammerFireRateLvl3 = ConfigDefaults::gunBloodHammerFireRateLvl3;
+        this->gunBloodHammerRange = ConfigDefaults::gunBloodHammerRange;
 
         // internal settings
         this->outfitMaxEntries = ConfigDefaults::outfitMaxEntries;
@@ -531,6 +817,81 @@ public:
 
         config << std::endl;
 
+        config << "[gunBalance]" << std::endl;
+        config << "; Blood Shot" << std::endl;
+        config << "gunBloodShotAmmoCostLvl1 = " << std::dec << ConfigDefaults::gunBloodShotAmmoCostLvl1 << std::endl;
+        config << "gunBloodShotAmmoCostLvl2 = " << std::dec << ConfigDefaults::gunBloodShotAmmoCostLvl2 << std::endl;
+        config << "gunBloodShotAmmoCostLvl3 = " << std::dec << ConfigDefaults::gunBloodShotAmmoCostLvl3 << std::endl;
+        config << "gunBloodShotDamageLvl1 = " << std::dec << ConfigDefaults::gunBloodShotDamageLvl1 << std::endl;
+        config << "gunBloodShotDamageLvl2 = " << std::dec << ConfigDefaults::gunBloodShotDamageLvl2 << std::endl;
+        config << "gunBloodShotDamageLvl3 = " << std::dec << ConfigDefaults::gunBloodShotDamageLvl3 << std::endl;
+        config << "gunBloodShotFireRateLvl1 = " << std::dec << ConfigDefaults::gunBloodShotFireRateLvl1 << std::endl;
+        config << "gunBloodShotFireRateLvl2 = " << std::dec << ConfigDefaults::gunBloodShotFireRateLvl2 << std::endl;
+        config << "gunBloodShotFireRateLvl3 = " << std::dec << ConfigDefaults::gunBloodShotFireRateLvl3 << std::endl;
+        config << "gunBloodShotRange = " << std::dec << ConfigDefaults::gunBloodShotRange << std::endl;
+
+        config << "; Blood Stream" << std::endl;
+        config << "gunBloodStreamAmmoCostLvl1 = " << std::dec << ConfigDefaults::gunBloodStreamAmmoCostLvl1 << std::endl;
+        config << "gunBloodStreamAmmoCostLvl2 = " << std::dec << ConfigDefaults::gunBloodStreamAmmoCostLvl2 << std::endl;
+        config << "gunBloodStreamAmmoCostLvl3 = " << std::dec << ConfigDefaults::gunBloodStreamAmmoCostLvl3 << std::endl;
+        config << "gunBloodStreamDamageLvl1 = " << std::dec << ConfigDefaults::gunBloodStreamDamageLvl1 << std::endl;
+        config << "gunBloodStreamDamageLvl2 = " << std::dec << ConfigDefaults::gunBloodStreamDamageLvl2 << std::endl;
+        config << "gunBloodStreamDamageLvl3 = " << std::dec << ConfigDefaults::gunBloodStreamDamageLvl3 << std::endl;
+        config << "gunBloodStreamFireRateLvl1 = " << std::dec << ConfigDefaults::gunBloodStreamFireRateLvl1 << std::endl;
+        config << "gunBloodStreamFireRateLvl2 = " << std::dec << ConfigDefaults::gunBloodStreamFireRateLvl2 << std::endl;
+        config << "gunBloodStreamFireRateLvl3 = " << std::dec << ConfigDefaults::gunBloodStreamFireRateLvl3 << std::endl;
+        config << "gunBloodStreamRange = " << std::dec << ConfigDefaults::gunBloodStreamRange << std::endl;
+
+        config << "; Blood Spray" << std::endl;
+        config << "gunBloodSprayAmmoCostLvl1 = " << std::dec << ConfigDefaults::gunBloodSprayAmmoCostLvl1 << std::endl;
+        config << "gunBloodSprayAmmoCostLvl2 = " << std::dec << ConfigDefaults::gunBloodSprayAmmoCostLvl2 << std::endl;
+        config << "gunBloodSprayAmmoCostLvl3 = " << std::dec << ConfigDefaults::gunBloodSprayAmmoCostLvl3 << std::endl;
+        config << "gunBloodSprayDamageLvl1 = " << std::dec << ConfigDefaults::gunBloodSprayDamageLvl1 << std::endl;
+        config << "gunBloodSprayDamageLvl2 = " << std::dec << ConfigDefaults::gunBloodSprayDamageLvl2 << std::endl;
+        config << "gunBloodSprayDamageLvl3 = " << std::dec << ConfigDefaults::gunBloodSprayDamageLvl3 << std::endl;
+        config << "gunBloodSprayFireRateLvl1 = " << std::dec << ConfigDefaults::gunBloodSprayFireRateLvl1 << std::endl;
+        config << "gunBloodSprayFireRateLvl2 = " << std::dec << ConfigDefaults::gunBloodSprayFireRateLvl2 << std::endl;
+        config << "gunBloodSprayFireRateLvl3 = " << std::dec << ConfigDefaults::gunBloodSprayFireRateLvl3 << std::endl;
+        config << "gunBloodSprayRange = " << std::dec << ConfigDefaults::gunBloodSprayRange << std::endl;
+
+        config << "; Blood Bomb" << std::endl;
+        config << "gunBloodBombAmmoCostLvl1 = " << std::dec << ConfigDefaults::gunBloodBombAmmoCostLvl1 << std::endl;
+        config << "gunBloodBombAmmoCostLvl2 = " << std::dec << ConfigDefaults::gunBloodBombAmmoCostLvl2 << std::endl;
+        config << "gunBloodBombAmmoCostLvl3 = " << std::dec << ConfigDefaults::gunBloodBombAmmoCostLvl3 << std::endl;
+        config << "gunBloodBombDamageLvl1 = " << std::dec << ConfigDefaults::gunBloodBombDamageLvl1 << std::endl;
+        config << "gunBloodBombDamageLvl2 = " << std::dec << ConfigDefaults::gunBloodBombDamageLvl2 << std::endl;
+        config << "gunBloodBombDamageLvl3 = " << std::dec << ConfigDefaults::gunBloodBombDamageLvl3 << std::endl;
+        config << "gunBloodBombFireRateLvl1 = " << std::dec << ConfigDefaults::gunBloodBombFireRateLvl1 << std::endl;
+        config << "gunBloodBombFireRateLvl2 = " << std::dec << ConfigDefaults::gunBloodBombFireRateLvl2 << std::endl;
+        config << "gunBloodBombFireRateLvl3 = " << std::dec << ConfigDefaults::gunBloodBombFireRateLvl3 << std::endl;
+        config << "gunBloodBombRange = " << std::dec << ConfigDefaults::gunBloodBombRange << std::endl;
+
+        config << "; Blood Flame" << std::endl;
+        config << "gunBloodFlameAmmoCostLvl1 = " << std::dec << ConfigDefaults::gunBloodFlameAmmoCostLvl1 << std::endl;
+        config << "gunBloodFlameAmmoCostLvl2 = " << std::dec << ConfigDefaults::gunBloodFlameAmmoCostLvl2 << std::endl;
+        config << "gunBloodFlameAmmoCostLvl3 = " << std::dec << ConfigDefaults::gunBloodFlameAmmoCostLvl3 << std::endl;
+        config << "gunBloodFlameDamageLvl1 = " << std::dec << ConfigDefaults::gunBloodFlameDamageLvl1 << std::endl;
+        config << "gunBloodFlameDamageLvl2 = " << std::dec << ConfigDefaults::gunBloodFlameDamageLvl2 << std::endl;
+        config << "gunBloodFlameDamageLvl3 = " << std::dec << ConfigDefaults::gunBloodFlameDamageLvl3 << std::endl;
+        config << "gunBloodFlameFireRateLvl1 = " << std::dec << ConfigDefaults::gunBloodFlameFireRateLvl1 << std::endl;
+        config << "gunBloodFlameFireRateLvl2 = " << std::dec << ConfigDefaults::gunBloodFlameFireRateLvl2 << std::endl;
+        config << "gunBloodFlameFireRateLvl3 = " << std::dec << ConfigDefaults::gunBloodFlameFireRateLvl3 << std::endl;
+        config << "gunBloodFlameRange = " << std::dec << ConfigDefaults::gunBloodFlameRange << std::endl;
+
+        config << "; Blood Hammer" << std::endl;
+        config << "gunBloodHammerAmmoCostLvl1 = " << std::dec << ConfigDefaults::gunBloodHammerAmmoCostLvl1 << std::endl;
+        config << "gunBloodHammerAmmoCostLvl2 = " << std::dec << ConfigDefaults::gunBloodHammerAmmoCostLvl2 << std::endl;
+        config << "gunBloodHammerAmmoCostLvl3 = " << std::dec << ConfigDefaults::gunBloodHammerAmmoCostLvl3 << std::endl;
+        config << "gunBloodHammerDamageLvl1 = " << std::dec << ConfigDefaults::gunBloodHammerDamageLvl1 << std::endl;
+        config << "gunBloodHammerDamageLvl2 = " << std::dec << ConfigDefaults::gunBloodHammerDamageLvl2 << std::endl;
+        config << "gunBloodHammerDamageLvl3 = " << std::dec << ConfigDefaults::gunBloodHammerDamageLvl3 << std::endl;
+        config << "gunBloodHammerFireRateLvl1 = " << std::dec << ConfigDefaults::gunBloodHammerFireRateLvl1 << std::endl;
+        config << "gunBloodHammerFireRateLvl2 = " << std::dec << ConfigDefaults::gunBloodHammerFireRateLvl2 << std::endl;
+        config << "gunBloodHammerFireRateLvl3 = " << std::dec << ConfigDefaults::gunBloodHammerFireRateLvl3 << std::endl;
+        config << "gunBloodHammerRange = " << std::dec << ConfigDefaults::gunBloodHammerRange << std::endl;
+
+        config << std::endl;
+
         config << "[internalSettings]" << std::endl;
         config << "outfitMaxEntries = " << std::dec << ConfigDefaults::outfitMaxEntries << std::endl;
         config << "outfitModPath = " << ConfigDefaults::outfitModPath << std::endl;
@@ -555,4 +916,4 @@ public:
     }
 };
 
-extern Config g_config;
+extern Config g_Config;
