@@ -81,70 +81,6 @@ namespace Rayne2 {
     // uintptr_t const RayneAmmunitionOffset = 0x07FC; // offset is from CMultigun not CMainCharacter so have to find, name and calculate this separately
 }
 
-// key bindings
-
-// Camera position controls
-#define DECREMENT_X_KEY VK_OEM_4      // [
-#define INCREMENT_X_KEY VK_OEM_6      // ]
-#define DECREMENT_Z_KEY VK_OEM_1      // ;
-#define INCREMENT_Z_KEY VK_OEM_7      // '
-#define DECREMENT_Y_KEY VK_OEM_COMMA  // ,
-#define INCREMENT_Y_KEY VK_OEM_PERIOD // .
-
-// Target position controls
-#define DECREMENT_ANGLE_PITCH_KEY VK_UP
-#define INCREMENT_ANGLE_PITCH_KEY VK_DOWN
-#define DECREMENT_ANGLE_YAW_KEY VK_LEFT  
-#define INCREMENT_ANGLE_YAW_KEY VK_RIGHT
-#define DECREMENT_ANGLE_ROLL_KEY VK_DELETE
-#define INCREMENT_ANGLE_ROLL_KEY VK_INSERT
-
-#define DECREMENT_FOV_KEY VK_NEXT     // page down
-#define INCREMENT_FOV_KEY VK_PRIOR    // page up
-
-// toggle keys
-#define TOGGLE_PHOTO_MODE_KEY VK_F7
-#define TOGGLE_SUPER_SLOW_MODE_KEY VK_F8
-#define TOGGLE_HUD_KEY VK_F9
-
-// Debug
-#define DEBUG_CHECK_KEY VK_F6
-
-// tuning values
-#define CAMERA_POS_INCREMENT_DECREMENT_VALUE 0.066f
-#define ANGLE_INCREMENT_DECREMENT_VALUE 0.016f
-#define FOV_INCREMENT_DECREMENT_VALUE 1.0f
-
-#define SUPER_SLOW_MODE_TIME_FACTOR 0.05f
-
-// behaviors
-#define PHOTO_MODE_DISABLE_HUD_ON_ENTER true
-#define PHOTO_MODE_RESTORE_TIME_FACTOR_ON_EXIT true
-
-// gun hotkeys
-#define GUN_SELECT_BLOODSHOT_KEY 0x35 // numrow 5
-#define GUN_SELECT_BLOODSTREAM_KEY 0x36 // 6
-#define GUN_SELECT_BLOODSPRAY_KEY 0x37 // 7
-#define GUN_SELECT_BLOODBOMB_KEY 0x38 // 8
-#define GUN_SELECT_BLOODFLAME_KEY 0x39 // 9
-#define GUN_SELECT_BLOODHAMMER_KEY 0x30 // 0
-
-// used if player is not using mousewheel down for previous weapon.
-// should be a toggle in the .ini file
-#define GUN_SELECT_PREVIOUS_WEAPON_KEY VK_OEM_MINUS // -
-
-// if enabled, mousewheel down switches to previous weapon
-// mousewheel up is already next weapon by default, so this allows bidirectional weapon mode scrolling
-#define ENABLE_MOUSEWHEEL_DOWN_PREVIOUS_WEAPON 1
-
-// how many entries allowed to be added to the outfits menu. Outfits are about 1.4kb each. Wonder if we can allocate them dynamically?
-#define OUTFIT_MAX_ENTRIES 1024
-
-// Casual Mode
-// enable regenerating health
-// Casual mode has some problems (detailed in CasualMode.h) and isn't ready to be added yet.
-#define ENABLE_CASUAL_MODE 0
-
 namespace Utilities {
     // Rayne total ammunition = 1000.0
     // all ammunition maximums per weapon mode are calculated as 1000/ammunition cost
@@ -164,16 +100,17 @@ namespace ConfigDefaults {
     constexpr bool enableNoHud = true;
     constexpr bool enableOutfitMods = true;
 
-    // camera keybinds
-    constexpr int cameraDecrementXKey = VK_OEM_4;
-    constexpr int cameraIncrementXKey = VK_OEM_6;
+    // camera keybinds - position
+    constexpr int cameraDecrementXKey = VK_OEM_4; // [
+    constexpr int cameraIncrementXKey = VK_OEM_6; // ]
 
-    constexpr int cameraDecrementZKey = VK_OEM_1;
-    constexpr int cameraIncrementZKey = VK_OEM_7;
+    constexpr int cameraDecrementZKey = VK_OEM_1; // ;
+    constexpr int cameraIncrementZKey = VK_OEM_7; // '
 
-    constexpr int cameraDecrementYKey = VK_OEM_COMMA;
-    constexpr int cameraIncrementYKey = VK_OEM_PERIOD;
+    constexpr int cameraDecrementYKey = VK_OEM_COMMA; // ,
+    constexpr int cameraIncrementYKey = VK_OEM_PERIOD; // .
 
+    // camera keybinds - angle
     constexpr int cameraDecrementAnglePitchKey = VK_UP;
     constexpr int cameraIncrementAnglePitchKey = VK_DOWN;
 
@@ -183,8 +120,8 @@ namespace ConfigDefaults {
     constexpr int cameraDecrementAngleRollKey = VK_DELETE;
     constexpr int cameraIncrementAngleRollKey = VK_INSERT;
 
-    constexpr int cameraDecrementFovKey = VK_NEXT;
-    constexpr int cameraIncrementFovKey = VK_PRIOR;
+    constexpr int cameraDecrementFovKey = VK_NEXT; // page down
+    constexpr int cameraIncrementFovKey = VK_PRIOR; // page up
 
     // toggle keys
     constexpr int togglePhotoModeKey = VK_F7;
@@ -210,13 +147,16 @@ namespace ConfigDefaults {
     constexpr bool photoModeAllowSensitivityScaling = true; // whether or not sensitivity is scaled by fov
 
     // gun hotkeys
-    constexpr int gunSelectBloodShotKey = 0x35;
-    constexpr int gunSelectBloodStreamKey = 0x36;
-    constexpr int gunSelectBloodSprayKey = 0x37;
-    constexpr int gunSelectBloodBombKey = 0x38;
-    constexpr int gunSelectBloodFlameKey = 0x39;
-    constexpr int gunSelectBloodHammerKey = 0x30;
-    constexpr int gunSelectPreviousWeaponKey = VK_OEM_MINUS;
+    constexpr int gunSelectBloodShotKey = 0x35;            // numrow 5
+    constexpr int gunSelectBloodStreamKey = 0x36;          // numrow 6
+    constexpr int gunSelectBloodSprayKey = 0x37;           // numrow 7
+    constexpr int gunSelectBloodBombKey = 0x38;            // numrow 8
+    constexpr int gunSelectBloodFlameKey = 0x39;           // numrow 9
+    constexpr int gunSelectBloodHammerKey = 0x30;          // numrow 0
+    constexpr int gunSelectPreviousWeaponKey = VK_OEM_MINUS; // -
+
+    // mousewheel down switches to previosu weapon mode
+    // mousewheel up is already next weapon by default, so this allows bidirectional weapon mode scrolling
     constexpr bool gunMouseWheelDownPreviousWeapon = true;
 
     // gun balance
@@ -287,6 +227,7 @@ namespace ConfigDefaults {
     constexpr float gunBloodHammerRange = 250.0f; // default 200
 
     // internal settings
+    // max entries loaded and available in the outfits menu. Memory footprint of Outfit objects are about 1.4kb each.
     constexpr int outfitMaxEntries = 1024;
     const std::string outfitModPath = "mods\\outfits";
 };
