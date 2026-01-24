@@ -1,6 +1,7 @@
 // The launcher should load rayne2.exe and inject the mod DLL after the process has started.
 #include <iostream>
 #include <Windows.h>
+#include "../myBR2mod/Config.h"
 
 int main()
 {
@@ -16,7 +17,11 @@ int main()
     // lpcstr exepath = etc etc
 
     if (!CreateProcess(
-        L"G:\\GOG\\BloodRayne 2 Terminal Cut\\rayne2.exe", // will a relative path work here?
+#if DEBUG_TESTING_DLL_LOCATION
+        DEBUG_TESTING_GAME_PATH, // debug: launch from absolute path
+#else
+        L"rayne2.exe", // release: relative path, launcher is in game directory
+#endif
         NULL, // cmd line args
         NULL, // process attributes
         NULL, // thread attributes
@@ -33,7 +38,7 @@ int main()
     std::cout << "process id: " << pi.hProcess << std::endl;
     auto rayne2Handle = pi.hProcess;
 
-    LPCSTR dllPath = "G:\\BR2 Modding\\myBR2mod\\Debug\\GunSucked.dll";
+    LPCSTR dllPath = "GunSucked.dll";
 
     if (rayne2Handle && rayne2Handle != INVALID_HANDLE_VALUE) {
 
