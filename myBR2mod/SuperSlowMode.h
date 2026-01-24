@@ -31,7 +31,7 @@ public:
 
 		//this->originalTimeFactor = *this->timeFactor;
 
-		*this->timeFactor = SUPER_SLOW_MODE_TIME_FACTOR;
+		*this->timeFactor = g_Config.superSlowModeTimeFactor;
 
 		this->enabled = true;
 
