@@ -1,0 +1,446 @@
+# Rayne
+
+- Suspected struct size: 49152 (guess based on Rage offset at 8360)
+- After some further inspection in Reclass, it looks like the end of this struct might be around 8CFC. That's 36k bytes, which is an odd size. At offsets 8D0C and 8D10 there are a few more bits but it's look like garbage, not any data. At around 8B04 there are still strings like blade_swipe_fury.tif which looks related to Rayne.
+- There is a bunch of empty memory after that and the next memory I found was at FCE0, "bullets_hit_wood.fx" which doesn't seem Rayne related.
+- If we assume Rayne's struct is 32 kb (0x8000), that means that Rage (which is at 0x8360) isn't stored in Rayne's struct anymore! So maybe it's around 48KB and most of the end is unused?
+
+Base addresses:
+rayne2.exe+5B0AAF0 (references Rayne in Entry and Courtyard only. References something unknown after.)
+rayne2.exe+5D276EC (correctly reference Raynes in Roof and every other level I've tested.)
+
+The first address only works for Entry and Courtyard.
+
+I tested the second address throughout various levels of the game and it worked consistently. Need to do more research to figure out what the first address is pointing at. It could be pointing at an entity in the entity list/scene graph.
+
+The first pointer does not correctly reference Rayne after the Courtyard level, but the location Z, Y, X position data seems to still be tracking Rayne. However, the Y is about 4 meters above Rayne's true position. It may be tracking a hitbox or collider of some kind. Need to do further investigation on this.
+
+## Known Rayne offsets:
+
+39C8 - Health (float 0 1000)
+8360 - Rage (float 0 1000)
+
+0038 - Rayne forward/back ("Z")
+003C - Rayne up/down ("Y")
+0040 - Rayne left/right ("X")
+I'm not sure if these are a Vec3 or not- still fine to have them as 3 contiguous floats
+
+47C0 - gunL (ptr)
+47C4 - bladeL (ptr)
+47C8 - leftAutoAimTarget (ptr)
+
+4838 - gunR (ptr)
+483C - bladeR (ptr)
+4840 - rightAutoAimTarget (ptr)
+
+0148 - CMultiGun (ptr) (reference to Rayne's guns object)
+
+0178 - appears to be a reference to Rayne's model (dress, regular etc). .SKL files. Skeleton?
+	- to add additional (not replacement) outfits we could try to find where this goes and hook into it
+01B0 - Rayne costume .DFM (string). The longest costume name is 22 chars (Rayne's dragon gown). maybe 32 chars allocated?
+
+8180 - Targetable enemy list, ie, number of enemies Rayne can target. It is unlikely this references total enemies spawned in the level, and is probably the number of enemies that are currently targetable by Rayne, ie within a certain range.
+
+## Unknown Rayne offsets:
+
+05AC - appears to be a pointer to a dxCCylinder, which could be Rayne's collider?
+
+3A00, 3A04, 3A08 - unknown vector3
+
+8368 - Reference to CChain (harpoon?)
+
+8CF4 - seems to contain data when an enemy is harpooned
+
+8454 - appears to be a pointer to rayne's SKL again
+
+# Weapon System:
+
+CMultiGun
+- Suspected struct size: 16384 (educated guess)
+
+Base address:
+rayne2.exe+5B0AAFC
+
+# Known Weapon offsets
+7FC - Current ammunition
+
+0x800 - Suspected to be maximum ammunition, must investigate
+
+## Unknown Weapon offsets
+
+02BC - "Blood Shot" string
+- On NEW GAME PLUS, ie, fully leveled weapons:
+02DC - 25.00 (base ammo cost)
+02E0 - 18.00
+02E4 - 15.00 
+02E8 - 50.00
+02EC - 55.00
+02F0 - 60.00
+02F4 - 4.00 (suspected fire rate multiplier, but it seems to be capped)
+02F8 - 5.00
+02FC - 6.00
+
+- These were all the same on a new game. So as far as I can tell, these must be base or unlevelled values. I think the last three may be ammo cost multiplier, fire rate multiplier, and damage multiplier, but only 02F4 appears to have any effect, and its behavior is weird.
+
+- (Note: I notice that on the mansion, just after getting the Dragons, the Ammo pointer at rayne2.exe+5B0AAFC is not valid; must be the same thing with Rayne's base address being different on the first mansion level vs the rest of the game)
+
+- So at level 1 the Blood Shot has 40 max ammo (cost of 25), at max level it has 66 max ammo (cost of 15) and the ammo cost multiplier for that would be 0.6.
+
+0330 - "Blood Stream" string. 12 char length?
+0358 - Blood Stream (rapid) ammunition cost
+
+03A4 - "Blood Spray" string - could be struct of weapon
+03C4 to 03EF - various floats, could be weapon vars
+
+- These values are getting reloaded on level reload, so I need to figure out where they are getting written to find the static origin of these values.
+	- Modding: Find out how to externalize these values to a configuration file
+
+- Find out if the weapon modes are sub objects.
+
+- So now we know that of the two mystery Rayne pointers, the one that is only valid for the first sections of the mansion (before getting the Dragons) pointed to Rayne's base address, and then after Rayne gets the Dragons, it points to the CMultigun address. No idea why that is, whether the CMultigun component is attached dynamically or something, but now we know.
+
+- So knowing the above I was able to wrangle a stable pointer and then an offset to base Blood Shot ammo cost like so: rayne2.exe+5B0AAF0 (this is a pointer to CMultigun on Ballroom and after) and then +2DC offset (using CE's pointer type).
+
+- So FUN_00585480 could be relevant. This almost looks like it is initializing values for the different gun modes. If it is then what is the source of these values? Maybe these lines pcVar1 = (char *)FUN_005898a0("Blood Shot"); (there is one of these for each mode) are looking up the data somehow. Here are the inferred offsets:
+
+# Photo mode/Time Factor systems
+
+Attempting to figure out where time factor (delta) is controlled in game. This could be just for time factor, or it could be a game configuration object, cheat menu/system object, etc.
+
+rayne2.exe+3C6A70 - Base address. Suspected manager for time/delta values.
+
+This is definitely some kind of global configuration object. It is static at 007C6A70. Time factor is stored at 0619FB68. It also has values for camera properties such as "OffScreen H Lag" and "OffScreen P Lag". Definitely need to check this out further as there are probably many more configuration variables in here.
+
+02E8 - Time factor float of any value. Negative values does some weird stuff. Does not appear to be capped, can run the game at arbitrary speed. 0.1-4.0 is allowed by the cheat menu, but can go lower or higher. This value can be changed and takes effect without the cheat being enabled. Address appears to be static at 0619FB68.
+
+0300 - Unknown. This appears to be some kind of counter that ticks once per second, except I'm not sure what it represents. It resets on starting a new level, when a cutscene ends, or when activating Rayne's slow motion abilities. It does not pause when the escape menu is opened.
+
+0330 - This appears to be a counter that ticks once per second. It may track total game time played. It does not reset, even when restarting the level or exiting to the main menu. It does not pause when the escape menu is opened.
+
+# Camera
+
+05E34EE0 - Possibly could be the camera object, but the position data around this point doesn't seem to be true camera position. The values get overridden from somewhere else in the game.
+
+This class may be called CGameView derived from CBaseView. Thanks, Reclass! It's also possible CGameView is a camera *controller*, in which case the true camera object is elsewhere. Or vice versa- CGameView could be the camera, and the controller could be elsewhere, which would explain why the position data is being overwritten from elsewhere in the game.
+
+006F9AEC - This appears to be the code location for CGameView. There are strings here that look like they have debug statements for "cinematic camera" and obj props like RailCamera.Shake, RailCamera.LagTime, etc.
+
+A lot of these values appear to be derived/calculated values, freezing them and modifying them has little effect, sometimes works sometimes doesn't- camera keeps snapping back to where it wants to go (game has an auto centering system, and I need to figure out how to disable that to manipulate the camera pos.)
+
+0019FB70, 0019F548 - some kind of game loop related function, gets called every tick
+
+05e34ef8 - Has something to do with cutscenes. During gameplay, this is zero. When a cutscene begins, and the camera cuts to an object or character, it holds a value. For example, cutscene begins- minion talks to Rayne, it holds a value- camera cuts to Rayne, new value- cutscene ends, becomes zero. I thought it was perhaps a pointer to game objects the camera is focused on, but I'm not sure.
+
+Couldn't make any progress with CE, so I decompiled the game in Ghidra. Searching for strings containing "camera" yielded some interesting results:
+
+006f1424 - s_setCameraModeNormal_006f1424 "setCameraModeNormal"
+006f154c - s_setCameraModeFixed_006f1560 "setCameraModeFixed"
+006f15d8 - s_setCameraType_006f15d8 "setCameraType"
+
+Starting at 006f9754, there are multiple references to "Camera" and then what look like object properties: Lock-on P Center Tendency, Offscreen H Lag, Offscreen P Lag, UserRot (rotation) Lag, UserRot lag (Release), RotateBehindMovement, idleCameraTime, Default pitch, Nav dist, Combat dist, and so on and so on. Each property has "Camera" before it, so it's almost like these are setters? Could they be setters like Camera.defaultPitch()?
+
+Here's what the code actually looks like:
+
+void FUN_004f9e20(void)
+
+{
+  if ((DAT_05e35674 == 0) && (PTR_DAT_007c7528 != (undefined *)0x0)) {
+    DAT_05e35674 = 1;
+    FUN_0067a350("Camera","Lock-on H Center Tendancy",&DAT_007c0a9c,2,0,0x3f800000,0x3d4ccccd);
+    FUN_0067a350("Camera","Lock-on P Center Tendancy",&DAT_007c0aa0,2,0,0x3f800000,0x3d4ccccd);
+    FUN_0067a350("Camera","OffScreen H Lag",&DAT_007c0a94,2,0,0x41a00000,0x3f000000);
+    FUN_0067a350("Camera","OffScreen P Lag",&DAT_007c0a98,2,0,0x41a00000,0x3f000000);
+    FUN_0067a350("Camera","Offscreen H max deg/sec",&DAT_007c0aa4,2,0,0x43b40000,0x41200000);
+    FUN_0067a350("Camera","Offscreen P max deg/sec",&DAT_007c0aa8,2,0,0x43b40000,0x41200000);
+    FUN_0067a350("Camera","UserRot lag",&DAT_007c0a74,2,0x3f000000,0x41700000,0x3dcccccd);
+    FUN_0067a350("Camera","UserRot lag (release)",&DAT_007c0a78,2,0x3f000000,0x41700000,0x3dcccccd);
+    FUN_0067a350("Camera","Rotate behind movement",&DAT_007c0a68,2,0,0x40000000,0x3d4ccccd);
+    FUN_0067a350("Camera","idleCameraTime",&DAT_007c0a8c,2,0x3f800000,0x42700000,0x3f000000);
+    FUN_0067a350("Camera","Default pitch",&DAT_05e34748,2,0,0x40490fd0,0x3c23d70a);
+    FUN_0067a350("Camera","Nav dist",&DAT_05e34740,2,0,0x42c80000,0x3dcccccd);
+    FUN_0067a350("Camera","Combat dist",&DAT_05e34744,2,0,0x42c80000,0x3dcccccd);
+    FUN_0067a350("Camera","Combat vert offset",&DAT_05e3474c,2,0xc0a00000,0x40a00000,0x3dcccccd);
+    FUN_0067a350("Camera","Disable Push Camera",&DAT_05e3473d,3,0,0x3f800000,0x3dcccccd);
+    FUN_0067a350("Camera","Debug focus point",&DAT_05e3473c,3,0,0x3f800000,0x3dcccccd);
+    FUN_0067a350("Rail Camera",&DAT_006f98f0,&DAT_007c0a7c,2,0x40a00000,0x41700000,0x3f000000);
+    FUN_0067a350("Rail Camera","Shake",&DAT_007c0a88,2,0,0x3f800000,0x3d4ccccd);
+    FUN_0067a350("Rail Camera","LagDist",&DAT_007c0a80,2,0,0x41200000,0x3e800000);
+    FUN_0067a350("Rail Camera","LagTime",&DAT_007c0a84,2,0,0x40a00000,0x3d4ccccd);
+  }
+  return;
+}
+
+05e3473d - *Disable Push Camera*. Bingo. This appears to be a bool and setting it to nonzero disables camera "pushing", that is, the camera can rotate outside of environmental bounds. It is still always focused on Rayne though- I need to figure out how to change its position and focus independent of a game actor. However, having Push Camera disabled may allow this in combination with forcing position values. Activating Disable Push Camera seems to automatically set Time Factor to zero- should not be a problem for a photo mode because time factor should be set to one when returning to gameplay.
+
+05e3473c - Debug focus point. Very interesting! This appears to be a bool that draws blue 3D rectangles over objects the camera tracks. It might be possible to make the camera move by figuring out where the focus point is stored and moving that- still no luck finding true camera pos.
+
+FUN_004fc4d0 - In Ghidra, this is the function called from setCameraModeFixed in the big dispatch table at FUN_004cabc0. Once I figure out how to inject or hook the game, I should be able to call this directly (assuming it does what I think it does.)
+
+5E350E8 (offset 0208) - Camera Focused Object. During regular gameplay this is a pointer to Rayne. If you have a pointer to an entity, you can override it and the camera will focus on that object. Unfortunately, setting it to null crashes the game.
+
+CCameraPathActor - Scripted cameras that are used during cutscenes. If I can't get the game camera working, maybe an improvised photo mode using a runtime dynamically generated CameraActor might work?
+
+05E350F4 - Camera Mode- seems to be an int (enum). It seems that fixed camera mode is 0x1a, or 26. However, I set a hotkey in CE to increment this value by 1, and it seemed to swap between a large variety of camera modes, such as rail shake camera modes, different zoom levels, etc. But, when I hit 22, the game switches the camera mode back to 0. Because of that, it is unclear if the camera modes are ints or bit flags, and if the latter, need to definitely study it some more or look at the Ghidra decompilation to figure out how to set it correctly. No matter the mode, as far as I can tell the camera always seems to have some kind of focus point that it rotates around- I still have not found a "free" camera. I do not know what the value for 0x1a or 26 is supposed to be, but the camera doesn't let me set it to that- it reverts back to 0 when attempted. *Camera Mode 15* is very interesting- when set to this mode, instead of the camera focus point being set to Rayne's upper torso, it is set to Rayne's feet- so it may be pointing to some kind of entity base/world position instead of an offset position.
+
+5e35138 - Some kind of interpolation/tweening timer for cutscenes/possibly CCameraPathActor. When a cutscene begins, this value begins incrementing.
+
+FUN_004fe860 - appears to be a camera tick function.
+
+FUN_004fd620 - appears to apply the camera state to the renderer.
+
+05E24EFC (offset 0x1c) - Camera FOV (great for photo mode!)
+
+FUN_00484230 - This function appears to be *the* global function that overwrites the camera values, writing a 3x3 rotation matrix to 0x061049EC (need to verify if this is static.)
+
+# Options menu and cheats
+
+05EEE940 - appears to be the base struct, static, of the options/cheats menu.
+
+Don't really need these addresses, but I'll write them down anyway:
+
+05E337C0 - camera vertical axis. 1 when not inverted, 0 when inverted.
+05EEE484 - camera vertical axis, 0 when not inverted, 1 when inverted.
+05EEE994 - camera horizontal sensitivity slider. Does not affect the true camera sens, only the slider representation in the options menu. Float from 0 to 1. Does not appear to be initialized memory until the slider is moved.
+
+# BSP List
+
+The map data in game appears to be stored in a BSP tree structure of some kind.
+
+05FF3DF0 - Pointer to the root node index of a BSP tree.
+05FF3DF4 - Appears to be a count of BSP nodes.
+
+Following the pointer at 05FFD3F0 reveals a memory region that is rewritten with new data on level loads. These addresses appear to contain positional data. Some of them are updated during gameplay but many of them are totally static.
+
+# The Entity List
+
+05FEFEA8 - This appears to be the entity/update list, along with a sorted float value that may represent distance. The distance may be meant for culling- the game probably only updates the entities that are close enough to Rayne to be observed by the player, and entities out of range are not simulated for optimization purposes. They are stored in 8 byte offsets, the first 4 bytes is a pointer to the object, the next 4 bytes are the calculated distance. There does not appear to be any padding between any elements whatsoever in the list, so it could be assumed that a null byte is the end of the list.
+
+There's more memory at 05FF3E38 that is in the region of 05FFC5B0. I don't know where it begins or ends. All I can tell is that it seems to be updated when a new enemy spawns (ie, immediately after killing a spawned enemy.)
+
+I have to check these pointers by hand to see what they reference, so it will take some time, but I would bet the three different arrays are meant to store objects of different interactivity levels ie, enemies vs props.
+
+05FEFEC0 - This is a stable pointer to a dynamically allocated heap that contains interactable props, script triggers, and characters in the game.
+
+05ff3d28 - Appears to be a count of entities that are currently visible to the camera (not all scene entities.)
+
+# Knowledge base / interesting stuff
+
+- Rayne's health bar is stored as a float from 0.0 to 1.0. There are two health bars, red and white. When Rayne takes damage, a white portion of the bar is shown as health lost, before it disappears. This means that somewhere there are variables for health in a previous update and health in the current update to calculate the size of this white portion of the health bar. There would also be variables of its lifetime. I should find the dynamic address of this logic to see if I can hook into the UI here.
+
+- I found that Rayne's ammo meter UI representation is stored in the same way. If I find these representations of the underlying values I can calculate the base address of the UI object.
+
+- Health and rage are stored as 0 to 1000 at the beginning with no upgrades, but can be upgrade to a maximum of 2000.
+
+- Rayne's ammunition pool is a float from 0 to 1000. It doesn't upgrade to a larger pool.
+
+- Blood gun modes, maximum ammo per mode, derived from pool, and ammunition cost per shot:
+(these values are from new game plus, so these are the values when all guns are max level)
+Blood Shot - 66 / 15 per shot
+Blood Stream - 50 / 20 per shot
+Blood Spray - 20 / 50 per shot
+Blood Bomb - 14 / 71 per shot
+Blood Flame - 14 / 71 per shot
+Blood Hammer - 8 / 125 per shot
+
+- Gun mode names found in .ABL files:
+// gunmode list
+gunmode: single
+gunmode: rapid
+gunmode: scatter
+gunmode: grenade
+gunmode: flamethrower
+gunmode: rocket
+
+- Rayne's weapon system is stored in a different section of memory than from her base struct.
+
+- Quiet Thunder (Rayne's move where she fires her dragons in a gun kata circular motion) consumes ammunition even if the infinite ammo cheat is enabled!
+
+- The powers that are available to Rayne in each level do not appear to be hardcoded in the binary, because in the WORLD directory (can be extracted from the game with the PODtools utility) there are files labelled .ABL ("ability") that determine what combos and powers Rayne has available in that level.
+
+- Similarly, it doesn't appear that enemy spawns are hardcoded either. In the .LVL files in the WORLD directory, there are entries like this:
+{ CZPunk "ZPunk1"
+	-186.171,-113,-39    // pos
+	0,0,0    // orient
+	0    // enabled
+	""    // group
+	0    // attachCount
+	300    // hitPoints
+	0    // numCarryHands
+	1    // sizeScale
+	300    // maxHitPoints
+	0    // invulnerableFlag
+	"(none)"		// scriptWalkDest
+	3    // scriptWalkDist
+	1e+030    // scriptRunDist
+	-1    // scriptWalkTimer
+	1.01567    // speed
+	0    // poolMe
+	1    // randomizeMe
+	"(none)"		// scriptVictim
+	""    // patrolNamePattern
+	300    // guardDistance
+	150    // victimHeight
+	"(none)"		// victim
+	0.5    // perception
+	"(none)"		// ourPost
+	0    // postModeFlag
+	0    // holdPosFlag
+	-1    // currentPatrolPointIndex
+	2    // spawnType
+	120    // peripheral
+} CZPunk "ZPunk1"
+
+- Delete a node in Reclass = backspace (not delete???)
+
+- There is a reference to setCameraModeFixed in a function I found in Ghidra: void __thiscall FUN_004cabc0(FILE *param_1,char *param_2). This is over 5000 lines and I'm not exactly sure what it does, but there is a ton of game function names packed in here. Could be a dispatch table (maybe for the scripting engine.)
+
+- It looks like Rayne inherits from a base class that at least some enemies share, because as far as I can tell normal enemies (the punks) have their health offset at 39C8, just like Rayne. I can access enemy addresses by following Rayne's autoaim target pointers at 47C8 and 4840.
+
+- 05EF4AD0 - Currently selected menu item (row) in the pause menu. If there are "header" sections in the menu (like in the options menu with blue headers like ROTATION DIRECTION and ROTATION SPEED in camera settings) those indexes are not selectable, but take up a row. "Empty" or "spacer" rows also occupy a row without being selectable.
+
+- Camera system coordinates: the game seems to use an XZY coordinate system. 053E4EE0 + 004 is X, +008 is Z, and +00C is Y. But the rendering global values at 0x061212F34/38/3C expect XYZ, so we have to swap values accordingly to match the renderer. Then we know that 0x005E1A10 is the function that writes the render globals, so we hooked that to overwrite our final camera values and have complete control over the camera. We couldn't overwrite the values in memory because they'd be overwritten by the game each tick. The definition of that function is:
+`void FUN_005e1a10(float* position, float* angles, float fov, float* listener)` (a stdcall)
+
+- Angles being pitch, yaw, and roll.
+
+- Listener is a position for 3D audio.
+
+- We hook 005e1a10 and intercept its input values. Our hook runs *before* the function, and passes the values we want.
+
+- I suspect that 05F2FA58 might be a HUD toggle, (a boolean where 0 is no hud) so I could overwrite it for photo mode. It updates every frame just like the camera- maybe it is possible to hook into the same camera function as I already have, instead of having to hook a different function.
+
+- FUN_00585250: Something to do with the gun system. Not sure if it is Rayne's guns or NPC guns. Interesting reference to "increaseROF", "increaseDamage", whihc may be called when Rayne's weapons level up. Also "addLaserSight", which must be a cut feature.
+
+- String "currentGunIndex" at interesting 0070bdc4, interesting
+
+- So we know Rayne's guns are supposed to "level up" with use. There appear to be strings in game related to their base ammo cost and then a multiplier, which would presumably decrease in game. I've not used the guns in game enough to know what the intended behavior is supposed to be because they suck. For example:
+DEFINED	0070b84c	s_Default_Ammo_Cost:_Bullet_0070b84c	ds "Default Ammo Cost: Bullet"
+
+- What I'm looking for is to find the static base values somewhere in the executable and overwrite those, instead of attempting to find the dynamically allocated values- then there should be no weirdness with overwritten values conflicting with the logic of guns levelling up (for example, if I increase base ammo, the guns might level up and have a new value that's lower than my overwritten value.)
+
+- There's a function at FUN_00586e40 that looks like it assigns these ammo costs, ROF multipliers and damage multipliers. It's not clear what this function does... I don't know why these would be assigned in a function instead of static values. "Aiming error" here looks like it might not be an "error" in the programming sense, maybe it is an accuracy value? Anyway, this function references a function that is stubbed out- it is probably developer tooling no longer in the final build of the game. It could have been a developer console.
+
+- Still, even though that function has been removed, references to it could still prove useful. In function 00549bf0, there's sections like this:
+          FUN_0067a350("Main Character","Max Rage",param_1 + 0x8364,2,0x3f800000,0x447a0000,
+                       0x41200000);
+          FUN_0067a350("Main Character","Blood Rage Cost",&DAT_007c1b48,2,0,0x43fa0000,0x41200000);
+          FUN_0067a350("Main Character","Blood Fury Cost",&DAT_007c1b4c,2,0,0x43fa0000,0x41200000);
+          FUN_0067a350("Main Character","SlowMo Cost",&DAT_007c1b3c,2,0,0x43fa0000,0x41200000);
+          FUN_0067a350("Main Character","Super Speed Cost",&DAT_007c1b40,2,0,0x43fa0000,0x41200000);
+          FUN_0067a350("Main Character","Freeze Time Cost",&DAT_007c1b44,2,0,0x43fa0000,0x41200000);
+          FUN_0067a350("Main Character","AuraVision Cost",&DAT_05ec0768,2,0,0x43fa0000,0x41200000);
+          FUN_0067a350("Main Character","Ghost Feed Cost",&DAT_007c1b50,2,0,0x43fa0000,0x41200000);
+          FUN_0067a350("Main Character","Possesion Cost",&DAT_007c1b54,2,0,0x43fa0000,0x41200000);
+          FUN_0067a350("Main Character","Max HitPoints",param_1 + 0x39cc,2,0x3f800000,0x44fa0000,
+                       0x41200000);
+          FUN_0067a350("Main Character","Flinch From Bullets",param_1 + 0x8d0d,3,0,0x3f800000,
+                       0x3f800000);
+          FUN_0067a350("Main Character","Max Block Angle",&DAT_007c1b38,2,0,0x43b40000,0x40a00000);
+
+- Even though 0067a350 is gone, maybe offsets can be calculated from it?
+
+- So it would be very useful to go through and find every reference to FUN_0067a350. It could have data on the offsets for many structs of the game.
+
+- Also, we could hook the function and create our own debug console!
+
+- "So the problem with the guns in Bloodrayne 2 is that they do no damage. But they compensate for it by also not having any ammo."
+
+- Previous weapon index (read only) rayne2.exe+5B2FAF0
+- Current Weapon Index (read only) rayne2.exe+5B2FAEC
+- Next weapon index (read only) rayne2.exe+5B2FAF4
+- These are just what they say, numbers 0-6 corresponding to current equipped weapon mode and they wrap around.
+
+- rayne2.exe+5D276EC + 1139c = Current equipped weapon mode, an int 0-6. I can overwrite this manually but it causes unintended things to happen, for example it's possible to set this to a weapon mode that isn't unlocked yet.
+
+- The function to switch weapons from in game is FUN_005b5070. It's not necessary to HOOK it, just calling it works.
+- But, just as changing the raw value, it still lets us equip weapon modes we don't have unlocked.
+
+- Unlocked weapons flag: 007bf4bc is a pointer to an address of an object that seems to manage unlocked weapon data. +34 offset from that is a flag that checks for weapons unlocked via bit masking.
+0x03 = 0b00000011 = weapons 0 and 1 unlocked (Blood Shot, Blood Stream)
+0x3F = 0b00111111 = weapons 0-5 all unlocked
+- So we can follow this pointer and offset to verify what weapons are unlocked before calling our weaponswitch function.
+
+# Tutorial message boxes
+
+So I am interested in figuring out how tutorial message boxes work, because if I can hook the creation of a message box, I can display message boxes to the player which would be useful.
+
+I found strings in memory corresponding to the onscreen tutorial message boxes, then tracked which functions read and wrote to them:
+
+- FUN_005de960 - Message box?
+- FUN_004f4560 - Message box?
+
+These functions may be 1. specialized functions for spawning tutorial messages, 2. functions for spawning actors, 3. functions that interact with the scripting engine, or any combination of those.
+
+Interestingly, I cannot find the strings corresponding to the tutorial text hard coded in the executable in Ghidra. There is definitely some kind of tutorial system referred to as "Tute" in the game code, but it must be external or in a script file somewhere that I have not found yet. In x32dbg I saw lines like this:
+
+0019F620  208869F7  "deleteActor(Trig_Tute_Move1)"
+
+So Tute must be an Actor. In the .lvl script file for the mansion level, I found references to Tute actors:
+
+CTrigger "Trigger_DeleteTute1Spawn"
+
+CTrigger "Trigger_Tute_Combat1"
+CSpawn "Spawn_CombatTute1"
+CSpawn "Spawn_CombatTute2"
+
+In the .SCB script file for the mansion level, I found more references to tutes, this time in scripting calls:
+
+setCameraPathActor(cpa_raynebegincombattute1, 1, 0)
+
+createActor(Trigger_Tute_FeedTutorial)
+
+So in the mansion level, when encountering a specific enemy, a message box appears: "Feed on prey", followed by the key that the player has bound to the Feed button. As I mentioned, "Feed on prey" appears nowhere in a Ghidra string search. I have not been able to find out where the tutorial messages are stored. But what I'm interested in is creating message boxes, so I need to figure out how to spawn a Tute actor, and that also means I need to figure out how to destroy a Tute actor.
+
+In other words, it's starting to look like I need to fully understand the scripting engine and how to invoke scripts in order to accomplish this.
+
+I put a breakpoint on 004f4560, which I suspect spawns message boxes (or maybe it spawns Actors). I was able to find a few interesting things (not fully familiar with x32dbg yet so I'm not sure what these lines are called)
+
+0019F6F4  20886A9C  "dbBoxedDisplay(ost_tute_combat1,999)"
+
+The breakpoint hit again when the next tutorial was triggered:
+0019F5DC  2088693A  "dbtimedDisplay(ost_cleartext)"
+
+0019F620  20886913  "createActor(Trigger_Tute_FeedTutorial)"
+
+0019FC64  06032334  rayne2."AreMooksDead" - A check to see if the enemies were defeated before allowing the door to unlock. "AreMooksDead" doesn't appear anywhere in a Ghidra string search. I did find it in A1_MANSION.SCB.
+
+# Interesting functions
+
+- So as previously stated, FUN_0067a350 appears to be a debug logging function that is removed from the final build of the game, but it still has references to it all over the game's code. In some of these cases it looks like these logging statements map data structures. So I'm going through xrefs to this function to find interesting things.
+
+- So I found a few lines like this in FUN_00408A40:
+          FUN_00622ae0("blade-hit?.wav",3);
+          FUN_00622ae0("swipe??l.wav",3);
+          FUN_00622ae0("rayne-scissor.wav",3);
+          FUN_00622ae0("rayne-attack-n4.wav",3);
+- It doesn't look like this function plays sound effects. It may be binding SFX to an event
+
+- FUN_00446360 - some interesting flags that appear to be for enemies and enemy behaviors, such as perception, guard distance, and canFeedOnMe
+
+- FUN_004a4f40 - "Time to wait before heading to shadow", this could be for Ephemera's boss fight?
+
+- FUN_0050af60 - "HDR  FX" with film grain and attributes - is this unused or is it for Aura Vision?
+
+- FUN_00549bf0 - Definitely Rayne's constructor and the logging statements map out ability costs, max HP, flinch, block angles, and what looks like sound effects too? 00622ae0 is called from here again; maybe this is binding sound effects to certain events again.
+
+- FUN_00658ef0 - looks like it sets "Rail suck zone" and "pole suck zone." Potentially could be used to increase the grabbable hitboxes?
+
+- FUN_00661050 - "Main Character" "Max Bite Distance".
+
+- FUN_00666ff0 - "Add to rage", "Lock-on move speed"
+
+- FUN_00677690 - "Lock on nearby range", "Lock on to off-screen targets"
+
+- FUN_00678880 - This could be a function for initializing Rayne's object. there are strings labelled foot and blade damage, and it calls functions that reference collision and skeletons, plus a lot of variable declarations at the beginning.
+
+- FUN_00591F70, which contains FUN_00622ae0("ui-confirm.wav",3); The latter seems to register a sound to an event
+
+- FUN_00621cc0 - This might be a sound playback function that plays a sound by filename.
+
+# Other
+
+PTR_DAT_007c5130 - Suspected this (0x007c5130) is a pointer to a global POD manager/loading object and its runtime address may be 0x05f301d8 (need to test this.)
+
+0x05dcc0a0 - This is an array of two function pointers: 005A3FD0 and 004937B0. These functions are file loading handlers. The first loads files from POD archives. If there is no file found in the POD archive, it falls back to the second. The second loads files from asset folders, ART\, MODELS\, etc. By swapping these two in memory we can load files (ie modded assets) *before* the game checks the POD archives for them, making drop-in asset mods possible.
+
+Kind of weird - If I reboot my machine and run the Gunsucked Launcher, the DLL injection takes about 12 seconds. Start GOG Galaxy and load the game through GOG Galaxy once, then run the launcher and it takes about 4 seconds. Even after closing Galaxy, it takes less time.

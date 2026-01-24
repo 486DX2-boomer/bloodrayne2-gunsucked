@@ -1,0 +1,49 @@
+Next goals:
+1. Map Rayne's struct (In progress)
+2. Find camera x, y, z (it's not so simple...)
+	- Found Time Factor address, cannot find camera pos!
+	- I am going to have go through offset by offset and completely brute force it.
+	- The camera is controlled by camera modes and focus points, not a simple X,Y,Z.
+3. Attempt to map Rayne's states - jumping? Using harpoon? Powers activated?
+4. For photo mode, need to disable hud- there has to be a toggle somewhere for HUD and letterbox mode because they are enabled/disabled for cutscenes! (Done)
+5. Idea: In the mansion tutorial, there's a pop up message for Mouse1 = Blades, F=Kick, etc. I could search memory for these strings and figure out if there's a message box object I could use to print messages in-game, like a debug console for saying stuff like "Photo Mode On" etc. (DONE)
+6. Idea: Maybe we can't get the photo mode to move the camera position arbitrarily, or maybe we don't know how to instantiate our own CCameraPathActor, but what if we add a "cycle target" key to the photo mode, that accesses the entity list and cycles through the objects? (Unneeded)
+7. Super slow mode: Implemented but it's janky how it interacts with Photo Mode. It should be either exclusive or there needs to be smarter tracking of which class owns time factor. (Done)
+8. Super slow mode idea: instead of instantly changing the value, interpolate it over time for a speed ramping down/up effect
+9. No Hud - should auto activate when Photo Mode is activated. (Done)
+10. Add super slow mode back in. (Done)
+11. Get launcher working. (Done)
+12. Config file for the mod- hotkeys, camera speed values, etc. Basically anything that is a define macro right now. (done)
+13. Launcher opens a dialogue box. Mostly so the player can see they're launching the mod and it's not silent. Also, perhaps toggles to enable/disable features. (first part done, second part not. Config is via ini)
+14. Some kind of message at the main menu to notify the player the mod is loaded. (done)
+15. Fix the launcher so it detects the game executable and dll properly. (Not hardcoded)
+16. Photo mode: Adjustable sensitivity, or sensitivity is automatically lowered as FOV is increased (done)
+17. KeyInput - change this so keys don't fire when the game window isn't focused! (done)
+18. Photo mode: Play a sound when entering and exiting photo mode (Done)
+19. MouseInput - make sure mousewheel downs aren't firing when the game window isn't focused (Done)
+
+Bloodrayne 2 Mod Goals:
+1. Reduced ammunition cost and increased power of bloodguns
+2. Faster combat! Faster feeding, faster animations. Less downtime.
+3. Modified difficulty curve. Make the last half of the game not such a slog
+4. Let Rayne use feeding/harpoon on late game enemies!
+5. Sound tweaks: Louder music, quiter enemy screams
+6. Fix the horrible environmental puzzles! Make it easier to throw enemies where intended or bypass them entirely
+7. Photo Mode
+8. No Hud Mode (complements Photo Mode)
+9. Costume Slots (Load modded costumes for Rayne without replacing defaults)
+10. Menu reverse engineering (have already found a value for selected menu row- could show messages, add mod options menu, etc)
+11. Mod launcher with selectable features (ie, enable or disable gun balancing so players can choose modded or vanilla gameplay)
+12. Externalized files, ie, can load costumes from folders instead of packing them into resource archives.
+13. Externalized configuration, ie, player can change gun balancing values in an INI
+14. Photo mode features- turn off rendering Rayne/enemies? Show an entity list and decide which ones get rendered? For environmental or first person shots. How about selectable poses for Rayne?
+15. Gun hotkeys. The player has to cycle through gun modes one at a time, always one direction. It would be really helpful to have hotkeys for next AND previous weapon, as well as dedicated keybinds per weapon like an FPS.
+16. Photo Mode Strategy:
+	- 1. Hooking strategy - eliminates the ability to use camera modes.
+	- 2. Actor strategy - Lets us still use camera modes.
+	- It might be necessary to at least try both strategies and see which one makes more sense
+
+Stretch Goals:
+1. Weapon Wheel
+2. Targeting System Fix
+3. Regenerating Health/Rage/Ammo - optional to make the game just a bit easier for new players. there are seriously oppressive sections of the game that were a horrible slog on my first playthrough where the game just keeps throwing powerful enemies at you you might not necessarily know how to fight, plus it doesn't give you any enemies to feed off of to regain health. Plus first time players won't hit all the vampire doors unless they have a guide open.
