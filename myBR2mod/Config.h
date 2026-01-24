@@ -15,9 +15,6 @@
 #define DEBUG_LOG(msg) ((void)0)
 #endif
 
-#define DEBUG_TESTING_DLL_LOCATION false // launch and attach the DLL from build folder instead of game folder. if false, uses working directory
-#define DEBUG_TESTING_GAME_PATH L"G:\\GOG\\BloodRayne 2 Terminal Cut\\rayne2.exe"
-
 // game addresses
 namespace Rayne2 {
 

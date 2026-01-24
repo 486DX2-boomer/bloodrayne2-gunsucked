@@ -3,6 +3,9 @@
 #include <Windows.h>
 #include "../myBR2mod/Config.h"
 
+#define DEBUG_TESTING_DLL_LOCATION false // if true, launch from absolute path below instead of working directory
+#define DEBUG_TESTING_GAME_PATH L"G:\\GOG\\BloodRayne 2 Terminal Cut\\rayne2.exe"
+
 int main()
 {
     std::cout << "starting rayne2.exe\n";
