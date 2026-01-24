@@ -6,7 +6,7 @@
 #include "INIReader.h"
 
 // logging and console
-#define DEBUG_CONSOLE_ENABLED true
+#define DEBUG_CONSOLE_ENABLED false
 
 #if DEBUG_CONSOLE_ENABLED
 #include <iostream>
