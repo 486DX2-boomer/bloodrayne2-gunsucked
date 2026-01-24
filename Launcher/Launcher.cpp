@@ -1,7 +1,6 @@
 // The launcher should load rayne2.exe and inject the mod DLL after the process has started.
 #include <iostream>
 #include <Windows.h>
-#include "../myBR2mod/Config.h"
 
 #define DEBUG_TESTING_DLL_LOCATION false // if true, launch from absolute path below instead of working directory
 #define DEBUG_TESTING_GAME_PATH L"G:\\GOG\\BloodRayne 2 Terminal Cut\\rayne2.exe"
@@ -35,13 +34,28 @@ int main()
         &si, // STARTUPINFO struct
         &pi) // PROCESS_INFORMATION struct
     ) {
-        std::cout << GetLastError();
+        MessageBox(NULL,
+            L"Couldn't find rayne2.exe.\n\nMake sure the launcher is in the BloodRayne 2: Terminal Cut game directory.",
+            L"GunSucked Mod",
+            MB_OK | MB_ICONERROR);
+        return 1;
     }
     
     std::cout << "process id: " << pi.hProcess << std::endl;
     auto rayne2Handle = pi.hProcess;
 
     LPCSTR dllPath = "GunSucked.dll";
+
+    // Check if DLL exists before attempting injection
+    if (GetFileAttributesA(dllPath) == INVALID_FILE_ATTRIBUTES) {
+        MessageBox(NULL,
+            L"Couldn't find GunSucked.dll.\n\nMake sure the DLL is in the BloodRayne 2: Terminal Cut game directory.",
+            L"GunSucked Mod",
+            MB_OK | MB_ICONERROR);
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+        return 1;
+    }
 
     if (rayne2Handle && rayne2Handle != INVALID_HANDLE_VALUE) {
 
