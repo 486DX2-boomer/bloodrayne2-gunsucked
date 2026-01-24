@@ -802,7 +802,7 @@ public:
             DEBUG_LOG("[Outfit] Warning: Could not detect game directory");
         }
 
-        this->customOutfits.reserve(OUTFIT_MAX_ENTRIES);
+        this->customOutfits.reserve(g_Config.outfitMaxEntries);
 
         if (!this->menuHook.initialize(this)) {
             DEBUG_LOG("[Outfit] Warning: Could not initialize menu hook");
@@ -1009,8 +1009,8 @@ public:
             return false;
         }
 
-        if (this->customOutfits.size() >= OUTFIT_MAX_ENTRIES) {
-            DEBUG_LOG("[Outfit] Maximum custom outfit count reached (" << OUTFIT_MAX_ENTRIES << ")");
+        if (this->customOutfits.size() >= g_Config.outfitMaxEntries) {
+            DEBUG_LOG("[Outfit] Maximum custom outfit count reached (" << g_Config.outfitMaxEntries << ")");
             return false;
         }
 

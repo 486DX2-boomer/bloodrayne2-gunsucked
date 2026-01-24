@@ -277,7 +277,7 @@ public:
         DEBUG_LOG("[PhotoMode] pitch:" << (*this->cameraPitch) << " yaw: " << (*this->cameraYaw));
 
         // disable HUD on enter
-        if (PHOTO_MODE_DISABLE_HUD_ON_ENTER) {
+        if (g_Config.photoModeDisableHudOnEnter) {
             if (this->noHud) {
                 noHud->hudOff();
             }
@@ -298,14 +298,14 @@ public:
         DEBUG_LOG("[PhotoMode] disabled");
 
         // re-enable HUD
-        if (PHOTO_MODE_DISABLE_HUD_ON_ENTER) {
+        if (g_Config.photoModeDisableHudOnEnter) {
             if (this->noHud) {
                 noHud->hudOn();
             }
         }
 
         // restore time factor
-        if (PHOTO_MODE_RESTORE_TIME_FACTOR_ON_EXIT) {
+        if (g_Config.photoModeRestoreTimeFactorOnExit) {
             if (this->superSlow) {
                 superSlow->disable();
             }
