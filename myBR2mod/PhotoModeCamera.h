@@ -325,15 +325,19 @@ public:
 
     // to scale camera adjustments based on current fov
     float fovScale() {
+        if (!g_Config.photoModeAllowSensitivityScaling) {
+            return 1.0f;
+        }
+
         // the game stores FOV inverted from how you'd expect. higher fov = zoomed in, not out.
-        // so this formula is inverted from 
+        // so this formula is inverted from
         // return powf( this->photoFov / g_Config.cameraReferenceFov, g_Config.cameraSensitivityScale);
 
         float scale = powf(g_Config.cameraReferenceFov / this->photoFov, g_Config.cameraSensitivityScale);
 
-        // clamp to a maximum sensitivity (remember to move this to a ConfigDefault)
-        if (scale > 2.0f) {
-            return 2.0f;
+        // clamp to max sensitivity
+        if (scale > g_Config.cameraMaxSensitivityScale) {
+            return g_Config.cameraMaxSensitivityScale;
         } else return scale;
     }
 
