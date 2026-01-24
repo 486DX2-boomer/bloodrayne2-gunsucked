@@ -6,6 +6,9 @@
 #define DEBUG_TESTING_GAME_PATH L"G:\\GOG\\BloodRayne 2 Terminal Cut\\rayne2.exe"
 #define DEBUG_LAUNCHER_CONSOLE false // if true, show console window with debug output
 
+// for auto-dismissing message box
+extern "C" int WINAPI MessageBoxTimeoutW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType, WORD wLanguageId, DWORD dwMilliseconds);
+
 int main()
 {
 #if !DEBUG_LAUNCHER_CONSOLE
@@ -66,29 +69,73 @@ int main()
         return 1;
     }
 
-    if (rayne2Handle && rayne2Handle != INVALID_HANDLE_VALUE) {
+    void* location = VirtualAllocEx(rayne2Handle, 0, MAX_PATH, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
-        void* location = VirtualAllocEx(rayne2Handle, 0, MAX_PATH, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    if (!location) {
+        MessageBox(NULL,
+            L"Failed to allocate memory in game process.",
+            L"GunSucked Mod",
+            MB_OK | MB_ICONERROR);
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+        return 1;
+    }
 
-        if (location) { // ensure nonzero
-            WriteProcessMemory(rayne2Handle, location, dllPath, strlen(dllPath) + 1, 0);
-        }
+    if (!WriteProcessMemory(rayne2Handle, location, dllPath, strlen(dllPath) + 1, 0)) {
+        MessageBox(NULL,
+            L"Failed to write to game process memory.",
+            L"GunSucked Mod",
+            MB_OK | MB_ICONERROR);
+        VirtualFreeEx(rayne2Handle, location, 0, MEM_RELEASE);
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+        return 1;
+    }
 
-        HANDLE hThread = CreateRemoteThread(rayne2Handle, 0, 0, (LPTHREAD_START_ROUTINE)LoadLibraryA, location, 0, 0);
+    HANDLE hThread = CreateRemoteThread(rayne2Handle, 0, 0, (LPTHREAD_START_ROUTINE)LoadLibraryA, location, 0, 0);
 
-        if (hThread) {
-            CloseHandle(hThread);
-        }
+    if (!hThread) {
+        MessageBox(NULL,
+            L"Failed to create remote thread in game process.",
+            L"GunSucked Mod",
+            MB_OK | MB_ICONERROR);
+        VirtualFreeEx(rayne2Handle, location, 0, MEM_RELEASE);
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+        return 1;
+    }
+
+    // Wait for LoadLibraryA to complete and check if it succeeded
+    WaitForSingleObject(hThread, INFINITE);
+
+    DWORD exitCode = 0;
+    GetExitCodeThread(hThread, &exitCode);
+
+    CloseHandle(hThread);
+    VirtualFreeEx(rayne2Handle, location, 0, MEM_RELEASE);
+
+    if (exitCode == 0) {
+        MessageBox(NULL,
+            L"Failed to load GunSucked.dll into game process.",
+            L"GunSucked Mod",
+            MB_OK | MB_ICONERROR);
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+        return 1;
+    }
 
 #if DEBUG_LAUNCHER_CONSOLE
     std::cout << "DLL injected successfully" << std::endl;
 #endif
-    }
-    else {
-        std::cout << "Something went wrong." << std::endl;
-    }
 
-    // I don't know what these do.
+    // Show timed success message (auto-dismisses after 3 seconds)
+    MessageBoxTimeoutW(NULL,
+        L"GunSucked Mod loaded successfully!",
+        L"GunSucked Mod",
+        MB_OK | MB_ICONINFORMATION,
+        0,
+        3000);
+
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
 
