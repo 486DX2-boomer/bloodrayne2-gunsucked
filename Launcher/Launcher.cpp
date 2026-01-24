@@ -4,10 +4,17 @@
 
 #define DEBUG_TESTING_DLL_LOCATION false // if true, launch from absolute path below instead of working directory
 #define DEBUG_TESTING_GAME_PATH L"G:\\GOG\\BloodRayne 2 Terminal Cut\\rayne2.exe"
+#define DEBUG_LAUNCHER_CONSOLE false // if true, show console window with debug output
 
 int main()
 {
+#if !DEBUG_LAUNCHER_CONSOLE
+    FreeConsole();
+#endif
+
+#if DEBUG_LAUNCHER_CONSOLE
     std::cout << "starting rayne2.exe\n";
+#endif
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
 
@@ -41,7 +48,9 @@ int main()
         return 1;
     }
     
+#if DEBUG_LAUNCHER_CONSOLE
     std::cout << "process id: " << pi.hProcess << std::endl;
+#endif
     auto rayne2Handle = pi.hProcess;
 
     LPCSTR dllPath = "GunSucked.dll";
@@ -71,9 +80,9 @@ int main()
             CloseHandle(hThread);
         }
 
-        if (rayne2Handle) {
-            CloseHandle(rayne2Handle);
-        }
+#if DEBUG_LAUNCHER_CONSOLE
+    std::cout << "DLL injected successfully" << std::endl;
+#endif
     }
     else {
         std::cout << "Something went wrong." << std::endl;
