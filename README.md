@@ -28,9 +28,9 @@ Each feature is toggleable and configurable, so if you want a vanilla experience
 | Toggle Super Slow Mode | F8 |
 | Toggle HUD | F9 |
 | **Photo Mode Camera** | |
-| Move Left / Right | [ / ] |
-| Move Down / Up | ; / ' |
-| Move Backward / Forward | , / . |
+| Move Left / Right | [ and ] |
+| Move Down / Up | , and . |
+| Move Backward / Forward | ; and ' |
 | Pitch Up / Down | Up Arrow / Down Arrow |
 | Yaw Left / Right | Left Arrow / Right Arrow |
 | Roll Left / Right | Insert / Delete |
