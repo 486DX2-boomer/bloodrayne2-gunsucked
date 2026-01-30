@@ -45,6 +45,107 @@ Each feature is toggleable and configurable and can be modified in gunsucked.ini
 | Previous Weapon | - |
 | Previous Weapon | Mouse Wheel Down |
 
+
+## Weapon Changes
+
+These are the modded properties of each weapon mode compared to the vanilla values. Some of the unmodded values appear incorrect (Blood Bomb and Blood Flame have their damage *reduced* at levels 2 and 3) but these values were extracted from hardcoded values in the game's executable.
+
+### Blood Shot
+
+- Damage Level 1: 75 (default 50)
+- Damage Level 2: 90 (default 55)
+- Damage Level 3: 112.5 (default 60)
+
+- Fire Rate Level 1: 5 (default 4)
+- Fire Rate Level 2: 5.5 (default 5)
+- Fire Rate Level 3: 6.5 (default 6)
+
+- Range: 120 (default 80)
+
+- Ammo Cost Level 1: 5.56 (default 25)
+- Ammo Cost Level 2: 5 (default 18)
+- Ammo Cost Level 3: 4.55 (default 15)
+
+### Blood Stream
+
+- Damage Level 1: 75 (default 50)
+- Damage Level 2: 80 (default 55)
+- Damage Level 3: 85 (default 60)
+
+- Fire Rate Level 1: 12 (default 8)
+- Fire Rate Level 2: 16 (default 10)
+- Fire Rate Level 3: 20 (default 12)
+
+- Range: 100 (default 80)
+
+- Ammo Cost Level 1: 11.11 (default 25)
+- Ammo Cost Level 2: 8.33 (default 22)
+- Ammo Cost Level 3: 6.67 (default 20)
+
+### Blood Spray
+
+- Damage Level 1: 20 (default 13.33)
+- Damage Level 2: 33 (default 8.33)
+- Damage Level 3: 45 (default 10)
+
+- Fire Rate Level 1: 1.5 (default 1)
+- Fire Rate Level 2: 1.66 (default 1)
+- Fire Rate Level 3: 1.75 (default 1)
+
+- Range: 80 (default 80)
+
+- Ammo Cost Level 1: 33.33 (default 100)
+- Ammo Cost Level 2: 28.57 (default 50)
+- Ammo Cost Level 3: 25 (default 50)
+
+### Blood Bomb
+
+- Damage Level 1: 200 (default 100)
+- Damage Level 2: 275 (default 50)
+- Damage Level 3: 350 (default 50)
+
+- Fire Rate Level 1: 1 (default 1)
+- Fire Rate Level 2: 1.25 (default 2)
+- Fire Rate Level 3: 1.5 (default 1)
+
+- Range: 80 (default 50)
+
+- Ammo Cost Level 1: 50 (default 200)
+- Ammo Cost Level 2: 40 (default 80)
+- Ammo Cost Level 3: 33.33 (default 67)
+
+### Blood Flame
+
+- Damage Level 1: 100 (default 100)
+- Damage Level 2: 120 (default 50)
+- Damage Level 3: 140 (default 50)
+
+- Fire Rate Level 1: 1 (default 1)
+- Fire Rate Level 2: 1.2 (default 1)
+- Fire Rate Level 3: 1.4 (default 1)
+
+- Range: 25 (default 10)
+
+- Ammo Cost Level 1: 66.67 (default 200)
+- Ammo Cost Level 2: 55.56 (default 80)
+- Ammo Cost Level 3: 45.45 (default 67)
+
+### Blood Hammer
+
+- Damage Level 1: 400 (default 300)
+- Damage Level 2: 500 (default 325)
+- Damage Level 3: 600 (default 350)
+
+- Fire Rate Level 1: 1 (default 1)
+- Fire Rate Level 2: 1.1 (default 1)
+- Fire Rate Level 3: 1.2 (default 1)
+
+- Range: 250 (default 200)
+
+- Ammo Cost Level 1: 83.33 (default 300)
+- Ammo Cost Level 2: 71.43 (default 131)
+- Ammo Cost Level 3: 62.5 (default 116)
+
 ## Using Photo Mode
 
 Photo mode is mostly self explanatory. Note it can also be used in conjunction with Super Slow Mode. If Super Slow Mode is enabled, then you can enter photo mode, frame your shot, and then toggle Super Slow Mode to unfreeze the game (to slow motion) while maintaining free camera control. Toggling Super Slow Mode again will return the game to its normal time factor, so you can retain free camera control at regular game speed.
@@ -67,7 +168,7 @@ And then place the outfit mod folders into this directory. Gunsucked Mod will lo
 
 ### A note on loading asset replacement mods
 
-If the outfit loading feature is enabled, then the game loads files from asset folders (ART, MODELS, ANIMATIONS etc) *before* loading from the game's POD archives. This is because the game defines two asset loading functions, with the second as a fallback for the first. (Some modders have already figured out that deleting files from the POD archives will allow them to be loaded from folders.) The outfit loading feature swaps the priority of the asset loading functions. This means that asset replacement mods that previously required packing the files into the game's POD archives should work by placing the files into the appropriate folders in the game directory. This opens the door for easier distribution and installation of mods such as sound replacers, animation replacers, and HD texture packs.
+If the outfit loading feature is enabled, then the game loads files from asset folders (ART, MODELS, ANIMATIONS etc) *before* loading from the game's POD archives. This is because the game defines two asset loading functions, one for POD archives and one for loose files, with the second as a fallback for the first. (Some modders have already figured out that deleting files from the POD archives will allow them to be loaded from folders.) The outfit loading feature swaps the priority of the asset loading functions. This means that asset replacement mods that previously required packing the files into the game's POD archives should work by placing the files into the appropriate folders in the game directory. This opens the door for easier distribution and installation of mods such as sound replacers, animation replacers, and HD texture packs, as well as direct editing of the game's script files.
 
 ## Notes for Modders
 
