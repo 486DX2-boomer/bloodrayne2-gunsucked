@@ -91,4 +91,7 @@
       <Filter>Source Files</Filter>
     </Text>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="binkw32.def" />
+  </ItemGroup>
 </Project>
