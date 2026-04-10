@@ -82,11 +82,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="libMinHook.x86.lib">
-      <Filter>Header Files</Filter>
-    </Library>
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="LICENSE.txt">
       <Filter>Source Files</Filter>
     </Text>

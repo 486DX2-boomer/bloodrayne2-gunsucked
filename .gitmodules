@@ -1,0 +1,3 @@
+[submodule "myBR2mod/minhook"]
+	path = myBR2mod/minhook
+	url = https://github.com/TsudaKageyu/minhook.git
