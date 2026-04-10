@@ -13,7 +13,7 @@ Aside from the weapon rebalance, other features include:
 
 ## Installation
 
-Place GunsuckedLauncher.exe, Gunsucked.dll, and gunsucked.ini into your Bloodrayne 2: Terminal Cut directory. Launch the game via GunsuckedLauncher.exe.
+In the game folder, rename binkw32.dll to binkw32_orig.dll, and then extract the mod's binkw32.dll and gunsucked.ini into the game folder. Launch the game normally.
 
 ## Configuration
 
