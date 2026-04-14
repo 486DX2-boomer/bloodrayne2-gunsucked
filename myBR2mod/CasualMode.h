@@ -1,16 +1,16 @@
 #pragma once
 #include "Config.h"
 
-// without some way to check game state, health regenerates in cutscenes and when the game is paused
-// Also, time factor is a value that is independent of Dilated Perception/Slow Mo/Time Freeze,
-// so regeneration rate isn't affected by slow mo powers
-// Without these problems being fixed this isn't ready to be added to the mod.
+// still to do:
+// make cooldown and regen rate configurable in the ini
+// optional sound when regen begins and ends
+// make Casual Mode a std::optional
+// update reverse engineering notes with pause/time factor findings
 
 class CasualMode {
-
 	float sinceLastDamage;
-	float healthRegenCooldown = 1000.0f; // load from config
-	float healthRegenRate = 2.0f; // load from config
+	float healthRegenCooldown = 10.0f; // load from config
+	float healthRegenRate = 100.0f; // load from config
 	bool healthRegenerating;
 
 	float sinceLastRageExpended;
@@ -64,10 +64,25 @@ public:
 		float* maxHealth = reinterpret_cast<float*>(rayneBase + Rayne2::RayneMaxHealthOffset);
 		float* maxRage = reinterpret_cast<float*>(rayneBase + Rayne2::RayneMaxRageOffset);
 
-		float timeFactor = *Rayne2::TimeFactor;
+		uintptr_t gameTimeBase = *reinterpret_cast<uintptr_t*>(Rayne2::GameTimeBase);
+		float timeFactor = *reinterpret_cast<float*>(gameTimeBase + Rayne2::WorldTimeFactorOffset);
+		int inCutscene = *reinterpret_cast<int*>(gameTimeBase + Rayne2::CutsceneActiveOffset);
+		int controlDisabled = *reinterpret_cast<int*>(gameTimeBase + Rayne2::AllowHeroControlsOffset);
+		// game unpaused = 0, game paused = 256
+		// so we dereference then determine if it is nonzero.
+		int pauseState = *reinterpret_cast<int*>(Rayne2::PauseState);
+		bool isPaused = (pauseState != 0);
+
+		//DEBUG_LOG("CM: cutscene status: " << inCutscene);
+		//DEBUG_LOG("CM: hero control status: " << controlDisabled);
+
+		// do not proceed if we're in a cutscene or non-interactive state (like pause menu)
+		if (inCutscene || controlDisabled || isPaused) {
+			return;
+		}
 
 		// In combat
-		if (*currentHealth < this->lastHealth) {
+		if (*currentHealth < this->lastHealth) { // in other words, Rayne took damage last tick.
 			this->healthRegenerating = false;
 			this->sinceLastDamage = 0.0f;
 		}
@@ -80,6 +95,7 @@ public:
 		if ((this->sinceLastDamage >= this->healthRegenCooldown) && (*currentHealth < *maxHealth)) {
 			this->healthRegenerating = true;
 			DEBUG_LOG("[Casual Mode] Regenerating health...");
+			// we should play a sound here (optional) to indicate health regeneration initiated
 		}
 
 		if (this->healthRegenerating) {
@@ -89,6 +105,7 @@ public:
 				*currentHealth = *maxHealth; // clamp
 				this->healthRegenerating = false;
 				DEBUG_LOG("[Casual Mode] Health regeneration disabled");
+				// play a sound here (optional) to indicate health regeneration ended
 			}
 		}
 

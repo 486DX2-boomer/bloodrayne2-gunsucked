@@ -15,6 +15,7 @@
 #include "DisplayMessage.h"
 #include "PlaySound.h"
 #include "Outfit.h"
+#include "CasualMode.h"
 
 void setupConsole() {
     if (!AllocConsole()) {
@@ -117,6 +118,7 @@ DWORD WINAPI MainThread(LPVOID param) {
     std::optional<GunBalance> gunBalance;
     std::optional<GunKeys> gunKeys;
     std::optional<Outfit> outfit;
+    CasualMode casualMode;
 
     if (g_Config.enablePhotoMode) {
         photoMode.emplace();
@@ -356,6 +358,8 @@ DWORD WINAPI MainThread(LPVOID param) {
         for (auto& input : inputs) {
             input->checkAndExecute();
         }
+
+        casualMode.update();
 
         Sleep(16);
     }

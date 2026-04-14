@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CasualMode.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="DisplayMessage.h" />
     <ClInclude Include="framework.h" />

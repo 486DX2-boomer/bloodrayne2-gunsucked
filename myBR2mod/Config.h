@@ -6,7 +6,7 @@
 #include "INIReader.h"
 
 // logging and console
-#define DEBUG_CONSOLE_ENABLED false
+#define DEBUG_CONSOLE_ENABLED true
 
 #if DEBUG_CONSOLE_ENABLED
 #include <iostream>
@@ -39,9 +39,10 @@ namespace Rayne2 {
     int* const CameraMode = (int*)(CameraBase + 0x214);
 
     bool* const PushCamera = (bool*)(0x05E3473D);
-    // Some misunderstood mechanics behind TimeFactor
-    // It's not "slow mo", this value does not change when using Dilated/SlowMo/Time Freeze
-    // this must control "delta" for the update loop and slow mo powers are controlled elsewhere
+
+    // TimeFactor is not "slow mo", this value does not change when using Dilated/SlowMo/Time Freeze
+    // it is a global scale for time factor that is computed along with Dilated Perception and other time powers
+    // in other words, this is Cheat Menu time
     float* const TimeFactor = (float*)(0x0619FB68);
 
     // UI and HUD stuff
@@ -79,6 +80,13 @@ namespace Rayne2 {
     uintptr_t const RayneMaxRageOffset = 0x8364;
 
     // uintptr_t const RayneAmmunitionOffset = 0x07FC; // offset is from CMultigun not CMainCharacter so have to find, name and calculate this separately
+
+    // for Casual Mode
+    uintptr_t const GameTimeBase = 0x007c07f8; // object controlling time factor, cutscene state etc.
+    uintptr_t const WorldTimeFactorOffset = 0x3D8; // world time factor is different from TimeFactor (Cheat menu). Explanation above
+    uintptr_t const CutsceneActiveOffset = 0x390; // 1 = cutscene active, 0 = gameplay
+    uintptr_t const AllowHeroControlsOffset = 0x39C; // whether Rayne is controllable. 1 = controls DISABLED, 0 = controls ENABLED
+    uintptr_t const PauseState = 0x5E33358; // 0 for unpaused, 256 for paused. type unknown
 }
 
 namespace Utilities {
