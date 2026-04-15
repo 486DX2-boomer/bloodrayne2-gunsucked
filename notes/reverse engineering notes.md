@@ -15,6 +15,7 @@
 13. [Scripting Engine](#13-scripting-engine)
 14. [Entity System](#14-entity-system)
 15. [UI System](#15-ui-system)
+16. [v1.1 Findings](#16-v1.1-findings)
 
 ---
 
@@ -749,3 +750,279 @@ Menu rows include non-selectable headers and spacers that still occupy index pos
 | `.LVL` | Level script (actor spawns, triggers) |
 | `.SCB` | Script file (game logic) |
 | `.ABL` | Ability definition (combos, powers per level) |
+
+---
+
+## 16. v1.1 Findings
+
+Observations made when working on v1.1, mostly to implement Casual Mode.
+
+### Game State Object — PTR_DAT_007c07f8
+
+The static pointer at `0x007c07f8` points to an object that holds  persistent settings (serialized to `rayne2.ini`) and runtime game state. This is the same object documented in Sections 5 and 11.
+
+#### Settings Layout (Confirmed via INI serialization function FUN_005188d0)
+
+`FUN_005188d0` writes settings to `%APPDATA%\BloodRayne2\settings\rayne2.ini` using `SHGetFolderPathA`. The helper functions are: `FUN_00518020` (write int), `FUN_005180e0` (write float), `FUN_00517f30` (write string), `FUN_00518240` (write boolean/flag). Section headers are set by `FUN_00517e80`.
+
+**Graphics section:**
+
+| Offset | INI Key | Type |
+|--------|---------|------|
+| +0x00 | gamePIXX | int (resolution width) |
+| +0x04 | gamePIXY | int (resolution height) |
+| +0x08 | gameBPP | int (bits per pixel) |
+| +0x0C | subtitleMode | int |
+| +0x10 | bloodFlag | int |
+| +0x1C | quimbyFlag | int |
+| +0x24 | showTutorials | int |
+| +0x2C | autoLockOnAttacker | int |
+
+**Control section:**
+
+| Offset | INI Key | Type |
+|--------|---------|------|
+| +0x30–0xB3 | keyButton[0..32] | int array (primary key bindings) |
+| +0xB4–0x137 | alternateKeyButton[0..32] | int array (alternate bindings) |
+| +0x138–0x1BB | gamepadButton[0..32] | int array (gamepad bindings) |
+| +0x1BC–0x1CB | gamepadAxis[0..3] | int array |
+| +0x1CC–0x1DB | invertAxis[0..3] | int array |
+| +0x1DC | autoCenterPitch | int |
+| +0x1E0 | mouseSensitivityX | float |
+| +0x1E4 | mouseSensitivityY | float |
+| +0x1EC | gameControl | int |
+
+There is a gap between `+0x1EC` and `+0x390` that may contain additional fields I haven't found yet. I haven't attempted to manipulate these offsets yet at runtime to see what the effects are.
+
+#### Runtime Game State Flags
+
+These offsets are on the same object, at higher offsets than the above settings.
+
+| Offset | Type | Field | Values |
+|--------|------|-------|--------|
+| +0x390 | int | Cutscene/scripted sequence active | 0 = gameplay, 1 = cutscene. Does NOT change during Bink video playback. |
+| +0x39C | int | Hero controls disabled | 0 = controls enabled, 1 = controls disabled. Mirrored to static global `DAT_06032060`. |
+
+Note: Both `+0x390` and `+0x39C` go to 1 during cutscenes and return to 0 during normal gameplay.
+
+| Offset | Type | Field | Values |
+|--------|------|-------|--------|
+| +0x394 | int | allowHeroDamage | Written by script handler `FUN_005d6930`. Stores raw return from boolean parser `FUN_004caac0`. |
+| +0x398 | int | allowEnemyAttack | Written by script handler `FUN_005d6820`. Same pattern as +0x394. |
+
+The boolean sense of `+0x394` and `+0x398` may be inverted relative to `+0x39C`. The `allowHeroControls` handler inverts the parser return with `(iVar3 == 0)`, while `allowHeroDamage` and `allowEnemyAttack` store the raw return value. This has not been fully verified at runtime.
+
+#### Time-Related Offsets
+
+| Offset | Type | Field | Notes |
+|--------|------|-------|-------|
+| +0x3D8 | float | Gameplay-scaled delta time | ~0.0167 at 60fps under normal gameplay. Scales down proportionally with Dilated Perception (~0.0067 observed). Goes to 0 when Cheat Menu Time Factor is set to 0 (photo mode). Does NOT go to 0 when game is paused via pause menu. |
+| +0x3DC | float | Raw frame delta time | ~0.0167 at 60fps. Unaffected by Dilated Perception — stays at ~0.0167 regardless of time scaling. Stays non-zero when Cheat Menu Time Factor is 0. |
+
+| Offset | Type | Field | Notes |
+|--------|------|-------|-------|
+| +0x3D4 | int/float | World-Time scale intermediate value | ~1092 (as int) during normal gameplay, ~436 during Dilated Perception. Possibly a fixed-point representation or intermediate calculation value. |
+
+### Pause State
+
+| Address | Type | Field | Values |
+|---------|------|-------|--------|
+| `0x05E33358` | int | Pause state | 0 = unpaused, 256 (0x100) = paused. Static address — does not change across restarts. |
+
+This is a static global, not accessed via any pointer in the mod's code. The value 0x100 (bit 9 set) suggests this may be a bitfield rather than a simple boolean. Other bits may represent other menu states, but I haven't seen that in testing.
+
+Located near a region of input state flags (e.g., `0x05E33368` appears to track forward movement / W key state).
+
+Written by two code paths:
+- `006A54CB`: `mov [ecx], eax` — generic register write, likely the input state update
+- `004F8CA8`: `mov edi, 05E33358` — hardcoded address load, likely the pause activation path
+
+### Time Factor System
+
+The game uses hierarchy of time factors to derive in-game speed.
+
+#### Cheat Menu Time Factor (Global Override)
+
+- Static address: `0x0619FB68` (also accessible via `rayne2.exe+3C6A70` + `0x2E8`, documented in Section 5)
+- Normal value: `1.0`
+- Range allowed by cheat menu: `0.1–4.0`
+- Used for mod's photo mode
+- Applied as a global multiplier at the engine level, upstream of all other time calculations
+- Independent of Dilated Perception — changing this does not affect Dilated Perception's behavior, and vice versa.
+
+#### World-Time Scale
+
+Manipulated by the `setTimeFactor` script command and by Dilated Perception. Is interpolated when activating time powers for a time "ramping down" and time "ramping up" effect.
+
+#### Gameplay-Scaled Delta (Final time factor)
+
+The final product at game state object `+0x3D8`: raw frame delta × world-time scale × cheat menu factor. This is what the player update function (`FUN_005520E0`) uses as `fVar2` for all gameplay timing — health drain, rage costs, ability timers, movement, animations.
+
+For Casual Mode health regeneration, `+0x3D8` is the value used as the delta because it encodes frame rate normalization, Dilated Perception scaling, and cheat menu override. When combined with the game state checks (`+0x390`, `+0x39C`) and pause state (`0x05E33358`), this provides correct regen behavior in all observed game states. In other words, health doesn't regenerate during cutscenes or when the game is paused, and it regenerates at a slower rate when Rayne has her time powers active.
+
+#### Time System Functions
+
+| Function | Purpose | Confidence |
+|----------|---------|------------|
+| `FUN_006498E0` | Returns gameplay-scaled delta: reads `+0x3DC` (raw delta) and multiplies by time channel scale from `FUN_006498C0` | Confirmed (decompiled and runtime-verified) |
+| `FUN_00649940` | `setTimeFactor` entry point. Sets override flag at `+0x324`, snapshots state from `+0x30C`–`+0x320` to pointer at `+0x2E4`, initializes lerp via `FUN_00648ed0` | Confident (decompiled) |
+| `FUN_00648ed0` | Initializes a TimeLerp struct: current value, target, duration, elapsed (0), and two timestamps | Confident (decompiled) |
+| `FUN_00648d50` | Records two timestamps into the lerp struct at `+0x10` and `+0x14`, likely from `QueryPerformanceCounter` or similar via `FUN_0069bdf0` | Suspected |
+| `FUN_00649780` | Retrieves current time factor for a given channel index. Called with index 5 from `setTimeFactor` handler | Confident (decompiled) |
+
+### Scripting VM
+
+`FUN_005db5a0` is `CScript::step`, the main script interpreter. Source file reference: `..\\core\\SCRIPT.CPP`. It is a command parser/dispatcher that reads instructions and calls handler functions.
+
+#### VM Architecture
+
+The script execution context is accessed at `this+0x5AC`. The instruction array pointer is at `this+0x5B4`.
+
+| Field | Location | Description |
+|-------|----------|-------------|
+| Instruction pointer | context+0x20 | Current instruction index |
+| Call stack depth | context+0x2C | Current gosub depth |
+| Return address stack | context+0x30 | 8 entries (max depth 8), each 4 bytes |
+| Finished flag | context+0x50 | Set to 1 when script terminates via return with empty call stack |
+
+Each instruction is a 12-byte struct:
+
+| Offset | Type | Description |
+|--------|------|-------------|
+| +0x00 | int | Source line number |
+| +0x04 | char* | Command string pointer |
+| +0x08 | int | Cached jump target (for if/else/goto, resolved on first execution) |
+
+`DAT_06032058` controls the mode. When non-zero, the system performs a validation pass — resolving labels and checking for duplicates without executing commands. `DAT_0603060c` is derived as `(DAT_06032058 == 0)` and gates actual command execution in each handler. Nearly every handler checks `DAT_0603060c` before performing side effects.
+
+#### Script Commands (Dispatch Table)
+
+The following commands were identified from the dispatch function. All string comparisons use `__strnicmp` (case-insensitive) followed by an `_isalnum` check on the next character to prevent partial matches (e.g., "if" must not match "idle").
+
+##### Control Flow (handled inline)
+
+| Command | Handler | Description |
+|---------|---------|-------------|
+| `{ }` | inline | Block delimiters (treated as no-ops) |
+| `:label` | inline | Label definition. Validated for alphanumeric + underscore characters. Checked for duplicates via `FUN_005d9780`. |
+| `if` | inline | Conditional. Parses condition via `FUN_005d6710` and `FUN_004caac0`. On false, skips to next instruction (or past else block). |
+| `else` | inline | Skips to end of else block. Uses cached jump target. |
+| `end` | inline | Script termination. Calls `FUN_0054dda0` conditionally. |
+| `goto` | inline | Unconditional jump to label. Label resolved via `FUN_005d9780`, cached in instruction struct. |
+| `gosub` | inline | Subroutine call. Pushes return address onto call stack (max depth 8). Overflow produces error. |
+| `return` | inline | Returns from gosub. Pops call stack. If stack empty, sets finished flag at context+0x50. |
+| `idle` | inline | Pauses script advancement by not incrementing the instruction pointer. Sets `DAT_06030608 = 0`. |
+| `breakPoint` | inline | Debug breakpoint. Displays message via `FUN_004f4560` and sets `this+0xC = 2`. |
+
+##### Game State Commands
+
+| Command | Handler | Description |
+|---------|---------|-------------|
+| `allowEnemyAttack` | `FUN_005d6820` | Writes to game state object +0x398 |
+| `allowHeroControls` | `FUN_005d68a0` | Writes to game state object +0x39C (inverted). Mirrors to `DAT_06032060`. |
+| `allowHeroDamage` | `FUN_005d6930` | Writes to game state object +0x394 |
+| `setTimeFactor` | `FUN_005d7bc0` | Parses `(factor, duration)` format. Factor clamped 0.0–4.0. Duration optional (default 0). Delegates to `FUN_00649940`. |
+| `setCharacterHealth` | `FUN_005d7590` | |
+| `setCharacterRage` | `FUN_005d7680` | |
+| `setHero` | `FUN_005d79c0` | |
+| `setVictim` | `FUN_005d7f20` | |
+| `setDeathAltitude` | `FUN_005d7950` | |
+| `setConveyorSpeed` | `FUN_005d7770` | |
+| `setPlatformSpeed` | `FUN_005d7860` | |
+| `setPlatformParam` | `FUN_005d8cf0` | |
+| `setTurretTarget` | `FUN_005d7d50` | |
+| `setWalkTimeout` | `FUN_005d80f0` | |
+| `setSayTimeOverride` | `FUN_005d7af0` | |
+| `setSkipLabel` | `FUN_005dae70` | |
+| `setLevelDescription` | `FUN_005dad90` | |
+
+##### Actor/Entity Commands
+
+| Command | Handler | Description |
+|---------|---------|-------------|
+| `attachActorToActor` | `FUN_005d69b0` | |
+| `detachActorFromActor` | `FUN_005d6af0` | |
+| `dismember` | `FUN_005d6bd0` | |
+| `fireweapon` | `FUN_005d6f30` | |
+| `gesture` | `FUN_005d7010` | |
+| `getImpalee` | `FUN_005d7210` | |
+| `getTeslaCoilActor` | `FUN_005d7330` | |
+| `snapToFace` | `FUN_005d82a0` | |
+| `turnToFace` | `FUN_005d8550` | |
+| `lookAt` | `FUN_005d89c0` | |
+| `movePlatform` | `FUN_005d8b80` | |
+| `raise` | `FUN_005d7450` | |
+| `shutUp` | `FUN_005d81f0` | |
+
+##### Dialogue/Display Commands
+
+| Command | Handler | Description |
+|---------|---------|-------------|
+| `dbConversation` | `FUN_005da1d0` | |
+| `dbSay` | `FUN_005da2e0` | |
+| `dbStartSay` | `FUN_005da480` | |
+| `dbTimedDisplay` | `FUN_005da590` | |
+| `dbBoxedDisplay` | `FUN_005daa30` | |
+| `startSay` | `FUN_005db010` | |
+| `timedDisplay` | `FUN_005d8450` | |
+
+##### Cinematic/Level Commands
+
+| Command | Handler | Description |
+|---------|---------|-------------|
+| `chainToLevel` | via `FUN_004f5a30` | Level transition. Checks current level state before chaining. |
+| `letterbox` | `FUN_005db1b0` | Toggle cinematic letterbox bars |
+| `playCinemat` | `FUN_005d8e20` | |
+| `queueVideo` | `FUN_005d8fa0` | |
+| `rollCredits` | `FUN_005d7500` | |
+
+##### Timing/Wait Commands
+
+| Command | Handler | Description |
+|---------|---------|-------------|
+| `wait` | `FUN_005db130` | |
+| `waitFor` | `FUN_005d88c0` | |
+
+##### Debug/Special Commands
+
+| Command | Handler | Description |
+|---------|---------|-------------|
+| `debug` | `FUN_005d6680` | Argument evaluation/debug output |
+| `gtfo` | `FUN_005d6680` then terminate | Logs "Script GTFO at line %d", sets `this+0x8 = 1` to terminate the situation |
+
+If no command matches, the dispatcher falls through to either `FUN_004d5700` (execution mode) or `FUN_004d56c0` (validation mode). These may handle extended/plugin commands or report unknown commands.
+
+#### Utility Functions
+
+| Function | Purpose | Confidence |
+|----------|---------|------------|
+| `FUN_00639580` | Skip whitespace / advance to next token. Called after every command match to position at arguments. | Confirmed (consistent usage across all handlers) |
+| `FUN_005d6710` | Argument validation. Returns error string pointer on failure, null on success. | Confirmed (used by if, debug, chainToLevel, and multiple handlers) |
+| `FUN_004caac0` | Boolean argument parser. Takes a 100-byte buffer (for error output), reads from `DAT_06031850`. Returns 0 for "true" (C success convention). | Confident (decompiled, matches observed behavior) |
+| `FUN_005d9780` | Label lookup. Searches instruction array for a label, returns instruction index. Returns negative on failure. | Confirmed (used by goto, gosub, label validation) |
+| `FUN_005d97f0` | Forward instruction scan. Used by if/else to find jump targets. Takes current instruction index and a skip count. | Confident (decompiled) |
+| `FUN_005898a0` | String localization. Binary search through sorted table at `DAT_05f2e9e8`, returns localized string from `DAT_05f2d9e8`. Returns input unchanged if no match. Not pause-related despite proximity to "Enter Pause Menu" string. | Confirmed (decompiled) |
+
+### Player Update Function FUN_005520E0
+
+A tick/update method on the player object.
+
+#### Confirmed (from decompilation and runtime testing)
+
+- `fVar2` (the main delta time variable) is obtained from `FUN_006498E0()` at the top of the function — this is the gameplay-scaled delta documented above
+- `param_1[0xE72]` (byte offset `0x39C8`) is current health — matches Section 2
+- `param_1[0xE73]` (byte offset `0x39CC`) is max health — matches Section 2
+- `param_1[0x20D8]` (byte offset `0x8360`) is current rage — matches Section 2
+- `param_1[0x20D9]` (byte offset `0x8364`) is max rage — matches Section 2
+- `PTR_DAT_007c07f8 + 0x390` is checked — when non-zero, various subsystems are reset (weapons, state)
+- `PTR_DAT_007c07f8 + 0x304` and `+0x350` are checked in the rage drain section — when non-zero, rage is set to max. These may be cheat/invulnerability flags, purpose not confirmed.
+
+#### Confident (from decompilation but not runtime tested)
+
+- Health drain from water/acid: when `local_3c == 6`, health drains at `fVar2 * 50.0` per frame. Spawns `rayne_damage_water.fx` particle effect.
+- Health regeneration on blood: when `local_38 != 0` and health > 0, health increases at `fVar2 * 100.0` per frame, capped at max. This is the game's native blood-feeding health recovery.
+- Death check: when health reaches 0 and state is not 0xD4 or 0xD5 (death states), calls `FUN_0054dc50`.
+- Player state at `param_1[0x5F]` (byte offset `0x17C`) uses enum values including 0xD4/0xD5 (death), 0x105 (idle), 0x10A and 0x1D3–0x1D8 (power activation states).
+- Three powers are selected via virtual call at `vtable+0x230`. Availability checked by `FUN_0054ef50` (has enough rage) and `FUN_0054ef90`/`FUN_0054efd0` (power available). Error messages "Not enough rage points" and "Power not available" are displayed via the localization function `FUN_005898a0`.
+- Rage drain rates per difficulty use `PTR_DAT_007c07f8 + 0x3DC` (raw frame delta) multiplied by the ability cost constants at `DAT_007c1b3c`–`DAT_007c1b4c` (documented in Section 12).
+- Stuck detection: when `+0x390 == 0` and state is 0x105, tracks player position. If player doesn't move more than 0.25 units for 10 seconds, kills the player (health set to 0).
