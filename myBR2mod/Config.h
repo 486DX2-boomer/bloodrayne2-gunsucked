@@ -107,6 +107,7 @@ namespace ConfigDefaults {
     constexpr bool enableSuperSlowMo = true;
     constexpr bool enableNoHud = true;
     constexpr bool enableOutfitMods = true;
+    constexpr bool enableCasualMode = false;
 
     // camera keybinds - position
     constexpr int cameraDecrementXKey = VK_OEM_4; // [
@@ -148,6 +149,11 @@ namespace ConfigDefaults {
     constexpr float cameraMaxSensitivityScale = 2.0f; // the maximum sensitivity can scale to
 
     constexpr float superSlowModeTimeFactor = 0.05f;
+
+    // casual mode
+    constexpr float casualModeHealthRegenCooldown = 10.0f;
+    constexpr float casualModeHealthRegenRate = 100.0f;
+    constexpr bool casualModePlaySoundOnRegen = true;
 
     // behaviors
     constexpr bool photoModeDisableHudOnEnter = true;
@@ -252,6 +258,7 @@ public:
     bool enableSuperSlowMo;
     bool enableNoHud;
     bool enableOutfitMods;
+    bool enableCasualMode;
 
     // camera controls
     int cameraDecrementXKey;
@@ -293,6 +300,11 @@ public:
     float cameraMaxSensitivityScale;
 
     float superSlowModeTimeFactor;
+
+    // casual mode
+    float casualModeHealthRegenCooldown;
+    float casualModeHealthRegenRate;
+    bool casualModePlaySoundOnRegen;
 
     // behaviors
     bool photoModeDisableHudOnEnter;
@@ -412,6 +424,7 @@ public:
         this->enableSuperSlowMo = reader.GetBoolean("features", "enableSuperSlowMo", ConfigDefaults::enableSuperSlowMo);
         this->enableNoHud = reader.GetBoolean("features", "enableNoHud", ConfigDefaults::enableNoHud);
         this->enableOutfitMods = reader.GetBoolean("features", "enableOutfitMods", ConfigDefaults::enableOutfitMods);
+        this->enableCasualMode = reader.GetBoolean("features", "enableCasualMode", ConfigDefaults::enableCasualMode);
 
         // photo mode
         this->cameraDecrementXKey = (int)reader.GetInteger("photoMode", "cameraDecrementXKey", ConfigDefaults::cameraDecrementXKey);
@@ -452,6 +465,11 @@ public:
         this->cameraMaxSensitivityScale = (float)reader.GetReal("tuningValues", "cameraMaxSensitivityScale", ConfigDefaults::cameraMaxSensitivityScale);
 
         this->superSlowModeTimeFactor = (float)reader.GetReal("tuningValues", "superSlowModeTimeFactor", ConfigDefaults::superSlowModeTimeFactor);
+
+        // casual mode
+        this->casualModeHealthRegenCooldown = (float)reader.GetReal("casualMode", "healthRegenCooldown", ConfigDefaults::casualModeHealthRegenCooldown);
+        this->casualModeHealthRegenRate = (float)reader.GetReal("casualMode", "healthRegenRate", ConfigDefaults::casualModeHealthRegenRate);
+        this->casualModePlaySoundOnRegen = (bool)reader.GetBoolean("casualMode", "playSoundOnRegen", ConfigDefaults::casualModePlaySoundOnRegen);
 
         // behaviors
         this->photoModeDisableHudOnEnter = reader.GetBoolean("behaviors", "photoModeDisableHudOnEnter", ConfigDefaults::photoModeDisableHudOnEnter);
@@ -571,6 +589,7 @@ public:
         this->enableSuperSlowMo = ConfigDefaults::enableSuperSlowMo;
         this->enableNoHud = ConfigDefaults::enableNoHud;
         this->enableOutfitMods = ConfigDefaults::enableOutfitMods;
+        this->enableCasualMode = ConfigDefaults::enableCasualMode;
 
         // camera keybinds
         this->cameraDecrementXKey = ConfigDefaults::cameraDecrementXKey;
@@ -611,6 +630,11 @@ public:
         this->cameraMaxSensitivityScale = ConfigDefaults::cameraMaxSensitivityScale;
 
         this->superSlowModeTimeFactor = ConfigDefaults::superSlowModeTimeFactor;
+
+        // casual mode
+        this->casualModeHealthRegenCooldown = ConfigDefaults::casualModeHealthRegenCooldown;
+        this->casualModeHealthRegenRate = ConfigDefaults::casualModeHealthRegenRate;
+        this->casualModePlaySoundOnRegen = ConfigDefaults::casualModePlaySoundOnRegen;
 
         // behaviors
         this->photoModeDisableHudOnEnter = ConfigDefaults::photoModeDisableHudOnEnter;
@@ -725,6 +749,7 @@ public:
         config << "enableSuperSlowMo = " << (ConfigDefaults::enableSuperSlowMo ? "true" : "false") << std::endl;
         config << "enableNoHud = " << (ConfigDefaults::enableNoHud ? "true" : "false") << std::endl;
         config << "enableOutfitMods = " << (ConfigDefaults::enableOutfitMods ? "true" : "false") << std::endl;
+        config << "enableCasualMode = " << (ConfigDefaults::enableCasualMode ? "true" : "false") << std::endl;
 
         config << std::endl;
 
@@ -784,6 +809,15 @@ public:
         config << "; default is 0.05. values above 1.0 make the game run faster" << std::endl;
         config << "; don't use negative values. weird stuff happens" << std::endl;
         config << "superSlowModeTimeFactor = " << std::dec  << ConfigDefaults::superSlowModeTimeFactor << std::endl;
+
+        config << std::endl;
+
+        config << "[casualMode]" << std::endl;
+        config << "; how long after taking damage health regen begins, in seconds" << std::endl;
+        config << "healthRegenCooldown = " << std::dec << ConfigDefaults::casualModeHealthRegenCooldown << std::endl;
+        config << "; hp restored per second" << std::endl;
+        config << "healthRegenRate = " << std::dec << ConfigDefaults::casualModeHealthRegenRate << std::endl;
+        config << "playSoundOnRegen = " << (ConfigDefaults::casualModePlaySoundOnRegen ? "true" : "false") << std::endl;
 
         config << std::endl;
 

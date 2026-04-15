@@ -118,7 +118,7 @@ DWORD WINAPI MainThread(LPVOID param) {
     std::optional<GunBalance> gunBalance;
     std::optional<GunKeys> gunKeys;
     std::optional<Outfit> outfit;
-    CasualMode casualMode;
+    std::optional<CasualMode> casualMode;
 
     if (g_Config.enablePhotoMode) {
         photoMode.emplace();
@@ -131,6 +131,9 @@ DWORD WINAPI MainThread(LPVOID param) {
     }
     if (g_Config.enableOutfitMods) {
         outfit.emplace();
+    }
+    if (g_Config.enableCasualMode) {
+        casualMode.emplace();
     }
 
     // Gunbalance must be hooked immediately or else it will override values too late to work.
@@ -359,7 +362,9 @@ DWORD WINAPI MainThread(LPVOID param) {
             input->checkAndExecute();
         }
 
-        casualMode.update();
+        if (casualMode) {
+            casualMode->update();
+        }
 
         Sleep(16);
     }

@@ -1,16 +1,15 @@
 #pragma once
 #include "Config.h"
+#include "PlaySound.h"
 
 // still to do:
-// make cooldown and regen rate configurable in the ini
 // optional sound when regen begins and ends
-// make Casual Mode a std::optional
 // update reverse engineering notes with pause/time factor findings
 
 class CasualMode {
 	float sinceLastDamage;
-	float healthRegenCooldown = 10.0f; // load from config
-	float healthRegenRate = 100.0f; // load from config
+	float healthRegenCooldown;
+	float healthRegenRate;
 	bool healthRegenerating;
 
 	float sinceLastRageExpended;
@@ -24,6 +23,9 @@ class CasualMode {
 
 	float currentHealth;
 	float currentRage;
+
+	bool playSoundOnRegen;
+	PlaySound sound; // we could make this optional, but it's lightweight so shouldn't hurt to always allocate it
 
 	// no operations on these values are safe unless player object is instantiated
 	// this must be checked every time a value is modified as backing out to the main menu may destroy the object
@@ -45,7 +47,10 @@ public:
 		healthRegenerating(true),
 		rageRegenerating(false),
 		lastHealth(0.0f),
-		lastRage(0.0f) {}
+		lastRage(0.0f),
+		healthRegenCooldown(g_Config.casualModeHealthRegenCooldown),
+		healthRegenRate(g_Config.casualModeHealthRegenRate),
+		playSoundOnRegen(g_Config.casualModePlaySoundOnRegen) {}
 	~CasualMode() {}
 
 	// this should be called from dllmain's loop.
@@ -93,9 +98,16 @@ public:
 		}
 
 		if ((this->sinceLastDamage >= this->healthRegenCooldown) && (*currentHealth < *maxHealth)) {
+			
+			// play a sound when regen begins
+			if (!this->healthRegenerating) {
+				if (this->playSoundOnRegen) {
+					this->sound.confirm();
+				}
+			}
+
 			this->healthRegenerating = true;
 			DEBUG_LOG("[Casual Mode] Regenerating health...");
-			// we should play a sound here (optional) to indicate health regeneration initiated
 		}
 
 		if (this->healthRegenerating) {
@@ -105,7 +117,12 @@ public:
 				*currentHealth = *maxHealth; // clamp
 				this->healthRegenerating = false;
 				DEBUG_LOG("[Casual Mode] Health regeneration disabled");
-				// play a sound here (optional) to indicate health regeneration ended
+
+				// play a sound when regen ends
+				if (this->playSoundOnRegen) {
+					this->sound.cancel();
+
+				}
 			}
 		}
 
