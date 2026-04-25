@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClInclude Include="CasualMode.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="ControllerSupport.h" />
     <ClInclude Include="DisplayMessage.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="GunBalance.h" />
