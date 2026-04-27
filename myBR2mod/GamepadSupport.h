@@ -25,9 +25,7 @@
 // so actions are not necessarily bound to the same button
 
 // TO DO:
-// we are already able to log button presses, but there is no thumbstick data here
-// we need to both find out how to get thumbstick data, and then figure out how to wire
-// control to photo mode.
+// figure out how to wire control to photo mode.
 // we could grab a direct reference to photo mode and call its methods (bad practice)
 // or we could broadcast action state via public method
 // We already have InputBase/KeyInput class
@@ -53,9 +51,9 @@ private:
 	static void __fastcall hookedGetButtonState(void* thisPointer, void* edx, int actionId, int pressed) {
 		originalFunction(thisPointer, edx, actionId, pressed);
 
-		if (pressed != 0) {
-			DEBUG_LOG(actionId << " PRESSED");
-		}
+		//if (pressed != 0) {
+		//	DEBUG_LOG(actionId << " PRESSED");
+		//}
 	};
 
 public:
@@ -111,8 +109,16 @@ public:
 class GamepadSupport {
 private:
 	GamepadSupportHook hook;
+
+	float leftX;
+	float leftY;
+	float rightX;
+	float rightY;
+	float leftTrigger;
+	float rightTrigger;
+
 public:
-	GamepadSupport() {};
+	GamepadSupport() : leftX(0.0), leftY(0.0), rightX(0.0), rightY(0.), leftTrigger(0.0), rightTrigger(0.0) {};
 
 	~GamepadSupport() {
 		this->hook.uninstall();
@@ -121,4 +127,22 @@ public:
 	bool installHook() {
 		return this->hook.install();
 	}
+
+	void update() {
+		// capture locals that shadow the gamepad state
+		// I did it the same way in photo mode; it's easier to work with local copies IMO.
+		this->leftX = *Rayne2::GamepadThumbLeftX;
+		this->leftY = *Rayne2::GamepadThumbLeftY;
+		this->rightX = *Rayne2::GamepadThumbRightX;
+		this->rightY = *Rayne2::GamepadThumbRightY;
+		this->leftTrigger = *Rayne2::GamepadTriggerLeft;
+		this->rightTrigger = *Rayne2::GamepadTriggerRight;
+
+		return;
+	}
+
+	void logAnalogState() {
+		DEBUG_LOG(" leftX " << this->leftX << " left y " << this->leftY);
+		DEBUG_LOG(" rightX " << this->rightX << " right y " << this->rightY);
+	};
 };

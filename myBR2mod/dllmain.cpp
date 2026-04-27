@@ -363,6 +363,9 @@ DWORD WINAPI MainThread(LPVOID param) {
             //sound.confirm();
         //}
 
+        gamepad.update();
+        //gamepad.logAnalogState();
+
         // Process inputs with callbacks
         for (auto& input : inputs) {
             input->checkAndExecute();

@@ -87,6 +87,15 @@ namespace Rayne2 {
     uintptr_t const CutsceneActiveOffset = 0x390; // 1 = cutscene active, 0 = gameplay
     uintptr_t const AllowHeroControlsOffset = 0x39C; // whether Rayne is controllable. 1 = controls DISABLED, 0 = controls ENABLED
     uintptr_t const PauseState = 0x5E33358; // 0 for unpaused, 256 for paused. type unknown
+
+    // gamepad state
+    float* const GamepadThumbLeftX = (float*)0x007e10c8;
+    float* const GamepadThumbLeftY = (float*)0x007e10cc;
+    float* const GamepadThumbRightX = (float*)0x007e10d0;
+    float* const GamepadThumbRightY = (float*)0x007e10dc;
+    // left and right triggers, in-memory, are between right thumb X and right thumb Y for some reason.
+    float* const GamepadTriggerLeft = (float*)0x007e10d4;
+    float* const GamepadTriggerRight = (float*)0x007e10d8;
 }
 
 namespace Utilities {
