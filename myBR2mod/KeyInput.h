@@ -15,8 +15,7 @@ private:
     // but it's still possible to trigger them when the game is paused.
     // I guess that's fine for photo mode but it's weird to be able to switch weapons when paused
     // it doesn't seem like super slow mo toggles when paused so the game's pause state isn't
-    // based on time factor; should be possible to find where the game tracks
-    // pause state and account for that too- if it's worth the effort
+    // based on time factor
     bool isGameFocused() {
         HWND foreground = GetForegroundWindow();
         if (foreground == nullptr) return false;
