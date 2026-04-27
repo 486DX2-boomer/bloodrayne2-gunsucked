@@ -69,7 +69,7 @@
     <ClInclude Include="CasualMode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ControllerSupport.h">
+    <ClInclude Include="GamepadSupport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

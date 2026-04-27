@@ -16,7 +16,7 @@
 #include "PlaySound.h"
 #include "Outfit.h"
 #include "CasualMode.h"
-#include "ControllerSupport.h"
+#include "GamepadSupport.h"
 
 void setupConsole() {
     if (!AllocConsole()) {
@@ -121,7 +121,7 @@ DWORD WINAPI MainThread(LPVOID param) {
     std::optional<Outfit> outfit;
     std::optional<CasualMode> casualMode;
 
-    ControllerSupport ch; // change to optional once tested
+    GamepadSupport gamepad; // change to optional once tested
 
     if (g_Config.enablePhotoMode) {
         photoMode.emplace();
@@ -200,8 +200,8 @@ DWORD WINAPI MainThread(LPVOID param) {
         return 1;
     }
 
-    // Install controller hook
-    ch.installHook();
+    // Install gamepad hook
+    gamepad.installHook();
 
     // Install the camera hook
     if (photoMode) {

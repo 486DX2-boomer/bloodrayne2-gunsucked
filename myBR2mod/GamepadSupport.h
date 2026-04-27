@@ -41,7 +41,7 @@
 // __thiscall uses ECX for 'this', so we use __fastcall (ECX, EDX, then stack params)
 typedef void(__fastcall* FN_GetActionState)(void* thisPointer, void* edx, int actionId, int pressed);
 
-class ControllerSupportHook {
+class GamepadSupportHook {
 private:
 	uintptr_t targetFunctionAddress = 0x00467600;
 
@@ -61,13 +61,13 @@ private:
 public:
 	bool install() {
 		if (this->hookInstalled) {
-			DEBUG_LOG("Controller hook already installed");
+			DEBUG_LOG("Gamepad hook already installed");
 			return true;
 		}
 
 		MH_STATUS status = MH_Initialize();
 		if (status != MH_OK && status != MH_ERROR_ALREADY_INITIALIZED) {
-			DEBUG_LOG("Controller hook failed: " << status);
+			DEBUG_LOG("Gamepad hook failed: " << status);
 			return false;
 		}
 
@@ -78,19 +78,19 @@ public:
 		);
 
 		if (status != MH_OK) {
-			DEBUG_LOG("Controller support CreateHook failed: " << status);
+			DEBUG_LOG("Gamepad support CreateHook failed: " << status);
 			return false;
 		}
 
 		status = MH_EnableHook((LPVOID)this->targetFunctionAddress);
 		if (status != MH_OK) {
-			DEBUG_LOG("Controller support EnableHook failed: " << status);
+			DEBUG_LOG("Gamepad support EnableHook failed: " << status);
 			return false;
 		}
 
 		this->hookInstalled = true;
 		this->hookEnabled = true;
-		DEBUG_LOG("Controller support hook installed");
+		DEBUG_LOG("Gamepad support hook installed");
 		return true;
 	}
 
@@ -104,17 +104,17 @@ public:
 		this->hookInstalled = false;
 		this->hookEnabled = false;
 		originalFunction = nullptr;
-		DEBUG_LOG("Controller support hook uninstalled");
+		DEBUG_LOG("Gamepad support hook uninstalled");
 	}
 };
 
-class ControllerSupport {
+class GamepadSupport {
 private:
-	ControllerSupportHook hook;
+	GamepadSupportHook hook;
 public:
-	ControllerSupport() {};
+	GamepadSupport() {};
 
-	~ControllerSupport() {
+	~GamepadSupport() {
 		this->hook.uninstall();
 	}
 
