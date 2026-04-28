@@ -92,7 +92,7 @@ private:
 	static void __fastcall hookedGetActionState(void* thisPointer, void* edx, int actionId, int pressed) {
 
 		// to intercept and block actions, overwrite actionId/pressed here.
-		if (blockedActions[actionId] == true) {
+		if (blockedActions[actionId].load()) {
 			originalFunction(thisPointer, edx, actionId, 0);
 		}
 		else {
