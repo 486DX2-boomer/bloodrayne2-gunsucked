@@ -291,12 +291,12 @@ DWORD WINAPI MainThread(LPVOID param) {
     // gamepad support for photo mode
     //if (photoMode && gamepad) {
 
-    inputs.push_back(std::make_unique<GamepadInput>(&gamepad, 3, true, [](){
+    inputs.push_back(std::make_unique<GamepadInput>(&gamepad, 3, true, false, [](){
         DEBUG_LOG("pressed Blades button (3)");
     }));
     
     // toggle photo mode on BACK
-        inputs.push_back(std::make_unique<GamepadInput>(&gamepad, 9, true, [&photoMode](){
+        inputs.push_back(std::make_unique<GamepadInput>(&gamepad, 9, true, true, [&photoMode](){
         DEBUG_LOG("pressed BACK button (9)");
         photoMode->toggle();
     }));

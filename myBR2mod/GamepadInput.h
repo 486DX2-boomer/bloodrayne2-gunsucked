@@ -24,6 +24,9 @@ private:
 	bool isToggleButton; // true = fires once per press, false = fires while held
 
     int actionId; // which action this input is bound to
+    bool shouldBlock; // true = our input overrides the action dispatched to the game's input handler
+    // in other words, if we want the Back button to NOT bring up the objectives menu, set true.
+    // if we want to bind some other logic to actions without interrupting them, false. (for example, logging kicks, blades...)
 
     std::function<void()> callback; // callbacks were made optional on KeyInput for debugging or testing purposes but we pretty much always want them on a gamepad button
 
@@ -39,8 +42,14 @@ private:
     }
 
 public:
-    GamepadInput(GamepadSupport* gamepad, int actionId, bool toggle, std::function<void()> cb)
-        : gamepad(gamepad), actionId(actionId), previousState(false), isToggleButton(toggle), callback(cb) {}
+    GamepadInput(GamepadSupport* gamepad, int actionId, bool toggle, bool shouldBlock, std::function<void()> cb)
+        : gamepad(gamepad), actionId(actionId), previousState(false), isToggleButton(toggle), shouldBlock(shouldBlock), callback(cb) 
+    {
+        if (shouldBlock) {
+            gamepad->registerBlockedAction(actionId);
+            DEBUG_LOG("Gamepad: blocking action: " << actionId);
+        }
+    }
 
     // call once per frame
     bool isActivated() {

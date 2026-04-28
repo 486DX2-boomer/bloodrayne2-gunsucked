@@ -53,24 +53,56 @@ typedef struct AnalogState {
 
 class GamepadSupportHook {
 private:
-	// the game emits pressed=0 between pressed=1 events while a button is held,
-	// making it nearly impossible to read a press in between ticks on our thread. we treat the action as pressed
-	// if a pressed=1 was seen within the hold window.
-	static constexpr DWORD holdWindowMilliseconds = 20; // just a little bit more than the 16 ms the main thread runs on.
-	static std::array<std::atomic<DWORD>, 32> lastPressedTick;
 
 	uintptr_t targetFunctionAddress = 0x00467600;
+	static FN_GetActionState originalFunction;
 
-	static FN_GetActionState originalFunction;  // Defined in GamepadSupport.cpp
+	// the game rapidly emits pressed=0 between pressed=1 events, even while a button is held.
+	// So for example, if you log out hookedGetActionState's pressed arg while playing, it looks like this
+	// pressed = 1
+	// pressed = 0
+	// pressed = 0
+	// pressed = 0
+	// pressed = 1... and so on, even when the button is fully held.
+	// so this makes it impossible to accurately read a press from the hook without processing.
+	// we treat the action as pressed if pressed=1 was seen within the hold window.
+	// in other words, the hold window "filters" the noisy action state.
+
+	// the hold window needs to be tuned just right; if it's too short, our thread will see "phantom" presses when
+	// pressed = 0 and pressed = 1 are read in succession.
+	static constexpr DWORD holdWindowMilliseconds = 64; // just a little bit more than the 16 ms our thread runs on.
+
+	// actions uses GetTickCount to store a timestamp corresponding to the last time an action
+	// was emitted. Treat actions as "which actions are pressed right now", ignoring the additional 
+	// complication of adding a grace period in order to reliably capture the actions.
+	// array index maps to actionId.
+	// We want it atomic because we are writing from the game's thread across to our thread.
+	static std::array<std::atomic<DWORD>, 32> actions;
+
+	// blocked action = intercept the controller input and nullify it; we "rebind" to our desired code.
+	// ie, if Back button should toggle photo mode, then Back shouldn't open the Objectives menu.
+	// we disable the Objectives menu action by zeroing it out in the hook.
+	// just like actions, array index maps to actionId.
+	// also cross-thread written and read, so the elements must be atomic.
+	static std::array<std::atomic<bool>, 32> blockedActions;
 
 	bool hookInstalled = false;
 	bool hookEnabled = false;
 
 	static void __fastcall hookedGetActionState(void* thisPointer, void* edx, int actionId, int pressed) {
-		originalFunction(thisPointer, edx, actionId, pressed);
+
+		// to intercept and block actions, overwrite actionId/pressed here.
+		if (blockedActions[actionId] == true) {
+			originalFunction(thisPointer, edx, actionId, 0);
+		}
+		else {
+			originalFunction(thisPointer, edx, actionId, pressed);
+		}
+
+		//originalFunction(thisPointer, edx, actionId, pressed);
 
 		if (pressed && actionId >= 0 && actionId < 32) {
-			lastPressedTick[actionId].store(GetTickCount());
+			actions[actionId].store(GetTickCount());
 		}
 	};
 
@@ -125,9 +157,32 @@ public:
 
 	static bool getActionPressed(int actionId) {
 		if (actionId < 0 || actionId >= 32) return false;
-		DWORD last = lastPressedTick[actionId].load();
+		DWORD last = actions[actionId].load();
 		if (last == 0) return false;
 		return (GetTickCount() - last) < holdWindowMilliseconds;
+	}
+
+	void registerBlockedAction(int actionId) {
+		// don't register invalid actions
+		if (actionId < 0 || actionId >= 32) {
+			DEBUG_LOG("GamepadSupport: tried to register invalid blocked action: " << actionId);
+			return;
+		};
+		blockedActions[actionId].store(true);
+	}
+
+	// I'm not sure there's anywhere in the mod that actually needs unregistering blocked actions.
+	// can probably safely remove this.
+	void unregisterBlockedAction(int actionId) {
+		// don't unregister invalid actions
+		if (actionId < 0 || actionId >= 32) {
+			DEBUG_LOG("GamepadSupport: tried to unregister invalid blocked action: " << actionId);
+			return;
+		};
+		// there's no check for registration state, meaning we can unregister or reregister
+		// even if the action is already registered/unregistered.
+		// But, I don't think that matters at all.
+		blockedActions[actionId].store(false);
 	}
 };
 
@@ -163,7 +218,7 @@ public:
 		this->leftTrigger = *Rayne2::GamepadTriggerLeft;
 		this->rightTrigger = *Rayne2::GamepadTriggerRight;
 
-		// could, potentially, shadow getActionPressed state here locally as well.
+		// I can shadow getActionPressed state here locally as well, if I want.
 
 		return;
 	}
@@ -183,6 +238,10 @@ public:
 	bool getActionPressed(int actionId) {
 		// get action from hook and parse action id state
 		return GamepadSupportHook::getActionPressed(actionId);
+	}
+
+	void registerBlockedAction(int actionId) {
+		this->hook.registerBlockedAction(actionId);
 	}
 
 	void logAnalogState() {
