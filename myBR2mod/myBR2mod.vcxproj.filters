@@ -72,6 +72,9 @@
     <ClInclude Include="GamepadSupport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GamepadInput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -84,6 +87,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="INIReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GamepadSupport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

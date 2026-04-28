@@ -22,7 +22,7 @@ namespace Rayne2 {
     // these aren't safe to use without checking them at runtime
     // in the future we'll create a utility class or something that will find Rayne's object on init
     constexpr uintptr_t RayneBasePtr = 0x061276EC;
-    uintptr_t RayneBase = *reinterpret_cast<uintptr_t*>(RayneBasePtr);
+    inline uintptr_t RayneBase = *reinterpret_cast<uintptr_t*>(RayneBasePtr);
 
     // photo mode stuff
 

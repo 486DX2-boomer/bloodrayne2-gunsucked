@@ -2,6 +2,9 @@
 #include "Config.h"
 #include "MinHook.h"
 #pragma comment (lib, "libMinHook.x86.lib")
+#include <utility>
+#include <array>
+#include <atomic>
 
 // action, default button, ID
 // feed (Y) 0
@@ -14,10 +17,10 @@
 // shoot (RB) 7
 // pause menu (Start) 8
 // objectives (Back) 9
-// aura vision (D-Left) 1c
-// dilated perception (D-Right) 1d
-// blood rage (D-Up) 1e
-// powers oof (D-Down) 1f
+// aura vision (D-Left) 1c / 28
+// dilated perception (D-Right) 1d / 29
+// blood rage (D-Up) 1e / 30
+// powers off (D-Down) 1f / 31
 
 // GetActionState
 // every update, checks button press from data previously retrieved from XInputGetState
@@ -39,21 +42,36 @@
 // __thiscall uses ECX for 'this', so we use __fastcall (ECX, EDX, then stack params)
 typedef void(__fastcall* FN_GetActionState)(void* thisPointer, void* edx, int actionId, int pressed);
 
+typedef struct AnalogState {
+	float leftX;
+	float leftY;
+	float rightX;
+	float rightY;
+	float leftTrigger;
+	float rightTrigger;
+};
+
 class GamepadSupportHook {
 private:
+	// the game emits pressed=0 between pressed=1 events while a button is held,
+	// making it nearly impossible to read a press in between ticks on our thread. we treat the action as pressed
+	// if a pressed=1 was seen within the hold window.
+	static constexpr DWORD holdWindowMilliseconds = 20; // just a little bit more than the 16 ms the main thread runs on.
+	static std::array<std::atomic<DWORD>, 32> lastPressedTick;
+
 	uintptr_t targetFunctionAddress = 0x00467600;
 
-	static inline FN_GetActionState originalFunction = nullptr;
+	static FN_GetActionState originalFunction;  // Defined in GamepadSupport.cpp
 
 	bool hookInstalled = false;
 	bool hookEnabled = false;
 
-	static void __fastcall hookedGetButtonState(void* thisPointer, void* edx, int actionId, int pressed) {
+	static void __fastcall hookedGetActionState(void* thisPointer, void* edx, int actionId, int pressed) {
 		originalFunction(thisPointer, edx, actionId, pressed);
 
-		//if (pressed != 0) {
-		//	DEBUG_LOG(actionId << " PRESSED");
-		//}
+		if (pressed && actionId >= 0 && actionId < 32) {
+			lastPressedTick[actionId].store(GetTickCount());
+		}
 	};
 
 public:
@@ -71,7 +89,7 @@ public:
 
 		status = MH_CreateHook(
 			(LPVOID)this->targetFunctionAddress,
-			(LPVOID)&hookedGetButtonState,
+			(LPVOID)&hookedGetActionState,
 			(LPVOID*)&originalFunction
 		);
 
@@ -103,6 +121,13 @@ public:
 		this->hookEnabled = false;
 		originalFunction = nullptr;
 		DEBUG_LOG("Gamepad support hook uninstalled");
+	}
+
+	static bool getActionPressed(int actionId) {
+		if (actionId < 0 || actionId >= 32) return false;
+		DWORD last = lastPressedTick[actionId].load();
+		if (last == 0) return false;
+		return (GetTickCount() - last) < holdWindowMilliseconds;
 	}
 };
 
@@ -138,11 +163,32 @@ public:
 		this->leftTrigger = *Rayne2::GamepadTriggerLeft;
 		this->rightTrigger = *Rayne2::GamepadTriggerRight;
 
+		// could, potentially, shadow getActionPressed state here locally as well.
+
 		return;
+	}
+
+	AnalogState getAnalogState() {
+		return {
+			this->leftX,
+			this->leftY,
+			this->rightX,
+			this->rightY,
+			this->leftTrigger,
+			this->rightTrigger
+		};
+	}
+
+	// 0 if not pressed, 1 if pressed
+	bool getActionPressed(int actionId) {
+		// get action from hook and parse action id state
+		return GamepadSupportHook::getActionPressed(actionId);
 	}
 
 	void logAnalogState() {
 		DEBUG_LOG(" leftX " << this->leftX << " left y " << this->leftY);
 		DEBUG_LOG(" rightX " << this->rightX << " right y " << this->rightY);
+		DEBUG_LOG(" left trigger" << this->leftTrigger);
+		DEBUG_LOG(" right trigger" << this->rightTrigger);
 	};
 };

@@ -17,6 +17,8 @@
 #include "Outfit.h"
 #include "CasualMode.h"
 #include "GamepadSupport.h"
+#include "GamepadInput.h"
+//#include "XInput.h"
 
 void setupConsole() {
     if (!AllocConsole()) {
@@ -193,7 +195,7 @@ DWORD WINAPI MainThread(LPVOID param) {
             return 1;
         }
     }
-    
+
     // Wait for game to initialize before installing these
     if (!WaitForGameReady(photoMode, noHud, gunKeys)) {
         DEBUG_LOG("[DLL] Game validation failed - aborting");
@@ -212,10 +214,10 @@ DWORD WINAPI MainThread(LPVOID param) {
     }
 
     // Install NoHud hook
-        if (!noHud.installHook()) {
-            DEBUG_LOG("Failed to install no hud hook - aborting");
-            return 1;
-        }
+    if (!noHud.installHook()) {
+        DEBUG_LOG("Failed to install no hud hook - aborting");
+        return 1;
+    }
 
     // capture NoHud for photomode
     if (photoMode) {
@@ -284,6 +286,21 @@ DWORD WINAPI MainThread(LPVOID param) {
             photoMode->adjustFov(g_Config.cameraFovIncDecValue);
             }));
     }
+
+    // gamepad support
+    // gamepad support for photo mode
+    //if (photoMode && gamepad) {
+
+    inputs.push_back(std::make_unique<GamepadInput>(&gamepad, 3, true, [](){
+        DEBUG_LOG("pressed Blades button (3)");
+    }));
+    
+    // toggle photo mode on BACK
+        inputs.push_back(std::make_unique<GamepadInput>(&gamepad, 9, true, [&photoMode](){
+        DEBUG_LOG("pressed BACK button (9)");
+        photoMode->toggle();
+    }));
+
     
     // super slow mode and no hud are always active, as photo mode requires them.
     // if they're "disabled", we skip binding the keys.
@@ -374,6 +391,12 @@ DWORD WINAPI MainThread(LPVOID param) {
         if (casualMode) {
             casualMode->update();
         }
+
+        // If I absolutely can't get action state from the game,
+        // I'll have no choice but to fall back to calling xinput.
+        //XINPUT_STATE controller;
+        //XInputGetState(0, &controller);
+        //DEBUG_LOG(controller.Gamepad.wButtons);
 
         Sleep(16);
     }
