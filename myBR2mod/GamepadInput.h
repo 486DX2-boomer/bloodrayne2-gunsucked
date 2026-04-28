@@ -8,12 +8,9 @@
 // now, in KeyInput, we bypassed the game's input reading and grabbed key state directly from the Win32 API
 // that makes sense to create new keybindings that didn't correspond to any existing game controls
 
-// but for gamepad bindings, we want to respect the game's input/action handling 
-// because there are no "free" buttons on an x360 pad.
-// this means these controls will correspond correctly to actions rebound from the in-game controls menu
-
-// but also means we have to pass a pointer to the GamepadSupport object to get state instead of having
-// raw XInput state being passed to this object.
+// for gamepad, there are no free buttons to use, so we want to be rebind and override the game's button handling.
+// so we have to pass a pointer to the GamepadSupport object to get state (from the button state hook) 
+// instead of getting raw XInput from this object.
 
 // to do: gotta rename to GamepadButtonInput to differentiate this from GamepadThumbstickInput
 class GamepadInput : public InputBase {
@@ -23,10 +20,10 @@ private:
 	bool previousState;
 	bool isToggleButton; // true = fires once per press, false = fires while held
 
-    int actionId; // which action this input is bound to
-    bool shouldBlock; // true = our input overrides the action dispatched to the game's input handler
+    int buttonId; // which button this input is bound to
+    bool shouldBlock; // true = our input overrides the button read in the game's input handler
     // in other words, if we want the Back button to NOT bring up the objectives menu, set true.
-    // if we want to bind some other logic to actions without interrupting them, false. (for example, logging kicks, blades...)
+    // if we want to bind some other logic to buttons without interrupting them, false. (for example, logging kicks, blades...)
 
     std::function<void()> callback; // callbacks were made optional on KeyInput for debugging or testing purposes but we pretty much always want them on a gamepad button
 
@@ -42,18 +39,18 @@ private:
     }
 
 public:
-    GamepadInput(GamepadSupport* gamepad, int actionId, bool toggle, bool shouldBlock, std::function<void()> cb)
-        : gamepad(gamepad), actionId(actionId), previousState(false), isToggleButton(toggle), shouldBlock(shouldBlock), callback(cb) 
+    GamepadInput(GamepadSupport* gamepad, int buttonId, bool toggle, bool shouldBlock, std::function<void()> cb)
+        : gamepad(gamepad), buttonId(buttonId), previousState(false), isToggleButton(toggle), shouldBlock(shouldBlock), callback(cb) 
     {
         if (shouldBlock) {
-            gamepad->registerBlockedAction(actionId);
-            DEBUG_LOG("Gamepad: blocking action: " << actionId);
+            gamepad->registerBlockedButton(buttonId);
+            DEBUG_LOG("Gamepad: blocking button: " << buttonId);
         }
     }
 
     // call once per frame
     bool isActivated() {
-        bool currentState = gamepad->getActionPressed(this->actionId);
+        bool currentState = gamepad->getButtonPressed(this->buttonId);
         bool shouldTrigger = false;
 
         if (this->isToggleButton) {

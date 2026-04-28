@@ -291,16 +291,18 @@ DWORD WINAPI MainThread(LPVOID param) {
     // gamepad support for photo mode
     //if (photoMode && gamepad) {
 
-    inputs.push_back(std::make_unique<GamepadInput>(&gamepad, 3, true, false, [](){
-        DEBUG_LOG("pressed Blades button (3)");
-    }));
+    //inputs.push_back(std::make_unique<GamepadInput>(&gamepad, 3, true, false, [](){
+    //    DEBUG_LOG("pressed Blades button (3)");
+    //}));
     
     // toggle photo mode on BACK
+    // for now Objectives Menu is hard-coded as the photo mode button.
+    // Now, I could technically make this configurable, but it really doesn't make sense
+    // there isn't really a good other button to bind it to.
         inputs.push_back(std::make_unique<GamepadInput>(&gamepad, 9, true, true, [&photoMode](){
-        DEBUG_LOG("pressed BACK button (9)");
+        //DEBUG_LOG("pressed BACK button (9)");
         photoMode->toggle();
     }));
-
     
     // super slow mode and no hud are always active, as photo mode requires them.
     // if they're "disabled", we skip binding the keys.
@@ -392,7 +394,7 @@ DWORD WINAPI MainThread(LPVOID param) {
             casualMode->update();
         }
 
-        // If I absolutely can't get action state from the game,
+        // If I absolutely can't get button state from the game,
         // I'll have no choice but to fall back to calling xinput.
         //XINPUT_STATE controller;
         //XInputGetState(0, &controller);
