@@ -6,7 +6,7 @@
 #include "INIReader.h"
 
 // logging and console
-#define DEBUG_CONSOLE_ENABLED true
+#define DEBUG_CONSOLE_ENABLED false
 
 #if DEBUG_CONSOLE_ENABLED
 #include <iostream>
@@ -764,7 +764,7 @@ public:
         config << "enableSuperSlowMo = " << (ConfigDefaults::enableSuperSlowMo ? "true" : "false") << std::endl;
         config << "enableNoHud = " << (ConfigDefaults::enableNoHud ? "true" : "false") << std::endl;
         config << "enableOutfitMods = " << (ConfigDefaults::enableOutfitMods ? "true" : "false") << std::endl;
-        config << "enableCasualMode = " << (ConfigDefaults::enableCasualMode ? "true" : "false") << std::endl
+        config << "enableCasualMode = " << (ConfigDefaults::enableCasualMode ? "true" : "false") << std::endl;
         config << "enableGamepadSupport = " << (ConfigDefaults::enableGamepadSupport ? "true" : "false") << std::endl;
 
         config << std::endl;
