@@ -294,8 +294,15 @@ DWORD WINAPI MainThread(LPVOID param) {
     // it makes more sense to hard-code it and call it done.
 
     if (photoMode) { // make gamepad an optional first and then check for both here
-        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::BACK, true, true, [&photoMode]() {
+        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::BACK, true, true, [&photoMode, &inputs]() {
             photoMode->toggle();
+            // re-arm the fresh press on all inputs so a button held during the toggle
+            // (e.g. lock-on) doesn't fire its photo-mode action when toggling
+            if (photoMode->isEnabled()) {
+                for (auto& input : inputs) {
+                    input->requireFreshPress();
+                }
+            }
             }));
 
         // up and down

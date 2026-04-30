@@ -19,6 +19,7 @@ private:
     GamepadSupport* gamepad;
 	bool previousState;
 	bool isToggleButton; // true = fires once per press, false = fires while held
+	bool waitingForFreshPress = false; // true = ignore the current held state; resume when released
 
     int buttonId; // which button this input is bound to
     bool shouldBlock; // true = our input overrides the button read in the game's input handler
@@ -53,6 +54,14 @@ public:
         bool currentState = gamepad->getButtonPressed(this->buttonId);
         bool shouldTrigger = false;
 
+        if (this->waitingForFreshPress) {
+            if (!currentState) {
+                this->waitingForFreshPress = false;
+            }
+            this->previousState = currentState;
+            return false;
+        }
+
         if (this->isToggleButton) {
             if (currentState && !this->previousState) {
                 shouldTrigger = true;
@@ -78,6 +87,12 @@ public:
 
         if (this->isActivated() && this->callback != nullptr) {
             this->callback();
+        }
+    }
+
+    void requireFreshPress() override {
+        if (gamepad->getButtonPressed(this->buttonId)) {
+            this->waitingForFreshPress = true;
         }
     }
 };
