@@ -86,7 +86,9 @@ namespace Rayne2 {
     uintptr_t const WorldTimeFactorOffset = 0x3D8; // world time factor is different from TimeFactor (Cheat menu). Explanation above
     uintptr_t const CutsceneActiveOffset = 0x390; // 1 = cutscene active, 0 = gameplay
     uintptr_t const AllowHeroControlsOffset = 0x39C; // whether Rayne is controllable. 1 = controls DISABLED, 0 = controls ENABLED
-    uintptr_t const PauseState = 0x5E33358; // 0 for unpaused, 256 for paused. type unknown
+    // 0x5E33358 only reflects pausing with ESC key, not gamepad Start button. do not use
+    // 0x05EF5674 also appears to reflect pause state on both ESC and Start. use as fallback if 0x007E1858 causes problems
+    uintptr_t const PauseState = 0x007E1858; // 0 = unpaused, 1 = paused
 
     // gamepad state
     float* const GamepadThumbLeftX = (float*)0x007e10c8;

@@ -73,8 +73,7 @@ public:
 		float timeFactor = *reinterpret_cast<float*>(gameTimeBase + Rayne2::WorldTimeFactorOffset);
 		int inCutscene = *reinterpret_cast<int*>(gameTimeBase + Rayne2::CutsceneActiveOffset);
 		int controlDisabled = *reinterpret_cast<int*>(gameTimeBase + Rayne2::AllowHeroControlsOffset);
-		// game unpaused = 0, game paused = 256
-		// so we dereference then determine if it is nonzero.
+		// 0 = unpaused, 1 = paused (byte)
 		int pauseState = *reinterpret_cast<int*>(Rayne2::PauseState);
 		bool isPaused = (pauseState != 0);
 
