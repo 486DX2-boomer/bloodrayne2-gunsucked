@@ -176,6 +176,13 @@ private:
     // Original values for restoration
     float originalTimeFactor;
 
+    // Game's camera angle on entry. we want to restore it as best as possible on photo mode exit
+    // but, the game still adds velocity/inertia to the camera movement (from thumbsticks, key inputs don't affect it), 
+    // so this still doesn't truly restore the camera state.
+    // to fix that, we have to find where the camera applies that processing upstream and hook it- not feeling like it right now
+    //float originalGamePitch;
+    //float originalGameYaw;
+
     bool enabled;
 
     // we must check to see if the camera's vftable is loaded before we attempt to hook the update loop.
@@ -199,6 +206,10 @@ private:
         this->anglesPitch = *this->cameraPitch;
         this->anglesYaw = *this->cameraYaw;
         this->anglesRoll = 0.0f;
+
+        // capture original pitch and yaw for restoration on exit
+        //this->originalGamePitch = *this->cameraPitch;
+        //this->originalGameYaw = *this->cameraYaw;
 
         this->originalTimeFactor = *this->timeFactor;
     }
@@ -287,6 +298,12 @@ public:
 
     void disable() {
         if (!this->enabled) return;
+
+        // Undo the angle drift the game's input handler (from the right stick) while photo mode was active.
+        // as mentioned above, it's still not perfect because we didn't eliminate thumbstick inertia/velocity
+        // and we have to do more reverse engineering work to make this perfect.
+        //*this->cameraPitch = this->originalGamePitch;
+        //*this->cameraYaw = this->originalGameYaw;
 
         // Deactivate hook override - game regains camera control
         this->hook.deactivateOverride();
