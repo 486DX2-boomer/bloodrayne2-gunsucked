@@ -180,7 +180,7 @@ Photo mode is mostly self explanatory. Note it can also be used in conjunction w
 
 ## Casual Mode
 
-Casual Mode adds regenerating health for players who find the game's difficulty too punishing. After a short period without taking damage, Rayne's health will begin to refill automatically up to her maximum. The cooldown duration and regeneration rate are configurable in gunsucked.ini.
+Casual Mode adds regenerating health for players who find the game's difficulty too punishing. To use Casual Mode, set enableCasualMode = true in gunsucked.ini. After a short period without taking damage, Rayne's health will begin to refill automatically up to her maximum. The cooldown duration and regeneration rate are configurable in gunsucked.ini.
 
 ## Loading Outfit Mods
 
