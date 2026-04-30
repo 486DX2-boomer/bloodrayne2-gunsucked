@@ -341,27 +341,25 @@ public:
         } else return scale;
     }
 
-    // Adjust camera position in world space
-    // Parameters use XZY order to match key bindings
+    // Adjust camera position. dx/dz are camera-local (strafe / forward),
+    // dy is world-vertical so "up" always means up regardless of pitch.
     void adjustPosition(float dx, float dz, float dy) {
         if (!this->enabled) return;
 
-        //DEBUG_LOG("[Camera] photofov: " << std::dec << this->photoFov);
-        //DEBUG_LOG("[Camera] sens scaling: " << std::dec << g_Config.cameraSensitivityScale);
-        //DEBUG_LOG("[Camera] fov scale result: " << std::dec << this->fovScale());
-
-        // here we should reduce dx, dz, and dy by a value corresponding to higher fov
-        // a "lower sensitivity" to make zoomed in compositions easier.
-
         float scale = this->fovScale();
 
-        //DEBUG_LOG("[Camera] dx: " << std::dec << (dx * scale));
-        //DEBUG_LOG("[Camera] dy: " << std::dec << (dy * scale));
-        //DEBUG_LOG("[Camera] dz: " << std::dec << (dz * scale));
+        float localDx = dx * scale;
+        float localDz = dz * scale;
 
-        this->photoX += dx * scale;
+        float c = cosf(this->anglesYaw);
+        float s = sinf(this->anglesYaw);
+
+        float worldDx =  localDx * c + localDz * s;
+        float worldDz = -localDx * s + localDz * c;
+
+        this->photoX += worldDx;
         this->photoY += dy * scale;
-        this->photoZ += dz * scale;
+        this->photoZ += worldDz;
 
         this->pushStateToHook();
     }

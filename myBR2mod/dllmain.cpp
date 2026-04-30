@@ -322,16 +322,16 @@ DWORD WINAPI MainThread(LPVOID param) {
             photoMode->adjustFov(g_Config.cameraFovIncDecValue);
             }));
 
-        // camera position: left/right
+        // strafe left/right (camera-local X)
         inputs.push_back(std::make_unique<GamepadThumbstickInput>(&gamepad,
             GamepadSupport::Thumbstick::LEFT, GamepadSupport::Axis::AXIS_X, [&photoMode](float magnitude) {
-                photoMode->adjustPosition(0, magnitude * g_Config.cameraPosIncDecValue * -1, 0);
+                photoMode->adjustPosition(magnitude * g_Config.cameraPosIncDecValue, 0, 0);
             }));
 
-        // forward/backward
+        // forward/backward (camera-local Z)
         inputs.push_back(std::make_unique<GamepadThumbstickInput>(&gamepad,
             GamepadSupport::Thumbstick::LEFT, GamepadSupport::Axis::AXIS_Y, [&photoMode](float magnitude) {
-                photoMode->adjustPosition(magnitude * g_Config.cameraPosIncDecValue * -1, 0, 0);
+                photoMode->adjustPosition(0, magnitude * g_Config.cameraPosIncDecValue * -1, 0);
             }));
 
         // angles
