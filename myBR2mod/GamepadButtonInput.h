@@ -13,7 +13,7 @@
 // instead of getting raw XInput from this object.
 
 // to do: gotta rename to GamepadButtonInput to differentiate this from GamepadThumbstickInput
-class GamepadInput : public InputBase {
+class GamepadButtonInput : public InputBase {
 private:
 
     GamepadSupport* gamepad;
@@ -39,7 +39,7 @@ private:
     }
 
 public:
-    GamepadInput(GamepadSupport* gamepad, int buttonId, bool toggle, bool shouldBlock, std::function<void()> cb)
+    GamepadButtonInput(GamepadSupport* gamepad, int buttonId, bool toggle, bool shouldBlock, std::function<void()> cb)
         : gamepad(gamepad), buttonId(buttonId), previousState(false), isToggleButton(toggle), shouldBlock(shouldBlock), callback(cb) 
     {
         if (shouldBlock) {

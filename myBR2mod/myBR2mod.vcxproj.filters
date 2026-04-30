@@ -72,7 +72,7 @@
     <ClInclude Include="GamepadSupport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GamepadInput.h">
+    <ClInclude Include="GamepadButtonInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

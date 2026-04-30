@@ -167,17 +167,17 @@ public:
 
 	// I'm not sure there's anywhere in the mod that actually needs unregistering blocked buttons.
 	// can probably safely remove this.
-	void unregisterBlockedButton(int buttonId) {
-		// don't unregister invalid buttons
-		if (buttonId < 0 || buttonId >= 32) {
-			DEBUG_LOG("GamepadSupport: tried to unregister invalid blocked button: " << buttonId);
-			return;
-		};
-		// there's no check for registration state, meaning we can unregister or reregister
-		// even if the action is already registered/unregistered.
-		// But, I don't think that matters at all.
-		blockedButtons[buttonId].store(false);
-	}
+	//void unregisterBlockedButton(int buttonId) {
+	//	// don't unregister invalid buttons
+	//	if (buttonId < 0 || buttonId >= 32) {
+	//		DEBUG_LOG("GamepadSupport: tried to unregister invalid blocked button: " << buttonId);
+	//		return;
+	//	};
+	//	// there's no check for registration state, meaning we can unregister or reregister
+	//	// even if the action is already registered/unregistered.
+	//	// But, I don't think that matters at all.
+	//	blockedButtons[buttonId].store(false);
+	//}
 };
 
 class GamepadSupport {
@@ -197,6 +197,23 @@ public:
 	~GamepadSupport() {
 		this->hook.uninstall();
 	}
+
+	enum Button {
+		Y = 0,
+		B = 1,
+		A = 2,
+		X = 3,
+		LT = 4,
+		RT = 5,
+		LB = 6,
+		RB = 7,
+		START = 8,
+		BACK = 9,
+		D_LEFT = 28,
+		D_RIGHT = 29,
+		D_UP = 30,
+		D_DOWN = 31
+	};
 
 	bool installHook() {
 		return this->hook.install();

@@ -17,7 +17,7 @@
 #include "Outfit.h"
 #include "CasualMode.h"
 #include "GamepadSupport.h"
-#include "GamepadInput.h"
+#include "GamepadButtonInput.h"
 //#include "XInput.h"
 
 void setupConsole() {
@@ -287,23 +287,47 @@ DWORD WINAPI MainThread(LPVOID param) {
             }));
     }
 
-    // gamepad support
-    // gamepad support for photo mode
+    // Gamepad support for photo mode
     //if (photoMode && gamepad) {
 
-    //inputs.push_back(std::make_unique<GamepadInput>(&gamepad, 3, true, false, [](){
+    //inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, 3, true, false, [](){
     //    DEBUG_LOG("pressed Blades button (3)");
     //}));
     
-    // toggle photo mode on BACK
-    // for now Objectives Menu is hard-coded as the photo mode button.
-    // Now, I could technically make this configurable, but it really doesn't make sense
-    // there isn't really a good other button to bind it to.
-        inputs.push_back(std::make_unique<GamepadInput>(&gamepad, 9, true, true, [&photoMode](){
-        //DEBUG_LOG("pressed BACK button (9)");
-        photoMode->toggle();
-    }));
-    
+    // I settled on making the photo mode gamepad layout hard-coded
+    // I wanted it to be configurable, but couldn't settle on a decent way to generalize analog vs button input.
+    // it makes more sense to hard-code it and call it done.
+
+    if (photoMode) { // make gamepad an optional first and then check for both here
+        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::BACK, true, true, [&photoMode]() {
+            photoMode->toggle();
+            }));
+
+        // up and down
+        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::B, false, false, [&photoMode]() {
+            photoMode->adjustPosition(0, 0, -g_Config.cameraPosIncDecValue);
+            }));
+        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::A, false, false, [&photoMode]() {
+            photoMode->adjustPosition(0, 0, g_Config.cameraPosIncDecValue);
+            }));
+
+        // roll
+        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::LB, false, false, [&photoMode]() {
+            photoMode->adjustAngle(0, -g_Config.cameraAngleIncDecValue, 0);
+            }));
+        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::RB, false, false, [&photoMode]() {
+            photoMode->adjustAngle(0, g_Config.cameraAngleIncDecValue, 0);
+            }));
+
+        // fov/zoom
+        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::Y, false, false, [&photoMode]() {
+            photoMode->adjustFov(-g_Config.cameraFovIncDecValue);
+            }));
+        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::X, false, false, [&photoMode]() {
+            photoMode->adjustFov(g_Config.cameraFovIncDecValue);
+            }));
+    }
+
     // super slow mode and no hud are always active, as photo mode requires them.
     // if they're "disabled", we skip binding the keys.
     // effectively a fake toggle and should review if we should allow them to be enabled/disabled.
@@ -312,7 +336,7 @@ DWORD WINAPI MainThread(LPVOID param) {
     if (g_Config.enableSuperSlowMo) {
         inputs.push_back(std::make_unique<KeyInput>(g_Config.toggleSuperSlowModeKey, true, [&superSlowMode]() {
             superSlowMode.toggle();
-            }));
+        }));
     }
 
     // No hud

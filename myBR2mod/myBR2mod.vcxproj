@@ -151,7 +151,7 @@
   <ItemGroup>
     <ClInclude Include="CasualMode.h" />
     <ClInclude Include="Config.h" />
-    <ClInclude Include="GamepadInput.h" />
+    <ClInclude Include="GamepadButtonInput.h" />
     <ClInclude Include="GamepadSupport.h" />
     <ClInclude Include="DisplayMessage.h" />
     <ClInclude Include="framework.h" />
