@@ -4,20 +4,30 @@ Gunsucked Mod is a rebalance of Rayne's guns that increases the damage and fire 
 
 Aside from the weapon rebalance, other features include:
 
-- A photo mode
+- Photo mode
 - Hotkeys to equip weapon modes
 - Mousewheel down equips previous weapon
 - Super slow mode
 - No Hud toggle
 - Load outfit mods from a mods folder (no POD packing necessary)
+- Casual Mode (New in v1.1!)
+
+## Changes in v1.1
+
+- Feature: Gamepad support for photo mode controls
+- Feature: Casual Mode (regenerating health, meant for new players)
+- Fix improperly configured Minhook library dependency
+- Fix: Removed mod launcher, load mod through DLL sideload (no more Windows Defender warnings)
 
 ## Installation
 
 In the game folder, rename binkw32.dll to binkw32_orig.dll, and then extract the mod's binkw32.dll and gunsucked.ini into the game folder. Launch the game normally.
 
+To uninstall, delete the mod's binkw32.dll, and rename binkw32_orig.dll back to binkw32.dll.
+
 ## Configuration
 
-Each feature is toggleable and configurable and can be modified in gunsucked.ini. Features can be enabled and disabled completely, and values such as camera sensitivity and the rebalanced properties of each weapon mode may be changed, along with key bindings. To define key bindings, the mod uses Win32 virtual key codes. Go to https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes for a list of valid codes (however, only keyboard keys have been tested. Gamepad buttons were not tested and shouldn't be expected to work.)
+Each feature is toggleable and configurable and can be modified in gunsucked.ini. Features can be enabled and disabled completely, and values such as camera sensitivity and the rebalanced properties of each weapon mode may be changed, along with key bindings. To define key bindings, the mod uses Win32 virtual key codes. Go to https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes for a list of valid codes (however, only keyboard keys have been tested. Gamepad buttons were not tested and shouldn't be expected to work; if gamepad support is enabled, expect them to conflict.)
 
 ### Default Keybinds
 
@@ -45,6 +55,24 @@ Each feature is toggleable and configurable and can be modified in gunsucked.ini
 | Previous Weapon | - |
 | Previous Weapon | Mouse Wheel Down |
 
+### Gamepad Controls
+
+Gamepad controls are not rebindable in the INI. If gamepad support is enabled, the Objectives Menu (the Back button by default) will be overridden by the photo mode toggle.
+
+| Function | Button |
+|----------|--------|
+| **Toggles** | |
+| Toggle Photo Mode | Back |
+| **Camera Position** | |
+| Move Left / Right | Left Stick Left / Right |
+| Move Forward / Backward | Left Stick Up / Down |
+| Move Up / Down | A / B |
+| **Camera Angle** | |
+| Pitch Up / Down | Right Stick Up / Down |
+| Yaw Left / Right | Right Stick Left / Right |
+| Roll Left / Right | LB / RB |
+| **FOV** | |
+| Decrease / Increase FOV | Y / X |
 
 ## Weapon Changes
 
@@ -149,6 +177,10 @@ These are the modded properties of each weapon mode compared to the vanilla valu
 ## Using Photo Mode
 
 Photo mode is mostly self explanatory. Note it can also be used in conjunction with Super Slow Mode. If Super Slow Mode is enabled, then you can enter photo mode, frame your shot, and then toggle Super Slow Mode to unfreeze the game (to slow motion) while maintaining free camera control. Toggling Super Slow Mode again will return the game to its normal time factor, so you can retain free camera control at regular game speed.
+
+## Casual Mode
+
+Casual Mode adds regenerating health for players who find the game's difficulty too punishing. After a short period without taking damage, Rayne's health will begin to refill automatically up to her maximum. The cooldown duration and regeneration rate are configurable in gunsucked.ini.
 
 ## Loading Outfit Mods
 
