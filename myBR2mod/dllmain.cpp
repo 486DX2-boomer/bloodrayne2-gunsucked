@@ -124,7 +124,7 @@ DWORD WINAPI MainThread(LPVOID param) {
     std::optional<Outfit> outfit;
     std::optional<CasualMode> casualMode;
 
-    GamepadSupport gamepad; // change to optional once tested
+    std::optional<GamepadSupport> gamepad;
 
     if (g_Config.enablePhotoMode) {
         photoMode.emplace();
@@ -140,6 +140,9 @@ DWORD WINAPI MainThread(LPVOID param) {
     }
     if (g_Config.enableCasualMode) {
         casualMode.emplace();
+    }
+    if (g_Config.enableGamepadSupport) {
+        gamepad.emplace();
     }
 
     // Gunbalance must be hooked immediately or else it will override values too late to work.
@@ -204,7 +207,9 @@ DWORD WINAPI MainThread(LPVOID param) {
     }
 
     // Install gamepad hook
-    gamepad.installHook();
+    if (gamepad) {
+        gamepad->installHook();
+    }
 
     // Install the camera hook
     if (photoMode) {
@@ -293,8 +298,8 @@ DWORD WINAPI MainThread(LPVOID param) {
     // I wanted it to be configurable, but couldn't settle on a decent way to generalize analog vs button input.
     // it makes more sense to hard-code it and call it done.
 
-    if (photoMode) { // make gamepad an optional first and then check for both here
-        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::BACK, true, true, [&photoMode, &inputs]() {
+    if (photoMode && gamepad) {
+        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad.value(), GamepadSupport::Button::BACK, true, true, [&photoMode, &inputs]() {
             photoMode->toggle();
             // re-arm the fresh press on all inputs so a button held during the toggle
             // (e.g. lock-on) doesn't fire its photo-mode action when toggling
@@ -306,48 +311,49 @@ DWORD WINAPI MainThread(LPVOID param) {
             }));
 
         // up and down
-        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::B, false, false, [&photoMode]() {
+        // remember we are passing an optional by reference, so we have to pass .value() not just the &
+        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad.value(), GamepadSupport::Button::B, false, false, [&photoMode]() {
             photoMode->adjustPosition(0, 0, -g_Config.cameraPosIncDecValue);
             }));
-        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::A, false, false, [&photoMode]() {
+        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad.value(), GamepadSupport::Button::A, false, false, [&photoMode]() {
             photoMode->adjustPosition(0, 0, g_Config.cameraPosIncDecValue);
             }));
 
         // roll
-        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::LB, false, false, [&photoMode]() {
+        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad.value(), GamepadSupport::Button::LB, false, false, [&photoMode]() {
             photoMode->adjustAngle(0, -g_Config.cameraAngleIncDecValue, 0);
             }));
-        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::RB, false, false, [&photoMode]() {
+        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad.value(), GamepadSupport::Button::RB, false, false, [&photoMode]() {
             photoMode->adjustAngle(0, g_Config.cameraAngleIncDecValue, 0);
             }));
 
         // fov/zoom
-        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::Y, false, false, [&photoMode]() {
+        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad.value(), GamepadSupport::Button::Y, false, false, [&photoMode]() {
             photoMode->adjustFov(-g_Config.cameraFovIncDecValue);
             }));
-        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::X, false, false, [&photoMode]() {
+        inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad.value(), GamepadSupport::Button::X, false, false, [&photoMode]() {
             photoMode->adjustFov(g_Config.cameraFovIncDecValue);
             }));
 
         // strafe left/right (camera-local X)
-        inputs.push_back(std::make_unique<GamepadThumbstickInput>(&gamepad,
+        inputs.push_back(std::make_unique<GamepadThumbstickInput>(&gamepad.value(),
             GamepadSupport::Thumbstick::LEFT, GamepadSupport::Axis::AXIS_X, [&photoMode](float magnitude) {
                 photoMode->adjustPosition(magnitude * g_Config.cameraPosIncDecValue, 0, 0);
             }));
 
         // forward/backward (camera-local Z)
-        inputs.push_back(std::make_unique<GamepadThumbstickInput>(&gamepad,
+        inputs.push_back(std::make_unique<GamepadThumbstickInput>(&gamepad.value(),
             GamepadSupport::Thumbstick::LEFT, GamepadSupport::Axis::AXIS_Y, [&photoMode](float magnitude) {
                 photoMode->adjustPosition(0, magnitude * g_Config.cameraPosIncDecValue * -1, 0);
             }));
 
         // angles
-        inputs.push_back(std::make_unique<GamepadThumbstickInput>(&gamepad,
+        inputs.push_back(std::make_unique<GamepadThumbstickInput>(&gamepad.value(),
             GamepadSupport::Thumbstick::RIGHT, GamepadSupport::Axis::AXIS_X, [&photoMode](float magnitude) {
                 photoMode->adjustAngle(0, 0, magnitude* g_Config.cameraAngleIncDecValue);
             }));
 
-        inputs.push_back(std::make_unique<GamepadThumbstickInput>(&gamepad,
+        inputs.push_back(std::make_unique<GamepadThumbstickInput>(&gamepad.value(),
             GamepadSupport::Thumbstick::RIGHT, GamepadSupport::Axis::AXIS_Y, [&photoMode](float magnitude) {
                 photoMode->adjustAngle(magnitude* g_Config.cameraAngleIncDecValue, 0, 0);
             }));
@@ -431,7 +437,9 @@ DWORD WINAPI MainThread(LPVOID param) {
             //sound.confirm();
         //}
 
-        gamepad.update();
+        if (gamepad) {
+            gamepad->update();
+        }
         //gamepad.logAnalogState();
 
         // Process inputs with callbacks

@@ -117,6 +117,7 @@ namespace ConfigDefaults {
     constexpr bool enableNoHud = true;
     constexpr bool enableOutfitMods = true;
     constexpr bool enableCasualMode = false;
+    constexpr bool enableGamepadSupport = true;
 
     // camera keybinds - position
     constexpr int cameraDecrementXKey = VK_OEM_4; // [
@@ -268,6 +269,7 @@ public:
     bool enableNoHud;
     bool enableOutfitMods;
     bool enableCasualMode;
+    bool enableGamepadSupport;
 
     // camera controls
     int cameraDecrementXKey;
@@ -434,6 +436,7 @@ public:
         this->enableNoHud = reader.GetBoolean("features", "enableNoHud", ConfigDefaults::enableNoHud);
         this->enableOutfitMods = reader.GetBoolean("features", "enableOutfitMods", ConfigDefaults::enableOutfitMods);
         this->enableCasualMode = reader.GetBoolean("features", "enableCasualMode", ConfigDefaults::enableCasualMode);
+        this->enableGamepadSupport = reader.GetBoolean("features", "enableGamepadSupport", ConfigDefaults::enableGamepadSupport);
 
         // photo mode
         this->cameraDecrementXKey = (int)reader.GetInteger("photoMode", "cameraDecrementXKey", ConfigDefaults::cameraDecrementXKey);
@@ -599,6 +602,7 @@ public:
         this->enableNoHud = ConfigDefaults::enableNoHud;
         this->enableOutfitMods = ConfigDefaults::enableOutfitMods;
         this->enableCasualMode = ConfigDefaults::enableCasualMode;
+        this->enableGamepadSupport = ConfigDefaults::enableGamepadSupport;
 
         // camera keybinds
         this->cameraDecrementXKey = ConfigDefaults::cameraDecrementXKey;
@@ -758,7 +762,8 @@ public:
         config << "enableSuperSlowMo = " << (ConfigDefaults::enableSuperSlowMo ? "true" : "false") << std::endl;
         config << "enableNoHud = " << (ConfigDefaults::enableNoHud ? "true" : "false") << std::endl;
         config << "enableOutfitMods = " << (ConfigDefaults::enableOutfitMods ? "true" : "false") << std::endl;
-        config << "enableCasualMode = " << (ConfigDefaults::enableCasualMode ? "true" : "false") << std::endl;
+        config << "enableCasualMode = " << (ConfigDefaults::enableCasualMode ? "true" : "false") << std::endl
+        config << "enableGamepadSupport = " << (ConfigDefaults::enableGamepadSupport ? "true" : "false") << std::endl;
 
         config << std::endl;
 
