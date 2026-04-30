@@ -18,6 +18,7 @@
 #include "CasualMode.h"
 #include "GamepadSupport.h"
 #include "GamepadButtonInput.h"
+#include "GamepadThumbstickInput.h"
 //#include "XInput.h"
 
 void setupConsole() {
@@ -287,13 +288,7 @@ DWORD WINAPI MainThread(LPVOID param) {
             }));
     }
 
-    // Gamepad support for photo mode
-    //if (photoMode && gamepad) {
-
-    //inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, 3, true, false, [](){
-    //    DEBUG_LOG("pressed Blades button (3)");
-    //}));
-    
+    // Photo mode gamepad
     // I settled on making the photo mode gamepad layout hard-coded
     // I wanted it to be configurable, but couldn't settle on a decent way to generalize analog vs button input.
     // it makes more sense to hard-code it and call it done.
@@ -325,6 +320,29 @@ DWORD WINAPI MainThread(LPVOID param) {
             }));
         inputs.push_back(std::make_unique<GamepadButtonInput>(&gamepad, GamepadSupport::Button::X, false, false, [&photoMode]() {
             photoMode->adjustFov(g_Config.cameraFovIncDecValue);
+            }));
+
+        // camera position: left/right
+        inputs.push_back(std::make_unique<GamepadThumbstickInput>(&gamepad,
+            GamepadSupport::Thumbstick::LEFT, GamepadSupport::Axis::AXIS_X, [&photoMode](float magnitude) {
+                photoMode->adjustPosition(0, magnitude * g_Config.cameraPosIncDecValue * -1, 0);
+            }));
+
+        // forward/backward
+        inputs.push_back(std::make_unique<GamepadThumbstickInput>(&gamepad,
+            GamepadSupport::Thumbstick::LEFT, GamepadSupport::Axis::AXIS_Y, [&photoMode](float magnitude) {
+                photoMode->adjustPosition(magnitude * g_Config.cameraPosIncDecValue * -1, 0, 0);
+            }));
+
+        // angles
+        inputs.push_back(std::make_unique<GamepadThumbstickInput>(&gamepad,
+            GamepadSupport::Thumbstick::RIGHT, GamepadSupport::Axis::AXIS_X, [&photoMode](float magnitude) {
+                photoMode->adjustAngle(0, 0, magnitude* g_Config.cameraAngleIncDecValue);
+            }));
+
+        inputs.push_back(std::make_unique<GamepadThumbstickInput>(&gamepad,
+            GamepadSupport::Thumbstick::RIGHT, GamepadSupport::Axis::AXIS_Y, [&photoMode](float magnitude) {
+                photoMode->adjustAngle(magnitude* g_Config.cameraAngleIncDecValue, 0, 0);
             }));
     }
 

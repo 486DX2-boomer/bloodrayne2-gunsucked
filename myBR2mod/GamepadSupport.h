@@ -215,6 +215,17 @@ public:
 		D_DOWN = 31
 	};
 
+	enum Thumbstick {
+		LEFT,
+		RIGHT
+	};
+
+	// thumbstick axis
+	enum Axis {
+		AXIS_X, // named differently to not conflict with X/Y Button. Honestly, maybe these should be in a namespace not this class
+		AXIS_Y
+	};
+
 	bool installHook() {
 		return this->hook.install();
 	}

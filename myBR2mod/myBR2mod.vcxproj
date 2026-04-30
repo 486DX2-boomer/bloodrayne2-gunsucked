@@ -155,6 +155,7 @@
     <ClInclude Include="GamepadSupport.h" />
     <ClInclude Include="DisplayMessage.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="GamepadThumbstickInput.h" />
     <ClInclude Include="GunBalance.h" />
     <ClInclude Include="GunKeys.h" />
     <ClInclude Include="ini.h" />

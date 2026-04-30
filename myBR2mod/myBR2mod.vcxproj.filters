@@ -75,6 +75,9 @@
     <ClInclude Include="GamepadButtonInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GamepadThumbstickInput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
