@@ -16,6 +16,7 @@ Aside from the weapon rebalance, other features include:
 
 - Feature: Gamepad support for photo mode controls
 - Feature: Casual Mode (regenerating health, meant for new players)
+- Fix: Photo mode camera moves in camera space, not world space
 - Fix improperly configured Minhook library dependency
 - Fix: Removed mod launcher, load mod through DLL sideload (no more Windows Defender warnings)
 
