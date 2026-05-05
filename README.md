@@ -24,6 +24,8 @@ Aside from the weapon rebalance, other features include:
 
 In the game folder, rename binkw32.dll to binkw32_orig.dll, and then extract the mod's binkw32.dll and gunsucked.ini into the game folder. Launch the game normally.
 
+If you will be using outfit mods, you can copy the "mods" folder to your game directory as well. (No outfit mods are included).
+
 To uninstall, delete the mod's binkw32.dll, and rename binkw32_orig.dll back to binkw32.dll.
 
 ## Configuration
