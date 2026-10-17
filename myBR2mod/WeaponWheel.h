@@ -5,6 +5,7 @@
 #include "GamepadSupport.h"
 #include "GunKeys.h"
 #include "Overlay.h"
+#include "PlaySound.h"
 
 // Gamepad weapon wheel.
 // We hook the right trigger input and respond to:
@@ -25,6 +26,13 @@ private:
 
 	// our own instance rather than dllmain's: weapon hotkeys can be disabled in the INI, and the wheel still needs these
 	GunKeys gunKeys;
+
+	// plays when the stick moves the selection to a different weapon, before anything is equipped.
+	// equipping plays the Multigun's own switch sound, so we use a different wav than that one.
+	// some good ones were weapsfxweapon_empty.wav, cole44-load.wav but I went with p38-load.wav
+	// if I get around to it I'll make this a configurable in gunsucked.ini
+	PlaySound sound;
+	static constexpr const char* selectionSound = "p38-load.wav";
 
 	State state;
 	DWORD triggerDownTime;
@@ -188,6 +196,7 @@ private:
 		if (closestWeapon >= 0 && closestWeapon != this->selectedWeapon) {
 			this->selectedWeapon = closestWeapon;
 			this->overlay->setSelectedWeapon(closestWeapon);
+			this->sound.play(selectionSound);
 		}
 	}
 
