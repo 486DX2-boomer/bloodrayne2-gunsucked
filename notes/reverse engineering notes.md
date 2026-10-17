@@ -16,6 +16,7 @@
 14. [Entity System](#14-entity-system)
 15. [UI System](#15-ui-system)
 16. [v1.1 Findings](#16-v1.1-findings)
+17. [v1.2 Findings (Weapon Wheel)](#17-v1.2-findings-weapon-wheel)
 
 ---
 
@@ -1026,3 +1027,103 @@ A tick/update method on the player object.
 - Three powers are selected via virtual call at `vtable+0x230`. Availability checked by `FUN_0054ef50` (has enough rage) and `FUN_0054ef90`/`FUN_0054efd0` (power available). Error messages "Not enough rage points" and "Power not available" are displayed via the localization function `FUN_005898a0`.
 - Rage drain rates per difficulty use `PTR_DAT_007c07f8 + 0x3DC` (raw frame delta) multiplied by the ability cost constants at `DAT_007c1b3c`–`DAT_007c1b4c` (documented in Section 12).
 - Stuck detection: when `+0x390 == 0` and state is 0x105, tracks player position. If player doesn't move more than 0.25 units for 10 seconds, kills the player (health set to 0).
+
+---
+
+## 17. v1.2 Findings (Weapon Wheel)
+
+Findings made while building the weapon wheel: drawing our own UI, borrowing the game's art, and blocking the right stick.
+
+### Renderer
+
+The game renders with **Direct3D 8** (`rayne2.exe` imports `Direct3DCreate8` from `d3d8.dll`). The GoG build ships DXVK (v2.6.2) as `d3d8.dll`/`d3d9.dll`, which translates D3D8 → D3D9 → Vulkan, but the game only ever talks to the D3D8 interface. The Windows SDK no longer ships `d3d8.h`, so the mod declares the vtable indices and constants it needs (see `Overlay.h`).
+
+#### Confirmed
+
+| Address | Type | Description | Notes |
+|---------|------|-------------|-------|
+| `0x05D74620` | `IDirect3DDevice8*` | The game's D3D device | Written by `CreateDevice` (IDirect3D8 vtable `+0x3C`) in `FUN_00490690`. Null until the renderer initializes. |
+| `0x05D7461C` | `IDirect3D8*` | The D3D8 object | Returned by `Direct3DCreate8(0xDC)` |
+| `FUN_0048F820` | function | Present wrapper | `int __cdecl (void)`. Runs once per frame on the render thread. Presents through the device (vtable `+0x3C`) or, in one windowed path, a secondary swap chain (`+0x8014` → `+0xC`). **Hooked by the mod's overlay**; we draw right before the original runs. Confirmed in game on GoG at 1024x768 and 1440p, draws over menus too. |
+| `FUN_004905D0` | function | Device reset wrapper | Calls device `Reset` (vtable `+0x38`), then rebuilds resources. Not hooked: the overlay uses managed textures, which survive a Reset. |
+| `FUN_00490690` | function | Device creation | Source file `E:\projects\br2\directx\rendd3d.cpp` |
+
+- The device is created with behavior flags `0x42` (hardware vertex processing | FPU preserve) and **without** `D3DCREATE_MULTITHREADED`, so all D3D calls must happen on the render thread.
+- `BeginScene`/`EndScene` are called from several functions per frame (`FUN_00488000`, `FUN_0048F600`, `FUN_00489480`, `FUN_00489520`), so `EndScene` is not a once-per-frame hook point.
+
+### .TEX Texture Format
+
+| Offset | Type | Description |
+|--------|------|-------------|
+| `+0x00` | uint32 | Always 3 in observed files |
+| `+0x04` | uint32 | Always 3 in observed files |
+| `+0x08` | uint32 | Width |
+| `+0x0C` | uint32 | Height |
+| `+0x1C` | uint32 | `0x0019D318` in every observed file |
+| `+0x20` | bytes | Raw 32bpp pixels, B, G, R, A byte order (= `D3DFMT_A8R8G8B8` in memory), uncompressed |
+
+File size is always `0x20 + width * height * 4` for the files checked (HUD and select wheel textures).
+
+### POD3 Index (on disk)
+
+Supplements Section 8, which describes the in-memory structures. On disk:
+
+| Offset | Type | Description |
+|--------|------|-------------|
+| `0x058` | uint32 | File count |
+| `0x108` | uint32 | Index offset |
+
+The index is `file count` entries of **20 bytes**: `{ name offset, size, data offset, timestamp, checksum }`. The string table (null-terminated names such as `ART\HUD.TEX`) follows directly after the index. File data is stored uncompressed.
+
+### Unused Select Wheel Art
+
+`W32ART.POD` contains art for a radial selector that `rayne2.exe` never references by name (likely a cut feature):
+
+| File | Size | Contents |
+|------|------|----------|
+| `ART\SELECTWHEEL_BASE.TEX` | 256x256 | Bladed wheel with 8 rings, clockwise from the top. Ring centers at radius ~82px from the center; ring holes ~26px across. |
+| `ART\SELECTWHEEL_ICON.TEX` | 128x128 | 4x4 grid of 32x32 icons. The first six are the weapon modes in index order (Shot, Stream, Spray, Bomb, Flame, Hammer); the rest appear to be powers. |
+| `ART\SELECTWHEEL_CENTER.TEX` | 64x32 | Center piece, unused so far |
+
+`ART\HUD.TEX` holds the regular HUD, including the six pink weapon-mode icons down its right edge.
+
+### Gamepad Polling
+
+`FUN_0068DDB0` polls the gamepads once per frame. It loops over **4 pads**, calling one of two poll functions per pad (chosen by the flag at `0x061B5A18 + pad`):
+
+| Function | API | Notes |
+|----------|-----|-------|
+| `FUN_0068C550` | DirectInput (`GetDeviceState`, 0x50 bytes = `DIJOYSTATE`) | Reports buttons 0–27, then the POV hat as buttons 28–31. With no device it still reports every button as released, then zeroes the analog values. |
+| `FUN_0068CA20` | XInput (`XInputGetState`) | Returns early (no button calls) if the pad isn't connected. Reports buttons in the order A, B, X, Y(0), RB, LB, Start, Back, ... d-pad; RT/LT (5/4) are reported as buttons when past a threshold. Sticks pass through a deadzone function, `FUN_00467AA0`, before buttons are reported. |
+
+Both poll functions **write every analog value before reporting any button**, and report button 0 exactly once per poll. Nothing reads the analog values until the poll returns.
+
+#### Per-Pad Input State
+
+Each pad has a state block at `0x007E10A0 + pad * 0x1E4`. This is the `this` pointer of the button state function `FUN_00467600` (already hooked by the mod's gamepad support).
+
+| Offset | Type | Description |
+|--------|------|-------------|
+| `+0x00` | int | Device type (checked against 0, 3, 4) |
+| `+0x28` | float | Left stick X (pad 0: `0x007E10C8`) |
+| `+0x2C` | float | Left stick Y (pad 0: `0x007E10CC`) |
+| `+0x30` | float | Right stick X (pad 0: `0x007E10D0`) |
+| `+0x34` | float | Left trigger (pad 0: `0x007E10D4`) |
+| `+0x38` | float | Right trigger (pad 0: `0x007E10D8`) |
+| `+0x3C` | float | Right stick Y (pad 0: `0x007E10DC`) |
+| `+0x40` | float | 7th axis (DirectInput only) |
+| `+0x4C` | int[32] | Button "changed" values |
+| `+0xE0` | int[32] | Button pressed state (written by `FUN_00467600`) |
+| `+0x160` | int[32] | Previous frame's button state |
+
+#### Blocking the Right Stick
+
+The game never reads the right stick globals directly; consumers go through the `gamepadAxis` mapping (Section 16, `rayne2.ini`). Lowering the cheat menu time factor does **not** slow camera turning (confirmed in game), so the stick has to be blocked while the weapon wheel is open.
+
+The mod does this inside the existing button hook: on the button 0 call for pad 0, it copies the right stick into its own atomics, then zeroes the globals if blocking is on. The camera sees a centered stick, while the mod still reads the real values.
+
+### Hero List (Rayne Pointer)
+
+`0x061276EC` (the mod's `Rayne2::RayneBasePtr`) is not a standalone pointer: it is slot 0 of a hero/player list at `*(0x007C5D50) + 0x3F0C`, 11 slots of 8 bytes each, scanned by functions such as `FUN_00457AD0` and `FUN_004548F0` (which stop at the first empty slot). Nothing writes the global directly, so the list is filled through the base pointer.
+
+The mod treats Rayne as valid when slot 0 is non-null and its vftable is `0x007034E4` (`CMainCharacter`, see `FUN_00549B50`). **Scripted events can briefly fail this check.** Confirmed in game: the car explosion at the start of Meatpacking District (O'Leary's Cow) fails it for a moment while Rayne stays controllable. Code that runs across several frames (like the weapon wheel) should only require the check at the moment it acts on Rayne, not cancel when it fails mid-way.

@@ -123,6 +123,8 @@ public:
 		}
 	}
 
+	// this is for mousewheel down to switch to the previous weapon (gunMouseWheelDownPreviousWeapon in config)
+	// this is not related to nextWeapon() which is for the gamepad weapon wheel
 	void switchToPreviousWeapon() {
 
 		this->resetCurrentWeaponAddress();
@@ -137,6 +139,23 @@ public:
 
 			// reads previous weapon index from the game
 			int result = weaponSwitchCall(multiGun, *Rayne2::previousWeaponIndex, 1);
+		}
+	}
+
+	// what the game's original weapon switch button did. the weapon wheel blocks that button, so tapping it calls this instead
+	void switchToNextWeapon() {
+
+		this->resetCurrentWeaponAddress();
+
+		if (this->isSafe()) {
+			uintptr_t rayneBase = *reinterpret_cast<uintptr_t*>(Rayne2::RayneBasePtr);
+			if (rayneBase == 0) return;
+
+			void* multiGun = reinterpret_cast<void*>(rayneBase + multiGunOffset);
+			auto weaponSwitchCall = reinterpret_cast<switchWeaponFn>(switchWeaponFunctionAddress);
+
+			// reads next weapon index from the game
+			int result = weaponSwitchCall(multiGun, *Rayne2::nextWeaponIndex, 1);
 		}
 	}
 };

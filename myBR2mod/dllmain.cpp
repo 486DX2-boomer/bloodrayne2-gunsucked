@@ -19,6 +19,8 @@
 #include "GamepadSupport.h"
 #include "GamepadButtonInput.h"
 #include "GamepadThumbstickInput.h"
+#include "Overlay.h"
+#include "WeaponWheel.h"
 //#include "XInput.h"
 
 void setupConsole() {
@@ -223,6 +225,23 @@ DWORD WINAPI MainThread(LPVOID param) {
     if (!noHud.installHook()) {
         DEBUG_LOG("Failed to install no hud hook - aborting");
         return 1;
+    }
+
+    // The D3D device is created before Rayne exists so overlay is safe to hook by now
+    std::optional<Overlay> overlay;
+    std::optional<WeaponWheel> weaponWheel;
+    if (gamepad && g_Config.enableWeaponWheel) {
+        overlay.emplace();
+        overlay->checkSafeToHook();
+        if (!overlay->loadImages()) {
+            DEBUG_LOG("Failed to load overlay images - weapon wheel disabled");
+        }
+        else if (!overlay->installHook()) {
+            DEBUG_LOG("Failed to install overlay hook - weapon wheel disabled");
+        }
+        else {
+            weaponWheel.emplace(&gamepad.value(), &overlay.value());
+        }
     }
 
     // capture NoHud for photomode
@@ -439,6 +458,10 @@ DWORD WINAPI MainThread(LPVOID param) {
 
         if (gamepad) {
             gamepad->update();
+        }
+
+        if (weaponWheel) {
+            weaponWheel->update();
         }
         //gamepad.logAnalogState();
 

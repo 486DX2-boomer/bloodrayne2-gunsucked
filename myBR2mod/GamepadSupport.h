@@ -82,10 +82,34 @@ private:
 	// also cross-thread written and read, so the elements must be atomic.
 	static std::array<std::atomic<bool>, 32> blockedButtons;
 
+	// thisPointer is the game's per-pad input state, 0x007E10A0 + pad * 0x1E4
+	// (right stick X at +0x30, Y at +0x3C), so pad 0's are the Rayne2::GamepadThumbRight globals
+	static constexpr uintptr_t padZeroState = 0x007E10A0;
+
+	// we capture the right stick state this frame captured before we possibly zero it.
+	// our thread reads these instead of the globals so blocking the stick doesn't block the mod too
+	static std::atomic<float> rightStickX;
+	static std::atomic<float> rightStickY;
+
+	// blocked right stick = the game sees it centered (ie camera doesn't turn while the weapon wheel is open)
+	static std::atomic<bool> rightStickBlocked;
+
 	bool hookInstalled = false;
 	bool hookEnabled = false;
 
 	static void __fastcall hookedGetButtonState(void* thisPointer, void* edx, int buttonId, int pressed) {
+
+		// both poll functions (DirectInput FUN_0068c550, XInput FUN_0068ca20) write every analog value
+		// before they report any buttons, and report button 0 exactly once per poll (XInput reports it 4th, not 1st).
+		// nothing reads the analog values until the poll returns, so this is our chance to see and zero the stick first.
+		if (buttonId == 0 && reinterpret_cast<uintptr_t>(thisPointer) == padZeroState) {
+			rightStickX.store(*Rayne2::GamepadThumbRightX);
+			rightStickY.store(*Rayne2::GamepadThumbRightY);
+			if (rightStickBlocked.load()) {
+				*Rayne2::GamepadThumbRightX = 0.0f;
+				*Rayne2::GamepadThumbRightY = 0.0f;
+			}
+		}
 
 		// to intercept and block actions, overwrite buttonId/pressed here.
 		if (blockedButtons[buttonId].load()) {
@@ -165,6 +189,19 @@ public:
 		blockedButtons[buttonId].store(true);
 	}
 
+	// unlike buttons the right stick is blocked and unblocked at runtime (only while the weapon wheel is open)
+	void setRightStickBlocked(bool blocked) {
+		rightStickBlocked.store(blocked);
+	}
+
+	static float getRightStickX() {
+		return rightStickX.load();
+	}
+
+	static float getRightStickY() {
+		return rightStickY.load();
+	}
+
 	// I'm not sure there's anywhere in the mod that actually needs unregistering blocked buttons.
 	// can probably safely remove this.
 	//void unregisterBlockedButton(int buttonId) {
@@ -235,8 +272,9 @@ public:
 		// I did it the same way in photo mode; it's easier to work with local copies IMO.
 		this->leftX = *Rayne2::GamepadThumbLeftX;
 		this->leftY = *Rayne2::GamepadThumbLeftY;
-		this->rightX = *Rayne2::GamepadThumbRightX;
-		this->rightY = *Rayne2::GamepadThumbRightY;
+		// the right stick comes from the hook, since the globals are zeroed while the stick is blocked
+		this->rightX = GamepadSupportHook::getRightStickX();
+		this->rightY = GamepadSupportHook::getRightStickY();
 		this->leftTrigger = *Rayne2::GamepadTriggerLeft;
 		this->rightTrigger = *Rayne2::GamepadTriggerRight;
 
@@ -263,6 +301,11 @@ public:
 
 	void registerBlockedButton(int buttonId) {
 		this->hook.registerBlockedButton(buttonId);
+	}
+
+	// while blocked, the game sees the right stick as centered, but getAnalogState() still reports it
+	void setRightStickBlocked(bool blocked) {
+		this->hook.setRightStickBlocked(blocked);
 	}
 
 	void logAnalogState() {

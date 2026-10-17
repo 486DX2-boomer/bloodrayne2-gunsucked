@@ -98,6 +98,10 @@ namespace Rayne2 {
     // left and right triggers, in-memory, are between right thumb X and right thumb Y for some reason.
     float* const GamepadTriggerLeft = (float*)0x007e10d4;
     float* const GamepadTriggerRight = (float*)0x007e10d8;
+
+    // rendering stuff
+    // IDirect3DDevice8* written by CreateDevice in FUN_00490690. null until the renderer is initialized
+    void** const D3DDevice = (void**)0x05D74620;
 }
 
 namespace Utilities {
@@ -120,6 +124,7 @@ namespace ConfigDefaults {
     constexpr bool enableOutfitMods = true;
     constexpr bool enableCasualMode = false;
     constexpr bool enableGamepadSupport = true;
+    constexpr bool enableWeaponWheel = true; // requires gamepadSupport to be on
 
     // camera keybinds - position
     constexpr int cameraDecrementXKey = VK_OEM_4; // [
@@ -161,6 +166,9 @@ namespace ConfigDefaults {
     constexpr float cameraMaxSensitivityScale = 2.0f; // the maximum sensitivity can scale to
 
     constexpr float superSlowModeTimeFactor = 0.05f;
+    constexpr float weaponWheelTimeFactor = 0.2f;
+    constexpr int weaponWheelHoldThresholdMilliseconds = 200; // short trigger presses switch to next weapon, long presses activate wheel
+    constexpr float weaponWheelTriggerThreshold = 0.25f; // how far right trigger must be pulled to activate, 0-1
 
     // casual mode
     constexpr float casualModeHealthRegenCooldown = 10.0f;
@@ -272,6 +280,7 @@ public:
     bool enableOutfitMods;
     bool enableCasualMode;
     bool enableGamepadSupport;
+    bool enableWeaponWheel;
 
     // camera controls
     int cameraDecrementXKey;
@@ -313,6 +322,9 @@ public:
     float cameraMaxSensitivityScale;
 
     float superSlowModeTimeFactor;
+    float weaponWheelTimeFactor;
+    int weaponWheelHoldThresholdMilliseconds;
+    float weaponWheelTriggerThreshold;
 
     // casual mode
     float casualModeHealthRegenCooldown;
@@ -439,6 +451,7 @@ public:
         this->enableOutfitMods = reader.GetBoolean("features", "enableOutfitMods", ConfigDefaults::enableOutfitMods);
         this->enableCasualMode = reader.GetBoolean("features", "enableCasualMode", ConfigDefaults::enableCasualMode);
         this->enableGamepadSupport = reader.GetBoolean("features", "enableGamepadSupport", ConfigDefaults::enableGamepadSupport);
+        this->enableWeaponWheel = reader.GetBoolean("features", "enableWeaponWheel", ConfigDefaults::enableWeaponWheel);
 
         // photo mode
         this->cameraDecrementXKey = (int)reader.GetInteger("photoMode", "cameraDecrementXKey", ConfigDefaults::cameraDecrementXKey);
@@ -479,6 +492,9 @@ public:
         this->cameraMaxSensitivityScale = (float)reader.GetReal("tuningValues", "cameraMaxSensitivityScale", ConfigDefaults::cameraMaxSensitivityScale);
 
         this->superSlowModeTimeFactor = (float)reader.GetReal("tuningValues", "superSlowModeTimeFactor", ConfigDefaults::superSlowModeTimeFactor);
+        this->weaponWheelTimeFactor = (float)reader.GetReal("tuningValues", "weaponWheelTimeFactor", ConfigDefaults::weaponWheelTimeFactor);
+        this->weaponWheelHoldThresholdMilliseconds = (int)reader.GetInteger("tuningValues", "weaponWheelHoldThresholdMilliseconds", ConfigDefaults::weaponWheelHoldThresholdMilliseconds);
+        this->weaponWheelTriggerThreshold = (float)reader.GetReal("tuningValues", "weaponWheelTriggerThreshold", ConfigDefaults::weaponWheelTriggerThreshold);
 
         // casual mode
         this->casualModeHealthRegenCooldown = (float)reader.GetReal("casualMode", "healthRegenCooldown", ConfigDefaults::casualModeHealthRegenCooldown);
@@ -605,6 +621,7 @@ public:
         this->enableOutfitMods = ConfigDefaults::enableOutfitMods;
         this->enableCasualMode = ConfigDefaults::enableCasualMode;
         this->enableGamepadSupport = ConfigDefaults::enableGamepadSupport;
+        this->enableWeaponWheel = ConfigDefaults::enableWeaponWheel;
 
         // camera keybinds
         this->cameraDecrementXKey = ConfigDefaults::cameraDecrementXKey;
@@ -645,6 +662,9 @@ public:
         this->cameraMaxSensitivityScale = ConfigDefaults::cameraMaxSensitivityScale;
 
         this->superSlowModeTimeFactor = ConfigDefaults::superSlowModeTimeFactor;
+        this->weaponWheelTimeFactor = ConfigDefaults::weaponWheelTimeFactor;
+        this->weaponWheelHoldThresholdMilliseconds = ConfigDefaults::weaponWheelHoldThresholdMilliseconds;
+        this->weaponWheelTriggerThreshold = ConfigDefaults::weaponWheelTriggerThreshold;
 
         // casual mode
         this->casualModeHealthRegenCooldown = ConfigDefaults::casualModeHealthRegenCooldown;
@@ -766,6 +786,8 @@ public:
         config << "enableOutfitMods = " << (ConfigDefaults::enableOutfitMods ? "true" : "false") << std::endl;
         config << "enableCasualMode = " << (ConfigDefaults::enableCasualMode ? "true" : "false") << std::endl;
         config << "enableGamepadSupport = " << (ConfigDefaults::enableGamepadSupport ? "true" : "false") << std::endl;
+        config << "; weapon wheel requires enableGamepadSupport = true" << std::endl;
+        config << "enableWeaponWheel = " << (ConfigDefaults::enableWeaponWheel ? "true" : "false") << std::endl;
 
         config << std::endl;
 
@@ -825,6 +847,15 @@ public:
         config << "; default is 0.05. values above 1.0 make the game run faster" << std::endl;
         config << "; don't use negative values. weird stuff happens" << std::endl;
         config << "superSlowModeTimeFactor = " << std::dec  << ConfigDefaults::superSlowModeTimeFactor << std::endl;
+
+        config << "; slow mo time factor when weapon wheel is open" << std::endl;
+        config << "weaponWheelTimeFactor = " << std::dec << ConfigDefaults::weaponWheelTimeFactor << std::endl;
+
+        config << "; how long RT must be held (ms) to open the weapon wheel" << std::endl;
+        config << "weaponWheelHoldThresholdMilliseconds = " << std::dec << ConfigDefaults::weaponWheelHoldThresholdMilliseconds << std::endl;
+
+        config << "; how far RT must be pulled. 0.0 is unpulled, 1.0 is all the way down" << std::endl;
+        config << "weaponWheelTriggerThreshold = " << std::dec << ConfigDefaults::weaponWheelTriggerThreshold << std::endl;
 
         config << std::endl;
 

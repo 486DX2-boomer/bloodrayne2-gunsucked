@@ -21,6 +21,7 @@ Next goals:
 17. KeyInput - change this so keys don't fire when the game window isn't focused! (done)
 18. Photo mode: Play a sound when entering and exiting photo mode (Done)
 19. MouseInput - make sure mousewheel downs aren't firing when the game window isn't focused (Done)
+20. Module dependencies: any module another module depends on must always be constructed, and its INI toggle should only disable its bindings (like Super Slow Mode and No Hud). The weapon wheel avoids this by owning its own GunKeys instance instead of using dllmain's. Another example: outfit loader's loose file loading support
 
 Bloodrayne 2 Mod Goals:
 1. Reduced ammunition cost and increased power of bloodguns
