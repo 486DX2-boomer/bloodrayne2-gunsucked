@@ -173,6 +173,7 @@ namespace WheelLayout {
 	constexpr int slotCount = 8;
 	constexpr int slotWeapons[slotCount] = { -1, 0, 1, 2, -1, 3, 4, 5 };
 	constexpr float slotAngle = 0.785398163f; // 45 degrees, in radians
+	constexpr int weaponCount = 6;
 }
 
 class OverlayHook {
@@ -195,6 +196,7 @@ private:
 	static inline std::atomic<bool> wheelVisible = false;
 	static inline std::atomic<uint32_t> unlockedWeapons = 0; // bitmask, same layout as the game's
 	static inline std::atomic<int> selectedWeapon = -1; // -1 = nothing selected
+	static inline std::atomic<int> equippedWeapon = -1; // -1 = unknown
 
 	// SELECTWHEEL_BASE.TEX geometry, in pixels of the 256x256 texture.
 	// The eight rings sit on a circle around the center, clockwise starting from the top.
@@ -279,16 +281,26 @@ private:
 			float ringX = centerX + sinf(angle) * ringRadius * scale;
 			float ringY = centerY - cosf(angle) * ringRadius * scale;
 
-			int iconX = (weapon % iconColumns) * iconCellSize;
-			int iconY = (weapon / iconColumns) * iconCellSize;
 			bool isSelected = (weapon == selected);
-			float iconScreenSize = iconSize * scale * (isSelected ? selectedIconScale : 1.0f);
-
-			drawImage(device, wheelIconsTexture, wheelIconsImage,
-				iconX, iconY, iconCellSize, iconCellSize,
-				ringX - iconScreenSize * 0.5f, ringY - iconScreenSize * 0.5f, iconScreenSize, iconScreenSize,
+			drawIcon(device, weapon, ringX, ringY, iconSize * scale * (isSelected ? selectedIconScale : 1.0f),
 				isSelected ? white : unselectedTint);
 		}
+
+		// the center hole shows what weapon will be equipped when wheel closes
+		int centerWeapon = (selected >= 0) ? selected : equippedWeapon.load();
+		if (centerWeapon >= 0 && centerWeapon < WheelLayout::weaponCount) {
+			drawIcon(device, centerWeapon, centerX, centerY, iconSize * scale * selectedIconScale, white);
+		}
+	}
+
+	// draws one weapon icon from SELECTWHEEL_ICON, centered on x, y
+	static void drawIcon(void* device, int weapon, float x, float y, float screenSize, DWORD color) {
+		int iconX = (weapon % iconColumns) * iconCellSize;
+		int iconY = (weapon / iconColumns) * iconCellSize;
+
+		drawImage(device, wheelIconsTexture, wheelIconsImage,
+			iconX, iconY, iconCellSize, iconCellSize,
+			x - screenSize * 0.5f, y - screenSize * 0.5f, screenSize, screenSize, color);
 	}
 
 	static bool createTextures(void* device) {
@@ -501,6 +513,10 @@ public:
 	void setSelectedWeapon(int weapon) {
 		selectedWeapon.store(weapon);
 	}
+
+	void setEquippedWeapon(int weapon) {
+		equippedWeapon.store(weapon);
+	}
 };
 
 class Overlay {
@@ -557,5 +573,10 @@ public:
 	// weapon mode index (GunKeys::WeaponModes), or -1 for none
 	void setSelectedWeapon(int weapon) {
 		this->hook.setSelectedWeapon(weapon);
+	}
+
+	// weapon mode index of the weapon Rayne has equipped. shown in the middle until something is selected
+	void setEquippedWeapon(int weapon) {
+		this->hook.setEquippedWeapon(weapon);
 	}
 };

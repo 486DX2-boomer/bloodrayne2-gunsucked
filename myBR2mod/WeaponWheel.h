@@ -118,6 +118,7 @@ private:
 
 		this->overlay->setUnlockedWeapons(this->unlockedWeapons);
 		this->overlay->setSelectedWeapon(-1);
+		this->overlay->setEquippedWeapon(*Rayne2::currentEquippedWeaponIndex);
 		this->overlay->showWheel();
 		this->gamepad->setRightStickBlocked(true);
 
