@@ -184,6 +184,7 @@ namespace ConfigDefaults {
     constexpr float trueDhampirJumpHeightMultiplier = 1.8f; // 2.6 matches BR1 but leaves the camera
     constexpr float trueDhampirJumpAnimationRate = 0.75f; // below 1 = longer hang time, same height. 0.57 matches BR1
     constexpr float trueDhampirGravityMultiplier = 2.6f; // airborne gravity = world gravity (32) x this. 3.0 is stock
+    constexpr float trueDhampirAttackSpeedMultiplier = 1.8f; // no BR1 target, tuned by feel
 
     // behaviors
     constexpr bool photoModeDisableHudOnEnter = true;
@@ -348,6 +349,7 @@ public:
     float trueDhampirJumpHeightMultiplier;
     float trueDhampirJumpAnimationRate;
     float trueDhampirGravityMultiplier;
+    float trueDhampirAttackSpeedMultiplier;
 
     // behaviors
     bool photoModeDisableHudOnEnter;
@@ -526,6 +528,7 @@ public:
         this->trueDhampirJumpHeightMultiplier = (float)reader.GetReal("trueDhampir", "jumpHeightMultiplier", ConfigDefaults::trueDhampirJumpHeightMultiplier);
         this->trueDhampirJumpAnimationRate = (float)reader.GetReal("trueDhampir", "jumpAnimationRate", ConfigDefaults::trueDhampirJumpAnimationRate);
         this->trueDhampirGravityMultiplier = (float)reader.GetReal("trueDhampir", "gravityMultiplier", ConfigDefaults::trueDhampirGravityMultiplier);
+        this->trueDhampirAttackSpeedMultiplier = (float)reader.GetReal("trueDhampir", "attackSpeedMultiplier", ConfigDefaults::trueDhampirAttackSpeedMultiplier);
 
         // behaviors
         this->photoModeDisableHudOnEnter = reader.GetBoolean("behaviors", "photoModeDisableHudOnEnter", ConfigDefaults::photoModeDisableHudOnEnter);
@@ -704,6 +707,7 @@ public:
         this->trueDhampirJumpHeightMultiplier = ConfigDefaults::trueDhampirJumpHeightMultiplier;
         this->trueDhampirJumpAnimationRate = ConfigDefaults::trueDhampirJumpAnimationRate;
         this->trueDhampirGravityMultiplier = ConfigDefaults::trueDhampirGravityMultiplier;
+        this->trueDhampirAttackSpeedMultiplier = ConfigDefaults::trueDhampirAttackSpeedMultiplier;
 
         // behaviors
         this->photoModeDisableHudOnEnter = ConfigDefaults::photoModeDisableHudOnEnter;
@@ -915,6 +919,8 @@ public:
         config << "jumpAnimationRate = " << std::dec << ConfigDefaults::trueDhampirJumpAnimationRate << std::endl;
         config << "; airborne gravity = world gravity x this, 3.0 = normal. affects double jump roll, but not single jump" << std::endl;
         config << "gravityMultiplier = " << std::dec << ConfigDefaults::trueDhampirGravityMultiplier << std::endl;
+        config << "; 1.0 = normal speed" << std::endl;
+        config << "attackSpeedMultiplier = " << std::dec << ConfigDefaults::trueDhampirAttackSpeedMultiplier << std::endl;
 
         config << std::endl;
 

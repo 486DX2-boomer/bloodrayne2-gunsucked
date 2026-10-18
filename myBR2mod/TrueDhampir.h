@@ -8,12 +8,14 @@
 // - immune to knockdown (hits, explosions and feed counters stagger her instead)
 // - faster run
 // - higher jump with a longer hang time
+// - faster attacks (animations play faster, so combo windows open sooner too)
 // - configurable airborne gravity (physics air states like the double jump roll. single jump ignores gravity)
 // BR1 reference values are in reverse engineering notes.md
 
-// FUN_00669A40: sets the walk/run playback rate (+0x48B0) for this frame. __thiscall, no args.
-// FUN_00672A30 calls it right before it multiplies the animation delta time by +0x48B0
-typedef void(__fastcall* FN_SetLocomotionRate)(void* thisPointer, void* edx);
+// FUN_00669A40: sets the animation playback rate (+0x48B0) for this frame. __thiscall, no args.
+// it resets the rate to 1.0 and only lowers it to blend walk and run, but FUN_00672A30 calls it right before
+// it multiplies the delta time for all of Rayne's animations by +0x48B0, so we can scale any animation here
+typedef void(__fastcall* FN_SetAnimationRate)(void* thisPointer, void* edx);
 
 // FUN_00672A30: Rayne's animation advance. __thiscall(float deltaTime).
 // it accumulates this frame's root motion into +0x15C/160/164 and scales it right before returning
@@ -23,12 +25,33 @@ namespace TrueDhampirOffsets {
 	// CMainCharacter
 	constexpr uintptr_t AnimationIndex = 0x17C; // current animation, the "state" (CAnimationController + 0x24)
 	constexpr uintptr_t RootMotionY = 0x160; // vertical root motion this frame
-	constexpr uintptr_t LocomotionRate = 0x48B0;
+	constexpr uintptr_t AnimationRate = 0x48B0;
 
 	// animation indices
 	constexpr int Walk = 0x0A;
 	constexpr int Run = 0x0B;
 	constexpr int Jump = 0xFF; // single jump, driven entirely by the animation's root motion
+
+	// attack animations, from startMove's move to animation table (FUN_006660F0).
+	// each range includes the follow-up animations between move starts (recoveries, chained through animation data).
+	// the variant ranges are the ones FUN_00666880 maps back onto the base ranges
+	struct AnimationRange { int first; int last; };
+	constexpr AnimationRange Attacks[] = {
+		{ 0x1A, 0x2D },   // moves 0x09-0x14
+		{ 0x43, 0x56 },   // variants of 0x1A-0x2D
+		{ 0x57, 0x77 },   // moves 0x29-0x3C
+		{ 0x7B, 0x98 },   // variants of 0x57-0x74
+		{ 0x18D, 0x19F }, // moves 0x18-0x28
+		{ 0x1B1, 0x1BC }, // variants of 0x18D-0x19A
+		{ 0x1C5, 0x1C6 }, // Blood Rage blade and kick (moves 0x43, 0x44)
+	};
+
+	constexpr bool isAttack(int animation) {
+		for (const auto& range : Attacks) {
+			if (animation >= range.first && animation <= range.last) return true;
+		}
+		return false;
+	}
 }
 
 // a code patch we verify before writing, so a different game build doesn't get garbage written into it
@@ -42,16 +65,17 @@ struct CodePatch {
 
 class TrueDhampirHook {
 private:
-	uintptr_t setLocomotionRateAddress = 0x00669A40;
+	uintptr_t setAnimationRateAddress = 0x00669A40;
 	uintptr_t advanceAnimationAddress = 0x00672A30;
 
-	static inline FN_SetLocomotionRate originalSetLocomotionRate = nullptr;
+	static inline FN_SetAnimationRate originalSetAnimationRate = nullptr;
 	static inline FN_AdvanceAnimation originalAdvanceAnimation = nullptr;
 
 	// read by the hooks on the game thread, so they have to be static
 	static inline float runSpeedMultiplier = 1.0f;
 	static inline float jumpHeightMultiplier = 1.0f;
 	static inline float jumpAnimationRate = 1.0f;
+	static inline float attackSpeedMultiplier = 1.0f;
 
 	// Rayne's airborne gravity is world gravity times this. the game's own constant is 3.0 (double at 0x006DE838),
 	// which is probably shared, so instead of changing it we point the one instruction that uses it for Rayne at ours.
@@ -84,21 +108,25 @@ private:
 
 	// speeds up the run cycle instead of scaling the distance, so her feet don't slide.
 	// slowing the jump animation lengthens the hang time without changing the height,
-	// since the animation still covers the same root motion in total
-	static void __fastcall hookedSetLocomotionRate(void* thisPointer, void* edx) {
-		originalSetLocomotionRate(thisPointer, edx);
+	// since the animation still covers the same root motion in total.
+	// speeding up attacks also moves their animation events earlier, including the combo window (event 0x4B1)
+	static void __fastcall hookedSetAnimationRate(void* thisPointer, void* edx) {
+		originalSetAnimationRate(thisPointer, edx);
 
 		if (!isRayne(thisPointer)) return;
 
 		uintptr_t rayne = reinterpret_cast<uintptr_t>(thisPointer);
 		int animation = *reinterpret_cast<int*>(rayne + TrueDhampirOffsets::AnimationIndex);
-		float* rate = reinterpret_cast<float*>(rayne + TrueDhampirOffsets::LocomotionRate);
+		float* rate = reinterpret_cast<float*>(rayne + TrueDhampirOffsets::AnimationRate);
 
 		if (animation == TrueDhampirOffsets::Walk || animation == TrueDhampirOffsets::Run) {
 			*rate *= runSpeedMultiplier;
 		}
 		else if (animation == TrueDhampirOffsets::Jump) {
 			*rate *= jumpAnimationRate;
+		}
+		else if (TrueDhampirOffsets::isAttack(animation)) {
+			*rate *= attackSpeedMultiplier;
 		}
 	}
 
@@ -144,11 +172,12 @@ private:
 	}
 
 public:
-	void setMultipliers(float runSpeed, float jumpHeight, float jumpRate, float gravity) {
+	void setMultipliers(float runSpeed, float jumpHeight, float jumpRate, float gravity, float attackSpeed) {
 		runSpeedMultiplier = runSpeed;
 		jumpHeightMultiplier = jumpHeight;
 		jumpAnimationRate = jumpRate;
 		gravityMultiplier = gravity;
+		attackSpeedMultiplier = attackSpeed;
 	}
 
 	bool applyGravityPatch() {
@@ -225,7 +254,7 @@ public:
 			return false;
 		}
 
-		if (!this->createHook(this->setLocomotionRateAddress, (LPVOID)&hookedSetLocomotionRate, (LPVOID*)&originalSetLocomotionRate, "locomotion rate")) {
+		if (!this->createHook(this->setAnimationRateAddress, (LPVOID)&hookedSetAnimationRate, (LPVOID*)&originalSetAnimationRate, "animation rate")) {
 			return false;
 		}
 
@@ -243,14 +272,14 @@ public:
 
 		if (!this->hooksInstalled) return;
 
-		MH_DisableHook((LPVOID)this->setLocomotionRateAddress);
-		MH_RemoveHook((LPVOID)this->setLocomotionRateAddress);
+		MH_DisableHook((LPVOID)this->setAnimationRateAddress);
+		MH_RemoveHook((LPVOID)this->setAnimationRateAddress);
 		MH_DisableHook((LPVOID)this->advanceAnimationAddress);
 		MH_RemoveHook((LPVOID)this->advanceAnimationAddress);
 		MH_Uninitialize();
 
 		this->hooksInstalled = false;
-		originalSetLocomotionRate = nullptr;
+		originalSetAnimationRate = nullptr;
 		originalAdvanceAnimation = nullptr;
 		DEBUG_LOG("TrueDhampir hooks uninstalled");
 	}
@@ -275,7 +304,8 @@ public:
 			g_Config.trueDhampirRunSpeedMultiplier,
 			g_Config.trueDhampirJumpHeightMultiplier,
 			g_Config.trueDhampirJumpAnimationRate,
-			g_Config.trueDhampirGravityMultiplier);
+			g_Config.trueDhampirGravityMultiplier,
+			g_Config.trueDhampirAttackSpeedMultiplier);
 	}
 
 	// everything we patch or hook is code, so this is safe to call at startup, before Rayne exists
