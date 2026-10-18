@@ -826,7 +826,6 @@ public:
         config << "enableGamepadSupport = " << (ConfigDefaults::enableGamepadSupport ? "true" : "false") << std::endl;
         config << "; weapon wheel requires enableGamepadSupport = true" << std::endl;
         config << "enableWeaponWheel = " << (ConfigDefaults::enableWeaponWheel ? "true" : "false") << std::endl;
-        config << "; experimental: BR1-style Rayne (no knockdown, faster run, higher jump)" << std::endl;
         config << "enableTrueDhampir = " << (ConfigDefaults::enableTrueDhampir ? "true" : "false") << std::endl;
 
         config << std::endl;
@@ -909,15 +908,14 @@ public:
         config << std::endl;
 
         config << "[trueDhampir]" << std::endl;
-        config << "; Rayne is staggered instead of being knocked down" << std::endl;
         config << "knockdownImmunity = " << (ConfigDefaults::trueDhampirKnockdownImmunity ? "true" : "false") << std::endl;
-        config << "; 1.0 = normal. 1.62 matches BR1's run speed" << std::endl;
+        config << "; 1.0 = normal. 1.62 matches BR1 run speed" << std::endl;
         config << "runSpeedMultiplier = " << std::dec << ConfigDefaults::trueDhampirRunSpeedMultiplier << std::endl;
-        config << "; 1.0 = normal. 2.6 matches BR1's jump height (26 units vs 10)" << std::endl;
+        config << "; 1.0 = normal. 2.6 matches BR1 jump height" << std::endl;
         config << "jumpHeightMultiplier = " << std::dec << ConfigDefaults::trueDhampirJumpHeightMultiplier << std::endl;
         config << "; jump anim speed. below 1.0 = longer hang time. 0.57 matches BR1's air time" << std::endl;
         config << "jumpAnimationRate = " << std::dec << ConfigDefaults::trueDhampirJumpAnimationRate << std::endl;
-        config << "; airborne gravity = world gravity x this, 3.0 = normal. affects double jump roll, but not single jump" << std::endl;
+        config << "; airborne gravity. 3.0 = normal. affects double jump roll, but not single jump" << std::endl;
         config << "gravityMultiplier = " << std::dec << ConfigDefaults::trueDhampirGravityMultiplier << std::endl;
         config << "; 1.0 = normal speed" << std::endl;
         config << "attackSpeedMultiplier = " << std::dec << ConfigDefaults::trueDhampirAttackSpeedMultiplier << std::endl;
