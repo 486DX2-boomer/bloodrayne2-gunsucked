@@ -172,6 +172,7 @@
     <ClInclude Include="PodArchive.h" />
     <ClInclude Include="PlaySound.h" />
     <ClInclude Include="SuperSlowMode.h" />
+    <ClInclude Include="TrueDhampir.h" />
     <ClInclude Include="WeaponWheel.h" />
   </ItemGroup>
   <ItemGroup>

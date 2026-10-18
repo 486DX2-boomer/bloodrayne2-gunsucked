@@ -21,6 +21,7 @@
 #include "GamepadThumbstickInput.h"
 #include "Overlay.h"
 #include "WeaponWheel.h"
+#include "TrueDhampir.h"
 //#include "XInput.h"
 
 void setupConsole() {
@@ -125,6 +126,7 @@ DWORD WINAPI MainThread(LPVOID param) {
     std::optional<GunKeys> gunKeys;
     std::optional<Outfit> outfit;
     std::optional<CasualMode> casualMode;
+    std::optional<TrueDhampir> trueDhampir;
 
     std::optional<GamepadSupport> gamepad;
 
@@ -143,6 +145,9 @@ DWORD WINAPI MainThread(LPVOID param) {
     if (g_Config.enableCasualMode) {
         casualMode.emplace();
     }
+    if (g_Config.enableTrueDhampir) {
+        trueDhampir.emplace();
+    }
     if (g_Config.enableGamepadSupport) {
         gamepad.emplace();
     }
@@ -154,6 +159,14 @@ DWORD WINAPI MainThread(LPVOID param) {
         if (!gunBalance->installHook()) {
             DEBUG_LOG("Failed to install gun balance hook - aborting");
             return 1;
+        }
+    }
+
+    // True Dhampir only patches and hooks code, so it can go in right away like gun balance.
+    if (trueDhampir) {
+        trueDhampir->loadFromConfig();
+        if (!trueDhampir->installHooks()) {
+            DEBUG_LOG("Failed to install True Dhampir hooks - True Dhampir disabled");
         }
     }
 
