@@ -167,6 +167,8 @@ namespace ConfigDefaults {
     constexpr float cameraMaxSensitivityScale = 2.0f; // the maximum sensitivity can scale to
 
     constexpr float superSlowModeTimeFactor = 0.05f;
+
+    // weapon wheel
     constexpr float weaponWheelTimeFactor = 0.2f;
     constexpr int weaponWheelHoldThresholdMilliseconds = 200; // short trigger presses switch to next weapon, long presses activate wheel
     constexpr float weaponWheelTriggerThreshold = 0.25f; // how far right trigger must be pulled to activate, 0-1
@@ -334,6 +336,8 @@ public:
     float cameraMaxSensitivityScale;
 
     float superSlowModeTimeFactor;
+
+    // weapon wheel
     float weaponWheelTimeFactor;
     int weaponWheelHoldThresholdMilliseconds;
     float weaponWheelTriggerThreshold;
@@ -513,9 +517,11 @@ public:
         this->cameraMaxSensitivityScale = (float)reader.GetReal("tuningValues", "cameraMaxSensitivityScale", ConfigDefaults::cameraMaxSensitivityScale);
 
         this->superSlowModeTimeFactor = (float)reader.GetReal("tuningValues", "superSlowModeTimeFactor", ConfigDefaults::superSlowModeTimeFactor);
-        this->weaponWheelTimeFactor = (float)reader.GetReal("tuningValues", "weaponWheelTimeFactor", ConfigDefaults::weaponWheelTimeFactor);
-        this->weaponWheelHoldThresholdMilliseconds = (int)reader.GetInteger("tuningValues", "weaponWheelHoldThresholdMilliseconds", ConfigDefaults::weaponWheelHoldThresholdMilliseconds);
-        this->weaponWheelTriggerThreshold = (float)reader.GetReal("tuningValues", "weaponWheelTriggerThreshold", ConfigDefaults::weaponWheelTriggerThreshold);
+
+        // weapon wheel
+        this->weaponWheelTimeFactor = (float)reader.GetReal("weaponWheel", "weaponWheelTimeFactor", ConfigDefaults::weaponWheelTimeFactor);
+        this->weaponWheelHoldThresholdMilliseconds = (int)reader.GetInteger("weaponWheel", "weaponWheelHoldThresholdMilliseconds", ConfigDefaults::weaponWheelHoldThresholdMilliseconds);
+        this->weaponWheelTriggerThreshold = (float)reader.GetReal("weaponWheel", "weaponWheelTriggerThreshold", ConfigDefaults::weaponWheelTriggerThreshold);
 
         // casual mode
         this->casualModeHealthRegenCooldown = (float)reader.GetReal("casualMode", "healthRegenCooldown", ConfigDefaults::casualModeHealthRegenCooldown);
@@ -692,6 +698,8 @@ public:
         this->cameraMaxSensitivityScale = ConfigDefaults::cameraMaxSensitivityScale;
 
         this->superSlowModeTimeFactor = ConfigDefaults::superSlowModeTimeFactor;
+
+        // weapon wheel
         this->weaponWheelTimeFactor = ConfigDefaults::weaponWheelTimeFactor;
         this->weaponWheelHoldThresholdMilliseconds = ConfigDefaults::weaponWheelHoldThresholdMilliseconds;
         this->weaponWheelTriggerThreshold = ConfigDefaults::weaponWheelTriggerThreshold;
@@ -887,12 +895,13 @@ public:
         config << "; don't use negative values. weird stuff happens" << std::endl;
         config << "superSlowModeTimeFactor = " << std::dec  << ConfigDefaults::superSlowModeTimeFactor << std::endl;
 
+        config << std::endl;
+
+        config << "[weaponWheel]" << std::endl;
         config << "; slow mo time factor when weapon wheel is open" << std::endl;
         config << "weaponWheelTimeFactor = " << std::dec << ConfigDefaults::weaponWheelTimeFactor << std::endl;
-
         config << "; how long RT must be held (ms) to open the weapon wheel" << std::endl;
         config << "weaponWheelHoldThresholdMilliseconds = " << std::dec << ConfigDefaults::weaponWheelHoldThresholdMilliseconds << std::endl;
-
         config << "; how far RT must be pulled. 0.0 is unpulled, 1.0 is all the way down" << std::endl;
         config << "weaponWheelTriggerThreshold = " << std::dec << ConfigDefaults::weaponWheelTriggerThreshold << std::endl;
 
