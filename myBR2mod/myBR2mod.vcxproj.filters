@@ -39,6 +39,15 @@
     <ClInclude Include="NoHud.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Overlay.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PodArchive.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WeaponWheel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="GunBalance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -76,6 +85,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GamepadThumbstickInput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TrueDhampir.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

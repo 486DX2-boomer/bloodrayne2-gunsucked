@@ -19,6 +19,9 @@
 #include "GamepadSupport.h"
 #include "GamepadButtonInput.h"
 #include "GamepadThumbstickInput.h"
+#include "Overlay.h"
+#include "WeaponWheel.h"
+#include "TrueDhampir.h"
 //#include "XInput.h"
 
 void setupConsole() {
@@ -123,6 +126,7 @@ DWORD WINAPI MainThread(LPVOID param) {
     std::optional<GunKeys> gunKeys;
     std::optional<Outfit> outfit;
     std::optional<CasualMode> casualMode;
+    std::optional<TrueDhampir> trueDhampir;
 
     std::optional<GamepadSupport> gamepad;
 
@@ -141,6 +145,9 @@ DWORD WINAPI MainThread(LPVOID param) {
     if (g_Config.enableCasualMode) {
         casualMode.emplace();
     }
+    if (g_Config.enableTrueDhampir) {
+        trueDhampir.emplace();
+    }
     if (g_Config.enableGamepadSupport) {
         gamepad.emplace();
     }
@@ -152,6 +159,14 @@ DWORD WINAPI MainThread(LPVOID param) {
         if (!gunBalance->installHook()) {
             DEBUG_LOG("Failed to install gun balance hook - aborting");
             return 1;
+        }
+    }
+
+    // True Dhampir only patches and hooks code, so it can go in right away like gun balance.
+    if (trueDhampir) {
+        trueDhampir->loadFromConfig();
+        if (!trueDhampir->installHooks()) {
+            DEBUG_LOG("Failed to install True Dhampir hooks - True Dhampir disabled");
         }
     }
 
@@ -223,6 +238,23 @@ DWORD WINAPI MainThread(LPVOID param) {
     if (!noHud.installHook()) {
         DEBUG_LOG("Failed to install no hud hook - aborting");
         return 1;
+    }
+
+    // The D3D device is created before Rayne exists so overlay is safe to hook by now
+    std::optional<Overlay> overlay;
+    std::optional<WeaponWheel> weaponWheel;
+    if (gamepad && g_Config.enableWeaponWheel) {
+        overlay.emplace();
+        overlay->checkSafeToHook();
+        if (!overlay->loadImages()) {
+            DEBUG_LOG("Failed to load overlay images - weapon wheel disabled");
+        }
+        else if (!overlay->installHook()) {
+            DEBUG_LOG("Failed to install overlay hook - weapon wheel disabled");
+        }
+        else {
+            weaponWheel.emplace(&gamepad.value(), &overlay.value());
+        }
     }
 
     // capture NoHud for photomode
@@ -439,6 +471,10 @@ DWORD WINAPI MainThread(LPVOID param) {
 
         if (gamepad) {
             gamepad->update();
+        }
+
+        if (weaponWheel) {
+            weaponWheel->update();
         }
         //gamepad.logAnalogState();
 

@@ -166,10 +166,14 @@
     <ClInclude Include="MouseInput.h" />
     <ClInclude Include="NoHud.h" />
     <ClInclude Include="Outfit.h" />
+    <ClInclude Include="Overlay.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PhotoModeCamera.h" />
+    <ClInclude Include="PodArchive.h" />
     <ClInclude Include="PlaySound.h" />
     <ClInclude Include="SuperSlowMode.h" />
+    <ClInclude Include="TrueDhampir.h" />
+    <ClInclude Include="WeaponWheel.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />

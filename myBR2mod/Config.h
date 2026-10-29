@@ -98,6 +98,10 @@ namespace Rayne2 {
     // left and right triggers, in-memory, are between right thumb X and right thumb Y for some reason.
     float* const GamepadTriggerLeft = (float*)0x007e10d4;
     float* const GamepadTriggerRight = (float*)0x007e10d8;
+
+    // rendering stuff
+    // IDirect3DDevice8* written by CreateDevice in FUN_00490690. null until the renderer is initialized
+    void** const D3DDevice = (void**)0x05D74620;
 }
 
 namespace Utilities {
@@ -120,6 +124,8 @@ namespace ConfigDefaults {
     constexpr bool enableOutfitMods = true;
     constexpr bool enableCasualMode = false;
     constexpr bool enableGamepadSupport = true;
+    constexpr bool enableWeaponWheel = true; // requires gamepadSupport to be on
+    constexpr bool enableTrueDhampir = false;
 
     // camera keybinds - position
     constexpr int cameraDecrementXKey = VK_OEM_4; // [
@@ -162,10 +168,25 @@ namespace ConfigDefaults {
 
     constexpr float superSlowModeTimeFactor = 0.05f;
 
+    // weapon wheel
+    constexpr float weaponWheelTimeFactor = 0.2f;
+    constexpr int weaponWheelHoldThresholdMilliseconds = 100; // short trigger presses switch to next weapon, long presses activate wheel. but, at 100 ms, short presses usually don't register
+    constexpr float weaponWheelTriggerThreshold = 0.05f; // how far right trigger must be pulled to activate, 0-1
+
     // casual mode
     constexpr float casualModeHealthRegenCooldown = 10.0f;
     constexpr float casualModeHealthRegenRate = 100.0f;
     constexpr bool casualModePlaySoundOnRegen = true;
+
+    // true dhampir mode
+    // BR1 reference: run 27.7 u/s (BR2 stock 17.1), jump ~26 units (BR2 stock 10) with 1.31s air time (BR2 stock ~0.75s)
+    constexpr bool trueDhampirKnockdownImmunity = true;
+    constexpr float trueDhampirRunSpeedMultiplier = 1.62f; // 27.7 / 17.1, matches BR1
+    // jump and gravity defaults tuned by feel
+    constexpr float trueDhampirJumpHeightMultiplier = 1.8f; // 2.6 matches BR1 but leaves the camera
+    constexpr float trueDhampirJumpAnimationRate = 0.75f; // below 1 = longer hang time, same height. 0.57 matches BR1
+    constexpr float trueDhampirGravityMultiplier = 2.6f; // airborne gravity = world gravity (32) x this. 3.0 is stock
+    constexpr float trueDhampirAttackSpeedMultiplier = 1.8f; // no BR1 target, tuned by feel
 
     // behaviors
     constexpr bool photoModeDisableHudOnEnter = true;
@@ -272,6 +293,8 @@ public:
     bool enableOutfitMods;
     bool enableCasualMode;
     bool enableGamepadSupport;
+    bool enableWeaponWheel;
+    bool enableTrueDhampir;
 
     // camera controls
     int cameraDecrementXKey;
@@ -314,10 +337,23 @@ public:
 
     float superSlowModeTimeFactor;
 
+    // weapon wheel
+    float weaponWheelTimeFactor;
+    int weaponWheelHoldThresholdMilliseconds;
+    float weaponWheelTriggerThreshold;
+
     // casual mode
     float casualModeHealthRegenCooldown;
     float casualModeHealthRegenRate;
     bool casualModePlaySoundOnRegen;
+
+    // true dhampir mode
+    bool trueDhampirKnockdownImmunity;
+    float trueDhampirRunSpeedMultiplier;
+    float trueDhampirJumpHeightMultiplier;
+    float trueDhampirJumpAnimationRate;
+    float trueDhampirGravityMultiplier;
+    float trueDhampirAttackSpeedMultiplier;
 
     // behaviors
     bool photoModeDisableHudOnEnter;
@@ -439,6 +475,8 @@ public:
         this->enableOutfitMods = reader.GetBoolean("features", "enableOutfitMods", ConfigDefaults::enableOutfitMods);
         this->enableCasualMode = reader.GetBoolean("features", "enableCasualMode", ConfigDefaults::enableCasualMode);
         this->enableGamepadSupport = reader.GetBoolean("features", "enableGamepadSupport", ConfigDefaults::enableGamepadSupport);
+        this->enableWeaponWheel = reader.GetBoolean("features", "enableWeaponWheel", ConfigDefaults::enableWeaponWheel);
+        this->enableTrueDhampir = reader.GetBoolean("features", "enableTrueDhampir", ConfigDefaults::enableTrueDhampir);
 
         // photo mode
         this->cameraDecrementXKey = (int)reader.GetInteger("photoMode", "cameraDecrementXKey", ConfigDefaults::cameraDecrementXKey);
@@ -480,10 +518,23 @@ public:
 
         this->superSlowModeTimeFactor = (float)reader.GetReal("tuningValues", "superSlowModeTimeFactor", ConfigDefaults::superSlowModeTimeFactor);
 
+        // weapon wheel
+        this->weaponWheelTimeFactor = (float)reader.GetReal("weaponWheel", "weaponWheelTimeFactor", ConfigDefaults::weaponWheelTimeFactor);
+        this->weaponWheelHoldThresholdMilliseconds = (int)reader.GetInteger("weaponWheel", "weaponWheelHoldThresholdMilliseconds", ConfigDefaults::weaponWheelHoldThresholdMilliseconds);
+        this->weaponWheelTriggerThreshold = (float)reader.GetReal("weaponWheel", "weaponWheelTriggerThreshold", ConfigDefaults::weaponWheelTriggerThreshold);
+
         // casual mode
         this->casualModeHealthRegenCooldown = (float)reader.GetReal("casualMode", "healthRegenCooldown", ConfigDefaults::casualModeHealthRegenCooldown);
         this->casualModeHealthRegenRate = (float)reader.GetReal("casualMode", "healthRegenRate", ConfigDefaults::casualModeHealthRegenRate);
         this->casualModePlaySoundOnRegen = (bool)reader.GetBoolean("casualMode", "playSoundOnRegen", ConfigDefaults::casualModePlaySoundOnRegen);
+
+        // true dhampir mode
+        this->trueDhampirKnockdownImmunity = reader.GetBoolean("trueDhampir", "knockdownImmunity", ConfigDefaults::trueDhampirKnockdownImmunity);
+        this->trueDhampirRunSpeedMultiplier = (float)reader.GetReal("trueDhampir", "runSpeedMultiplier", ConfigDefaults::trueDhampirRunSpeedMultiplier);
+        this->trueDhampirJumpHeightMultiplier = (float)reader.GetReal("trueDhampir", "jumpHeightMultiplier", ConfigDefaults::trueDhampirJumpHeightMultiplier);
+        this->trueDhampirJumpAnimationRate = (float)reader.GetReal("trueDhampir", "jumpAnimationRate", ConfigDefaults::trueDhampirJumpAnimationRate);
+        this->trueDhampirGravityMultiplier = (float)reader.GetReal("trueDhampir", "gravityMultiplier", ConfigDefaults::trueDhampirGravityMultiplier);
+        this->trueDhampirAttackSpeedMultiplier = (float)reader.GetReal("trueDhampir", "attackSpeedMultiplier", ConfigDefaults::trueDhampirAttackSpeedMultiplier);
 
         // behaviors
         this->photoModeDisableHudOnEnter = reader.GetBoolean("behaviors", "photoModeDisableHudOnEnter", ConfigDefaults::photoModeDisableHudOnEnter);
@@ -605,6 +656,8 @@ public:
         this->enableOutfitMods = ConfigDefaults::enableOutfitMods;
         this->enableCasualMode = ConfigDefaults::enableCasualMode;
         this->enableGamepadSupport = ConfigDefaults::enableGamepadSupport;
+        this->enableWeaponWheel = ConfigDefaults::enableWeaponWheel;
+        this->enableTrueDhampir = ConfigDefaults::enableTrueDhampir;
 
         // camera keybinds
         this->cameraDecrementXKey = ConfigDefaults::cameraDecrementXKey;
@@ -646,10 +699,23 @@ public:
 
         this->superSlowModeTimeFactor = ConfigDefaults::superSlowModeTimeFactor;
 
+        // weapon wheel
+        this->weaponWheelTimeFactor = ConfigDefaults::weaponWheelTimeFactor;
+        this->weaponWheelHoldThresholdMilliseconds = ConfigDefaults::weaponWheelHoldThresholdMilliseconds;
+        this->weaponWheelTriggerThreshold = ConfigDefaults::weaponWheelTriggerThreshold;
+
         // casual mode
         this->casualModeHealthRegenCooldown = ConfigDefaults::casualModeHealthRegenCooldown;
         this->casualModeHealthRegenRate = ConfigDefaults::casualModeHealthRegenRate;
         this->casualModePlaySoundOnRegen = ConfigDefaults::casualModePlaySoundOnRegen;
+
+        // true dhampir mode
+        this->trueDhampirKnockdownImmunity = ConfigDefaults::trueDhampirKnockdownImmunity;
+        this->trueDhampirRunSpeedMultiplier = ConfigDefaults::trueDhampirRunSpeedMultiplier;
+        this->trueDhampirJumpHeightMultiplier = ConfigDefaults::trueDhampirJumpHeightMultiplier;
+        this->trueDhampirJumpAnimationRate = ConfigDefaults::trueDhampirJumpAnimationRate;
+        this->trueDhampirGravityMultiplier = ConfigDefaults::trueDhampirGravityMultiplier;
+        this->trueDhampirAttackSpeedMultiplier = ConfigDefaults::trueDhampirAttackSpeedMultiplier;
 
         // behaviors
         this->photoModeDisableHudOnEnter = ConfigDefaults::photoModeDisableHudOnEnter;
@@ -766,6 +832,9 @@ public:
         config << "enableOutfitMods = " << (ConfigDefaults::enableOutfitMods ? "true" : "false") << std::endl;
         config << "enableCasualMode = " << (ConfigDefaults::enableCasualMode ? "true" : "false") << std::endl;
         config << "enableGamepadSupport = " << (ConfigDefaults::enableGamepadSupport ? "true" : "false") << std::endl;
+        config << "; weapon wheel requires enableGamepadSupport = true" << std::endl;
+        config << "enableWeaponWheel = " << (ConfigDefaults::enableWeaponWheel ? "true" : "false") << std::endl;
+        config << "enableTrueDhampir = " << (ConfigDefaults::enableTrueDhampir ? "true" : "false") << std::endl;
 
         config << std::endl;
 
@@ -828,12 +897,36 @@ public:
 
         config << std::endl;
 
+        config << "[weaponWheel]" << std::endl;
+        config << "; slow mo time factor when weapon wheel open" << std::endl;
+        config << "weaponWheelTimeFactor = " << std::dec << ConfigDefaults::weaponWheelTimeFactor << std::endl;
+        config << "; how long RT must be held (ms)" << std::endl;
+        config << "weaponWheelHoldThresholdMilliseconds = " << std::dec << ConfigDefaults::weaponWheelHoldThresholdMilliseconds << std::endl;
+        config << "; how far RT must be pulled. use the smallest value without deadzone problems" << std::endl;
+        config << "weaponWheelTriggerThreshold = " << std::dec << ConfigDefaults::weaponWheelTriggerThreshold << std::endl;
+
+        config << std::endl;
+
         config << "[casualMode]" << std::endl;
         config << "; how long after taking damage health regen begins, in seconds" << std::endl;
         config << "healthRegenCooldown = " << std::dec << ConfigDefaults::casualModeHealthRegenCooldown << std::endl;
         config << "; hp restored per second" << std::endl;
         config << "healthRegenRate = " << std::dec << ConfigDefaults::casualModeHealthRegenRate << std::endl;
         config << "playSoundOnRegen = " << (ConfigDefaults::casualModePlaySoundOnRegen ? "true" : "false") << std::endl;
+
+        config << std::endl;
+
+        config << "[trueDhampir]" << std::endl;
+        config << "knockdownImmunity = " << (ConfigDefaults::trueDhampirKnockdownImmunity ? "true" : "false") << std::endl;
+        config << "; 1.62 matches BR1 run speed" << std::endl;
+        config << "runSpeedMultiplier = " << std::dec << ConfigDefaults::trueDhampirRunSpeedMultiplier << std::endl;
+        config << "; 2.6 matches BR1 jump height; 1.8 recommended" << std::endl;
+        config << "jumpHeightMultiplier = " << std::dec << ConfigDefaults::trueDhampirJumpHeightMultiplier << std::endl;
+        config << "; below 1.0 = longer hang time. 0.57 matches BR1's air time" << std::endl;
+        config << "jumpAnimationRate = " << std::dec << ConfigDefaults::trueDhampirJumpAnimationRate << std::endl;
+        config << "; airborne gravity. 3.0 = normal. affects double jump roll, but not single jump" << std::endl;
+        config << "gravityMultiplier = " << std::dec << ConfigDefaults::trueDhampirGravityMultiplier << std::endl;
+        config << "attackSpeedMultiplier = " << std::dec << ConfigDefaults::trueDhampirAttackSpeedMultiplier << std::endl;
 
         config << std::endl;
 
