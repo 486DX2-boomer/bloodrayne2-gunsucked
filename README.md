@@ -5,12 +5,20 @@ Gunsucked Mod is a rebalance of Rayne's guns that increases the damage and fire 
 Aside from the weapon rebalance, other features include:
 
 - Photo mode
+- Weapon Wheel (new in v1.2)
 - Hotkeys to equip weapon modes
 - Mousewheel down equips previous weapon
 - Super slow mode
 - No Hud toggle
 - Load outfit mods from a mods folder (no POD packing necessary)
-- Casual Mode (New in v1.1!)
+- Casual Mode
+- True Dhampir Mode (new in v1.2)
+- Most features are configurable. Check out gunsucked.ini for options
+
+## Changes in v1.2
+
+- Feature: Weapon Wheel. With gamepad enabled, use right trigger to bring up a radial weapon selection wheel, use the right stick to select a gun mode, then release right trigger to equip it
+- Feature: True Dhampir Mode. This is a cheat mode that attempts to make Rayne feel like she did in BR1 with faster attack speed, movement speed, and jump height, and also makes her immune to knockdown (but not stagger).
 
 ## Changes in v1.1
 
