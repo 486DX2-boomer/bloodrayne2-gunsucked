@@ -125,7 +125,7 @@ namespace ConfigDefaults {
     constexpr bool enableCasualMode = false;
     constexpr bool enableGamepadSupport = true;
     constexpr bool enableWeaponWheel = true; // requires gamepadSupport to be on
-    constexpr bool enableTrueDhampir = false; // experimental
+    constexpr bool enableTrueDhampir = false;
 
     // camera keybinds - position
     constexpr int cameraDecrementXKey = VK_OEM_4; // [
@@ -170,8 +170,8 @@ namespace ConfigDefaults {
 
     // weapon wheel
     constexpr float weaponWheelTimeFactor = 0.2f;
-    constexpr int weaponWheelHoldThresholdMilliseconds = 200; // short trigger presses switch to next weapon, long presses activate wheel
-    constexpr float weaponWheelTriggerThreshold = 0.25f; // how far right trigger must be pulled to activate, 0-1
+    constexpr int weaponWheelHoldThresholdMilliseconds = 100; // short trigger presses switch to next weapon, long presses activate wheel. but, at 100 ms, short presses usually don't register
+    constexpr float weaponWheelTriggerThreshold = 0.05f; // how far right trigger must be pulled to activate, 0-1
 
     // casual mode
     constexpr float casualModeHealthRegenCooldown = 10.0f;
@@ -182,7 +182,7 @@ namespace ConfigDefaults {
     // BR1 reference: run 27.7 u/s (BR2 stock 17.1), jump ~26 units (BR2 stock 10) with 1.31s air time (BR2 stock ~0.75s)
     constexpr bool trueDhampirKnockdownImmunity = true;
     constexpr float trueDhampirRunSpeedMultiplier = 1.62f; // 27.7 / 17.1, matches BR1
-    // jump and gravity defaults tuned by feel in game (2026-10-18)
+    // jump and gravity defaults tuned by feel
     constexpr float trueDhampirJumpHeightMultiplier = 1.8f; // 2.6 matches BR1 but leaves the camera
     constexpr float trueDhampirJumpAnimationRate = 0.75f; // below 1 = longer hang time, same height. 0.57 matches BR1
     constexpr float trueDhampirGravityMultiplier = 2.6f; // airborne gravity = world gravity (32) x this. 3.0 is stock
@@ -898,11 +898,11 @@ public:
         config << std::endl;
 
         config << "[weaponWheel]" << std::endl;
-        config << "; slow mo time factor when weapon wheel is open" << std::endl;
+        config << "; slow mo time factor when weapon wheel open" << std::endl;
         config << "weaponWheelTimeFactor = " << std::dec << ConfigDefaults::weaponWheelTimeFactor << std::endl;
-        config << "; how long RT must be held (ms) to open the weapon wheel" << std::endl;
+        config << "; how long RT must be held (ms)" << std::endl;
         config << "weaponWheelHoldThresholdMilliseconds = " << std::dec << ConfigDefaults::weaponWheelHoldThresholdMilliseconds << std::endl;
-        config << "; how far RT must be pulled. 0.0 is unpulled, 1.0 is all the way down" << std::endl;
+        config << "; how far RT must be pulled. use the smallest value without deadzone problems" << std::endl;
         config << "weaponWheelTriggerThreshold = " << std::dec << ConfigDefaults::weaponWheelTriggerThreshold << std::endl;
 
         config << std::endl;
@@ -918,15 +918,14 @@ public:
 
         config << "[trueDhampir]" << std::endl;
         config << "knockdownImmunity = " << (ConfigDefaults::trueDhampirKnockdownImmunity ? "true" : "false") << std::endl;
-        config << "; 1.0 = normal. 1.62 matches BR1 run speed" << std::endl;
+        config << "; 1.62 matches BR1 run speed" << std::endl;
         config << "runSpeedMultiplier = " << std::dec << ConfigDefaults::trueDhampirRunSpeedMultiplier << std::endl;
-        config << "; 1.0 = normal. 2.6 matches BR1 jump height" << std::endl;
+        config << "; 2.6 matches BR1 jump height; 1.8 recommended" << std::endl;
         config << "jumpHeightMultiplier = " << std::dec << ConfigDefaults::trueDhampirJumpHeightMultiplier << std::endl;
-        config << "; jump anim speed. below 1.0 = longer hang time. 0.57 matches BR1's air time" << std::endl;
+        config << "; below 1.0 = longer hang time. 0.57 matches BR1's air time" << std::endl;
         config << "jumpAnimationRate = " << std::dec << ConfigDefaults::trueDhampirJumpAnimationRate << std::endl;
         config << "; airborne gravity. 3.0 = normal. affects double jump roll, but not single jump" << std::endl;
         config << "gravityMultiplier = " << std::dec << ConfigDefaults::trueDhampirGravityMultiplier << std::endl;
-        config << "; 1.0 = normal speed" << std::endl;
         config << "attackSpeedMultiplier = " << std::dec << ConfigDefaults::trueDhampirAttackSpeedMultiplier << std::endl;
 
         config << std::endl;
